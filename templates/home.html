@@ -61,6 +61,10 @@
             <div class="deck">
                 <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
                 <div class="count">{{ deck[2] }} cards</div>
+
+                <p>
+                    <a href="/rename-deck/{{ deck[0] }}">Rename</a>
+                </p>
             </div>
         {% endfor %}
     </div>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rename Deck</title>
+</head>
+<body>
+    <h1>Rename Deck</h1>
+
+    {% if deck %}
+        <form action="/rename-deck/{{ deck[0] }}" method="post">
+            <label>New deck name:</label>
+            <input type="text" name="name" value="{{ deck[1] }}" required>
+
+            <button type="submit">Rename Deck</button>
+        </form>
+    {% else %}
+        <p>Deck not found.</p>
+    {% endif %}
+
+    <p><a href="/">Back to My Decks</a></p>
+</body>
+</html>

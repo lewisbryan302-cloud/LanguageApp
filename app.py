@@ -198,3 +198,46 @@ def add_deck(name: str = Form(...)):
     conn.close()
 
     return RedirectResponse("/", status_code=303)
+
+# --- Mechanism to rename decks ---
+@app.get("/rename-deck/{deck_id}")
+def rename_deck_page(request: Request, deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+
+    deck = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return templates.TemplateResponse(
+        request,
+        "rename_deck.html",
+        {
+            "deck": deck
+        }
+    )
+
+
+@app.post("/rename-deck/{deck_id}")
+def rename_deck(deck_id: int, name: str = Form(...)):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE decks
+        SET name = %s
+        WHERE id = %s;
+    """, (name, deck_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse("/", status_code=303)
