@@ -159,7 +159,8 @@ def add_card_page(request: Request):
 def add_card(
     deck_id: int = Form(...),
     front: str = Form(...),
-    back: str = Form(...)
+    back: str = Form(...),
+    add_reverse: str | None = Form(None)
 ):
     conn = get_connection()
     cursor = conn.cursor()
@@ -168,6 +169,12 @@ def add_card(
         INSERT INTO flashcards (deck_id, front, back)
         VALUES (%s, %s, %s);
     """, (deck_id, front, back))
+
+    if add_reverse == "yes":
+        cursor.execute("""
+            INSERT INTO flashcards (deck_id, front, back)
+            VALUES (%s, %s, %s);
+        """, (deck_id, back, front))
 
     conn.commit()
     cursor.close()
