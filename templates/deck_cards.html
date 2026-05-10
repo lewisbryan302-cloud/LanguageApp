@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deck Cards</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1100px;
+            margin: 60px auto;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .top-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #222;
+            color: white;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .empty {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    {% if deck %}
+        <h1>{{ deck[1] }}</h1>
+
+        <div class="top-links">
+            <a href="/">My Decks</a> |
+            <a href="/review/{{ deck[0] }}">Review Deck</a> |
+            <a href="/add-card">Add Card</a>
+        </div>
+
+        {% if cards %}
+            <table>
+                <tr>
+                    <th>Front</th>
+                    <th>Back</th>
+                    <th>Seen</th>
+                    <th>Correct</th>
+                    <th>Wrong</th>
+                    <th>Last Reviewed</th>
+                    <th>Next Review</th>
+                </tr>
+
+                {% for card in cards %}
+                    <tr>
+                        <td>{{ card[1] }}</td>
+                        <td>{{ card[2] }}</td>
+                        <td>{{ card[3] }}</td>
+                        <td>{{ card[4] }}</td>
+                        <td>{{ card[5] }}</td>
+                        <td>{{ card[6] }}</td>
+                        <td>{{ card[7] }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <div class="empty">
+                <p>No cards in this deck yet.</p>
+                <p><a href="/add-card">Add your first card</a></p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty">
+            <p>Deck not found.</p>
+            <p><a href="/">Back to My Decks</a></p>
+        </div>
+    {% endif %}
+</body>
+</html>

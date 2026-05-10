@@ -27,6 +27,7 @@
             border-radius: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             text-align: center;
+            position: relative;
         }
 
         .deck a {
@@ -45,6 +46,52 @@
             text-align: center;
             margin-bottom: 30px;
         }
+
+        .menu-container {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 32px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            padding: 8px;
+            min-width: 100px;
+            z-index: 10;
+        }
+
+        .menu a,
+        .menu button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 14px;
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .menu a:hover,
+        .menu button:hover {
+            background: #f0f0f0;
+        }
     </style>
 </head>
 
@@ -59,14 +106,41 @@
     <div class="deck-grid">
         {% for deck in decks %}
             <div class="deck">
+                <div class="menu-container">
+                    <button class="menu-button" onclick="toggleMenu('{{ deck[0] }}')">⋮</button>
+
+                    <div id="menu-{{ deck[0] }}" class="menu">
+                        <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
+                        <a href="/rename-deck/{{ deck[0] }}">Rename</a>
+
+                        <form action="/delete-deck/{{ deck[0] }}" method="post">
+                            <button type="submit" onclick="return confirm('Delete this deck and all its cards?');">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
                 <div class="count">{{ deck[2] }} cards</div>
-
-                <p>
-                    <a href="/rename-deck/{{ deck[0] }}">Rename</a>
-                </p>
             </div>
         {% endfor %}
     </div>
+
+    <script>
+        function toggleMenu(deckId) {
+            const menu = document.getElementById("menu-" + deckId);
+
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                document.querySelectorAll(".menu").forEach(m => {
+                    m.style.display = "none";
+                });
+
+                menu.style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>

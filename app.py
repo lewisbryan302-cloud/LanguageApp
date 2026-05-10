@@ -241,3 +241,66 @@ def rename_deck(deck_id: int, name: str = Form(...)):
     conn.close()
 
     return RedirectResponse("/", status_code=303)
+
+# --- Mechanism to delete decks ---
+@app.post("/delete-deck/{deck_id}")
+def delete_deck(deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM flashcards
+        WHERE deck_id = %s;
+    """, (deck_id,))
+
+    cursor.execute("""
+        DELETE FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse("/", status_code=303)
+
+# --- Mechanism to view flashcards in a deck ---
+@app.get("/deck/{deck_id}/cards")
+def view_deck_cards(request: Request, deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+    deck = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT 
+            id,
+            front,
+            back,
+            times_seen,
+            times_correct,
+            times_wrong,
+            last_reviewed,
+            next_review
+        FROM flashcards
+        WHERE deck_id = %s
+        ORDER BY id;
+    """, (deck_id,))
+    cards = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return templates.TemplateResponse(
+        request,
+        "deck_cards.html",
+        {
+            "deck": deck,
+            "cards": cards
+        }
+    )
