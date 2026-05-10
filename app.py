@@ -447,3 +447,33 @@ def edit_card(
     conn.close()
 
     return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+# --- Mechanism to reset SRS data for selected cards ---
+@app.post("/cards/reset-srs-selected")
+def reset_srs_selected_cards(
+    deck_id: int = Form(...),
+    card_ids: Optional[list[int]] = Form(None)
+):
+    if not card_ids:
+        return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE flashcards
+        SET
+            times_seen = 0,
+            times_correct = 0,
+            times_wrong = 0,
+            last_reviewed = NULL,
+            next_review = NOW()
+        WHERE id = ANY(%s)
+        AND deck_id = %s;
+    """, (card_ids, deck_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
