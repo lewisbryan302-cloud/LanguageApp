@@ -352,3 +352,49 @@ def delete_selected_cards(
     conn.close()
 
     return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+# --- Mechanism to add reverse of selected cards ---
+@app.post("/cards/add-reverse-selected")
+def add_reverse_selected_cards(
+    deck_id: int = Form(...),
+    card_ids: Optional[list[int]] = Form(None)
+):
+    if not card_ids:
+        return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    for card_id in card_ids:
+        cursor.execute("""
+            SELECT front, back
+            FROM flashcards
+            WHERE id = %s AND deck_id = %s;
+        """, (card_id, deck_id))
+
+        card = cursor.fetchone()
+
+        if card:
+            front, back = card
+
+            cursor.execute("""
+                SELECT id
+                FROM flashcards
+                WHERE deck_id = %s
+                AND front = %s
+                AND back = %s;
+            """, (deck_id, back, front))
+
+            reverse_exists = cursor.fetchone()
+
+            if not reverse_exists:
+                cursor.execute("""
+                    INSERT INTO flashcards (deck_id, front, back)
+                    VALUES (%s, %s, %s);
+                """, (deck_id, back, front))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)

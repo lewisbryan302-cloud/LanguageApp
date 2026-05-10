@@ -65,12 +65,21 @@
 
         {% if cards %}
             <table>
-                <form action="/cards/delete-selected" method="post">
+                <form method="post">
                     <input type="hidden" name="deck_id" value="{{ deck[0] }}">
 
-                    <button type="submit" onclick="return confirm('Delete selected cards?');">
+                    <button type="submit" formaction="/cards/delete-selected" onclick="return confirm('Delete selected cards?');">
                         Delete Selected
                     </button>
+
+                    <button type="submit" formaction="/cards/add-reverse-selected">
+                        Add Reverse for Selected
+                    </button>
+
+                    <label style="margin-left: 20px;">
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                        Select All
+                    </label>
 
                     <br><br>
 
@@ -90,7 +99,7 @@
                         {% for card in cards %}
                             <tr>
                                 <td>
-                                    <input type="checkbox" name="card_ids" value="{{ card[0] }}">
+                                    <input type="checkbox" class="card-checkbox" name="card_ids" value="{{ card[0] }}">
                                 </td>
 
                                 <td>{{ card[1] }}</td>
@@ -127,5 +136,16 @@
             <p><a href="/">Back to My Decks</a></p>
         </div>
     {% endif %}
+
+    <script>
+    function toggleSelectAll() {
+        const selectAll = document.getElementById("selectAll");
+        const checkboxes = document.querySelectorAll(".card-checkbox");
+
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+    }
+</script>
 </body>
 </html>
