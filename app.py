@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from database import get_connection
+from typing import Optional
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -304,3 +305,43 @@ def view_deck_cards(request: Request, deck_id: int):
             "cards": cards
         }
     )
+
+# --- Mechanism to delete single flashcards ---
+@app.post("/card/{card_id}/delete")
+def delete_single_card(card_id: int, deck_id: int = Form(...)):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM flashcards
+        WHERE id = %s;
+    """, (card_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+
+@app.post("/cards/delete-selected")
+def delete_selected_cards(
+    deck_id: int = Form(...),
+    card_ids: Optional[list[int]] = Form(None)
+):
+    if not card_ids:
+        return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM flashcards
+        WHERE id = ANY(%s);
+    """, (card_ids,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)

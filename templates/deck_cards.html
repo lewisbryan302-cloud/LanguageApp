@@ -65,27 +65,55 @@
 
         {% if cards %}
             <table>
-                <tr>
-                    <th>Front</th>
-                    <th>Back</th>
-                    <th>Seen</th>
-                    <th>Correct</th>
-                    <th>Wrong</th>
-                    <th>Last Reviewed</th>
-                    <th>Next Review</th>
-                </tr>
+                <form action="/cards/delete-selected" method="post">
+                    <input type="hidden" name="deck_id" value="{{ deck[0] }}">
 
-                {% for card in cards %}
-                    <tr>
-                        <td>{{ card[1] }}</td>
-                        <td>{{ card[2] }}</td>
-                        <td>{{ card[3] }}</td>
-                        <td>{{ card[4] }}</td>
-                        <td>{{ card[5] }}</td>
-                        <td>{{ card[6] }}</td>
-                        <td>{{ card[7] }}</td>
-                    </tr>
-                {% endfor %}
+                    <button type="submit" onclick="return confirm('Delete selected cards?');">
+                        Delete Selected
+                    </button>
+
+                    <br><br>
+
+                    <table>
+                        <tr>
+                            <th>Select</th>
+                            <th>Front</th>
+                            <th>Back</th>
+                            <th>Seen</th>
+                            <th>Correct</th>
+                            <th>Wrong</th>
+                            <th>Last Reviewed</th>
+                            <th>Next Review</th>
+                            <th>Delete</th>
+                        </tr>
+
+                        {% for card in cards %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="card_ids" value="{{ card[0] }}">
+                                </td>
+
+                                <td>{{ card[1] }}</td>
+                                <td>{{ card[2] }}</td>
+                                <td>{{ card[3] }}</td>
+                                <td>{{ card[4] }}</td>
+                                <td>{{ card[5] }}</td>
+                                <td>{{ card[6] }}</td>
+                                <td>{{ card[7] }}</td>
+
+                                <td>
+                                    <button
+                                        type="submit"
+                                        formaction="/card/{{ card[0] }}/delete"
+                                        onclick="return confirm('Delete this card?');"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </form>
             </table>
         {% else %}
             <div class="empty">
