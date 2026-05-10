@@ -93,6 +93,7 @@
                             <th>Wrong</th>
                             <th>Last Reviewed</th>
                             <th>Next Review</th>
+                            <th>Edit</th>
                             <th>Delete</th>
                         </tr>
 
@@ -109,6 +110,10 @@
                                 <td>{{ card[5] }}</td>
                                 <td>{{ card[6] }}</td>
                                 <td>{{ card[7] }}</td>
+
+                                <td>
+                                    <a href="/card/{{ card[0] }}/edit">Edit</a>
+                                </td>
 
                                 <td>
                                     <button

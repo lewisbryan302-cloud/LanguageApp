@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Card</title>
+</head>
+<body>
+    <h1>Edit Card</h1>
+
+    {% if card %}
+        <form action="/card/{{ card[0] }}/edit" method="post">
+            <input type="hidden" name="deck_id" value="{{ card[1] }}">
+
+            <label>Front:</label>
+            <input type="text" name="front" value="{{ card[2] }}" required>
+
+            <br><br>
+
+            <label>Back:</label>
+            <input type="text" name="back" value="{{ card[3] }}" required>
+
+            <br><br>
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <p><a href="/deck/{{ card[1] }}/cards">Back to View Cards</a></p>
+    {% else %}
+        <p>Card not found.</p>
+        <p><a href="/">Back to My Decks</a></p>
+    {% endif %}
+</body>
+</html>

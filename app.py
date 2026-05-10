@@ -398,3 +398,52 @@ def add_reverse_selected_cards(
     conn.close()
 
     return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+# --- Mechanism to edit flashcard content ---
+@app.get("/card/{card_id}/edit")
+def edit_card_page(request: Request, card_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, deck_id, front, back
+        FROM flashcards
+        WHERE id = %s;
+    """, (card_id,))
+
+    card = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return templates.TemplateResponse(
+        request,
+        "edit_card.html",
+        {
+            "card": card
+        }
+    )
+
+
+@app.post("/card/{card_id}/edit")
+def edit_card(
+    card_id: int,
+    deck_id: int = Form(...),
+    front: str = Form(...),
+    back: str = Form(...)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE flashcards
+        SET front = %s,
+            back = %s
+        WHERE id = %s;
+    """, (front, back, card_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
