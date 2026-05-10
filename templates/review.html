@@ -50,6 +50,11 @@
 
     <h1>Flashcard Review</h1>
 
+    <p>
+        <a href="/">My Decks</a> |
+        <a href="/add-card">Add Card</a>
+    </p>
+
     {% if card %}
         <div class="card">
             <div class="front">{{ card[1] }}</div>
@@ -62,6 +67,7 @@
 
             <form id="ratings" action="/answer" method="post" style="display: none;">
                 <input type="hidden" name="card_id" value="{{ card[0] }}">
+                <input type="hidden" name="deck_id" value="{{ deck_id }}">
 
                 <button name="rating" value="0">Forgot</button>
                 <button name="rating" value="1">Hard</button>

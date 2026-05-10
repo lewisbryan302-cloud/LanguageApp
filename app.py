@@ -32,22 +32,48 @@ def db_test():
     return {"database": "connected", "result": result[0]}
 
 @app.get("/")
-def home():
-    return RedirectResponse("/review")
-
-# --- Mechanism to review flashcards ---
-@app.get("/review")
-def review_page(request: Request):
+def home(request: Request):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id, front, back
-        FROM flashcards
-        WHERE next_review <= NOW()
-        ORDER BY times_wrong DESC, last_reviewed ASC NULLS FIRST
-        LIMIT 1;
+        SELECT 
+            decks.id,
+            decks.name,
+            COUNT(flashcards.id) AS total_cards
+        FROM decks
+        LEFT JOIN flashcards ON decks.id = flashcards.deck_id
+        GROUP BY decks.id, decks.name
+        ORDER BY decks.id;
     """)
+
+    decks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {
+            "decks": decks
+        }
+    )
+
+# --- Mechanism to review flashcards ---
+@app.get("/review/{deck_id}")
+def review_page(request: Request, deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT id, front, back
+    FROM flashcards
+    WHERE deck_id = %s
+    AND next_review <= NOW()
+    ORDER BY times_wrong DESC, last_reviewed ASC NULLS FIRST
+    LIMIT 1;
+    """, (deck_id,))
 
     card = cursor.fetchone()
 
@@ -55,16 +81,21 @@ def review_page(request: Request):
     conn.close()
 
     return templates.TemplateResponse(
-        request,
-        "review.html",
-        {
-            "card": card
-        }
+    request,
+    "review.html",
+    {
+        "card": card,
+        "deck_id": deck_id
+    }
     )
 
 
 @app.post("/answer")
-def submit_answer(card_id: int = Form(...), rating: int = Form(...)):
+def submit_answer(
+    card_id: int = Form(...),
+    deck_id: int = Form(...),
+    rating: int = Form(...)
+):
     next_review = get_next_review_date(rating)
 
     conn = get_connection()
@@ -95,7 +126,7 @@ def submit_answer(card_id: int = Form(...), rating: int = Form(...)):
     cursor.close()
     conn.close()
 
-    return RedirectResponse("/review", status_code=303)
+    return RedirectResponse(f"/review/{deck_id}", status_code=303)
 
 # --- Mechanism to add new flashcards ---
 @app.get("/add-card")
@@ -142,3 +173,28 @@ def add_card(
     conn.close()
 
     return RedirectResponse("/add-card", status_code=303)
+
+# --- Mechanism to add new decks ---
+@app.get("/add-deck")
+def add_deck_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "add_deck.html"
+    )
+
+
+@app.post("/add-deck")
+def add_deck(name: str = Form(...)):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO decks (name)
+        VALUES (%s);
+    """, (name,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse("/", status_code=303)

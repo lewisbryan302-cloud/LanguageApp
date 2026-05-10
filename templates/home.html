@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Decks</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 60px auto;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .deck {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .deck a {
+            text-decoration: none;
+            color: black;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .count {
+            color: #666;
+            margin-top: 12px;
+        }
+
+        .top-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>My Decks</h1>
+
+    <div class="top-links">
+        <a href="/add-card">Add Card</a> |
+        <a href="/add-deck">Add Deck</a>
+    </div>
+
+    <div class="deck-grid">
+        {% for deck in decks %}
+            <div class="deck">
+                <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
+                <div class="count">{{ deck[2] }} cards</div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
