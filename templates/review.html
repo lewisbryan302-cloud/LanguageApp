@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flashcard Review</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 80px auto;
+            text-align: center;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 40px;
+            margin-bottom: 30px;
+        }
+
+        .back {
+            font-size: 28px;
+            margin: 30px;
+            color: #444;
+        }
+
+        button {
+            padding: 15px 25px;
+            margin: 8px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function revealAnswer() {
+            document.getElementById("answer").style.display = "block";
+            document.getElementById("ratings").style.display = "block";
+            document.getElementById("revealButton").style.display = "none";
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Flashcard Review</h1>
+
+    {% if card %}
+        <div class="card">
+            <div class="front">{{ card[1] }}</div>
+
+            <button id="revealButton" onclick="revealAnswer()">Reveal Answer</button>
+
+            <div id="answer" class="back" style="display: none;">
+                {{ card[2] }}
+            </div>
+
+            <form id="ratings" action="/answer" method="post" style="display: none;">
+                <input type="hidden" name="card_id" value="{{ card[0] }}">
+
+                <button name="rating" value="0">Forgot</button>
+                <button name="rating" value="1">Hard</button>
+                <button name="rating" value="2">Okay</button>
+                <button name="rating" value="3">Easy</button>
+            </form>
+        </div>
+    {% else %}
+        <p>No cards due for review.</p>
+    {% endif %}
+
+    <p>
+    <a href="/add-card">Add Card</a>
+    </p>
+
+</body>
+</html>
