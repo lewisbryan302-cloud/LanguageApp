@@ -5,6 +5,11 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from database import get_connection
 from typing import Optional
+from sentence_transformers import SentenceTransformer, util
+from embedding_helper import get_similar_words
+from embedding_helper import get_similar_words_with_translations
+
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -472,6 +477,181 @@ def reset_srs_selected_cards(
         AND deck_id = %s;
     """, (card_ids, deck_id))
 
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+# --- Smart add card mechanism ---
+@app.get("/smart-add-card")
+def smart_add_card_page(request: Request):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        ORDER BY id;
+    """)
+    decks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return templates.TemplateResponse(
+        request,
+        "smart_add_card.html",
+        {"decks": decks, "suggestions": None}
+    )
+
+def embedding_similarity(a: str, b: str) -> float:
+    embedding_a = embedding_model.encode(a, convert_to_tensor=True)
+    embedding_b = embedding_model.encode(b, convert_to_tensor=True)
+
+    similarity = util.cos_sim(embedding_a, embedding_b)
+
+    return float(similarity[0][0])
+
+@app.post("/smart-add-card/preview")
+def smart_add_card_preview(
+    request: Request,
+    deck_id: int = Form(...),
+    front: str = Form(...),
+    back: str = Form(...),
+    add_reverse: str | None = Form(None)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, front, back
+        FROM flashcards
+        WHERE deck_id = %s;
+    """, (deck_id,))
+
+    existing_cards = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        ORDER BY id;
+    """)
+    decks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    suggestions = []
+
+    for card in existing_cards:
+        card_id, existing_front, existing_back = card
+
+        score_front = embedding_similarity(front, existing_front)
+        score_back = embedding_similarity(back, existing_back)
+        score_cross_1 = embedding_similarity(front, existing_back)
+        score_cross_2 = embedding_similarity(back, existing_front)
+
+        score = max(score_front, score_back, score_cross_1, score_cross_2)
+
+        if score > 0.75:
+            suggestions.append((card_id, existing_front, existing_back, score))
+
+    suggestions.sort(key=lambda x: x[3], reverse=True)
+
+    word_suggestions = get_similar_words_with_translations(
+        front,
+        k=10,
+        threshold=0.45,
+        source="en",
+        target="de"
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "smart_add_card.html",
+        {
+            "decks": decks,
+            "suggestions": suggestions[:10],
+            "word_suggestions": word_suggestions,
+            "deck_id": deck_id,
+            "front": front,
+            "back": back,
+            "add_reverse": add_reverse
+        }
+    )
+
+@app.post("/smart-add-card/create")
+def smart_add_card_create(
+    deck_id: int = Form(...),
+    front: str = Form(...),
+    back: str = Form(...),
+    add_reverse: str | None = Form(None),
+    selected_card_ids: Optional[list[int]] = Form(None),
+    selected_suggestion_indices: Optional[list[int]] = Form(None),
+    suggested_words: Optional[list[str]] = Form(None),
+    suggested_translations: Optional[list[str]] = Form(None)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Add main card
+    cursor.execute("""
+        INSERT INTO flashcards (deck_id, front, back)
+        VALUES (%s, %s, %s);
+    """, (deck_id, front, back))
+
+    if add_reverse == "yes":
+        cursor.execute("""
+            INSERT INTO flashcards (deck_id, front, back)
+            VALUES (%s, %s, %s);
+        """, (deck_id, back, front))
+
+    # Add reverse versions of selected similar cards if missing
+    if selected_card_ids:
+        for card_id in selected_card_ids:
+            cursor.execute("""
+                SELECT front, back
+                FROM flashcards
+                WHERE id = %s AND deck_id = %s;
+            """, (card_id, deck_id))
+
+            card = cursor.fetchone()
+
+            if card:
+                old_front, old_back = card
+
+                cursor.execute("""
+                    SELECT id
+                    FROM flashcards
+                    WHERE deck_id = %s
+                    AND front = %s
+                    AND back = %s;
+                """, (deck_id, old_back, old_front))
+
+                reverse_exists = cursor.fetchone()
+
+                if not reverse_exists:
+                    cursor.execute("""
+                        INSERT INTO flashcards (deck_id, front, back)
+                        VALUES (%s, %s, %s);
+                    """, (deck_id, old_back, old_front))
+
+    if selected_suggestion_indices and suggested_words and suggested_translations:
+        for index in selected_suggestion_indices:
+            word = suggested_words[index]
+            translation = suggested_translations[index]
+
+            cursor.execute("""
+                INSERT INTO flashcards (deck_id, front, back)
+                VALUES (%s, %s, %s);
+            """, (deck_id, word, translation))
+
+            if add_reverse == "yes":
+                cursor.execute("""
+                    INSERT INTO flashcards (deck_id, front, back)
+                    VALUES (%s, %s, %s);
+                """, (deck_id, translation, word))
     conn.commit()
     cursor.close()
     conn.close()

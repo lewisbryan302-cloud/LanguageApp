@@ -1,0 +1,60 @@
+from wordfreq import top_n_list
+from sentence_transformers import SentenceTransformer, util
+from deep_translator import GoogleTranslator
+
+model = SentenceTransformer(
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+)
+
+words = top_n_list("en", 10000)
+embeddings = model.encode(words, convert_to_tensor=True)
+
+
+def get_similar_words(query: str, k: int = 20, threshold: float = 0.55):
+    query_embedding = model.encode(query, convert_to_tensor=True)
+
+    scores = util.cos_sim(query_embedding, embeddings)[0]
+    top_results = scores.topk(k=k)
+
+    results = []
+
+    for score, idx in zip(top_results.values, top_results.indices):
+        score = float(score)
+
+        if score >= threshold:
+            results.append({
+                "word": words[int(idx)],
+                "score": score
+            })
+
+    return results
+
+def translate_word(word: str, source: str = "en", target: str = "de") -> str:
+    return GoogleTranslator(source=source, target=target).translate(word)
+
+def get_similar_words_with_translations(
+    query: str,
+    k: int = 20,
+    threshold: float = 0.75,
+    source: str = "en",
+    target: str = "de"
+):
+    similar_words = get_similar_words(query, k=k, threshold=threshold)
+
+    results = []
+
+    for item in similar_words:
+        word = item["word"]
+
+        try:
+            translation = translate_word(word, source=source, target=target)
+        except Exception:
+            translation = ""
+
+        results.append({
+            "word": word,
+            "translation": translation,
+            "score": item["score"]
+        })
+
+    return results

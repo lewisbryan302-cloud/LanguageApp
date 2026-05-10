@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Add Card</title>
+</head>
+<body>
+    <h1>Smart Add Card</h1>
+
+    <form action="/smart-add-card/preview" method="post">
+        <label>Deck:</label>
+        <select name="deck_id" required>
+            {% for deck in decks %}
+                <option value="{{ deck[0] }}"
+                    {% if deck_id is defined and deck_id == deck[0] %}selected{% endif %}
+                >
+                    {{ deck[1] }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label>Front:</label>
+        <input type="text" name="front" value="{{ front if front is defined else '' }}" required>
+
+        <br><br>
+
+        <label>Back:</label>
+        <input type="text" name="back" value="{{ back if back is defined else '' }}" required>
+
+        <br><br>
+
+        <label>
+            <input type="checkbox" name="add_reverse" value="yes"
+                {% if add_reverse is defined and add_reverse == "yes" %}checked{% endif %}
+            >
+            Add reverse of new card
+        </label>
+
+        <br><br>
+
+        <button type="submit">Find Similar Cards</button>
+    </form>
+
+    {% if suggestions is not none %}
+        <hr>
+
+        <h2>Similar Existing Cards</h2>
+
+        <form action="/smart-add-card/create" method="post">
+            <input type="hidden" name="deck_id" value="{{ deck_id }}">
+            <input type="hidden" name="front" value="{{ front }}">
+            <input type="hidden" name="back" value="{{ back }}">
+
+            {% if add_reverse == "yes" %}
+                <input type="hidden" name="add_reverse" value="yes">
+            {% endif %}
+
+            {% if suggestions %}
+                <p>Select cards whose reverse versions you also want to add:</p>
+
+                {% for card in suggestions %}
+                    <label>
+                        <input type="checkbox" name="selected_card_ids" value="{{ card[0] }}">
+                        {{ card[1] }} → {{ card[2] }}
+                        similarity: {{ "%.2f"|format(card[3]) }}
+                    </label>
+                    <br>
+                {% endfor %}
+            {% else %}
+                <p>No similar cards found. You can still add the new card.</p>
+            {% endif %}
+
+            {% if word_suggestions %}
+                <hr>
+
+                <h2>Suggested New Cards</h2>
+
+                {% for item in word_suggestions %}
+                    <label>
+                        <input type="checkbox" name="selected_suggestion_indices" value="{{ loop.index0 }}">
+                        {{ item.word }} → {{ item.translation }}
+                        similarity: {{ "%.2f"|format(item.score) }}
+                    </label>
+
+                    <input type="hidden" name="suggested_words" value="{{ item.word }}">
+                    <input type="hidden" name="suggested_translations" value="{{ item.translation }}">
+
+                    <br>
+                {% endfor %}
+            {% endif %}
+
+            <br>
+
+            <button type="submit">Create Cards</button>
+        </form>
+    {% endif %}
+
+    <p><a href="/">Back to My Decks</a></p>
+</body>
+</html>
