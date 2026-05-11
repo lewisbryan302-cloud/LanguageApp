@@ -1,19 +1,164 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Deck</title>
+    <title>Create Deck</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #ffffff;
+        }
+
+        .site-banner {
+            width: 100%;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 18px 40px;
+            box-sizing: border-box;
+        }
+
+        .banner-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .banner-right {
+            color: #666;
+        }
+
+        .banner-button {
+            text-decoration: none;
+
+            background: #2563eb;
+            color: white;
+
+            padding: 10px 18px;
+
+            border-radius: 12px;
+
+            font-weight: bold;
+
+            transition: background 0.15s ease;
+        }
+
+        .banner-button:hover {
+            background: #1d4ed8;
+        }
+
+        .page {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 10px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .create-deck-button {
+            color: #000000;
+            border: #2563eb;
+            padding: 12px 22px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                opacity 0.15s ease;
+
+            box-shadow:
+                0 6px 18px rgba(37, 99, 235, 0.25);
+        }
+
+        .create-deck-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 24px rgba(37, 99, 235, 0.35);
+        }
+
+        .create-deck-button:active {
+            transform: translateY(0px);
+
+            opacity: 0.9;
+        }
+
+        .create-name-input {
+            width: 50%;
+            padding: 12px 18px;
+            font-size: 16px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+            margin: 20px auto;
+        }
+
+        .deck-label {
+            display: block;
+            margin: 20px auto 0px auto;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Add a New Deck</h1>
+    <header class="site-banner">
+        <div class="banner-content">
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
+                <div class="brand-name">LanguageApp</div>
+            </div>
+
+            <div class="banner-right">
+
+                <a href="/" class="banner-button">
+                    ← Back to Decks
+                </a>
+
+            </div>
+        </div>
+    </header>
+    <h1>Create a New Deck</h1>
 
     <form action="/add-deck" method="post">
-        <label>Deck name:</label>
-        <input type="text" name="name" required>
+        <label class="deck-label">
+            Deck name:
+        </label>
+        <input type="text" name="name" class="create-name-input" required>
 
-        <button type="submit">Add Deck</button>
+        <button type="submit" class="create-deck-button">
+            Add Deck
+        </button>
     </form>
 
-    <p><a href="/">Back to My Decks</a></p>
-    <p><a href="/add-card">Add a Card</a></p>
 </body>
 </html>

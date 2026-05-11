@@ -90,7 +90,7 @@
         .deck-grid {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 10px;
             align-items: flex-start;
         }
 
@@ -304,6 +304,15 @@
             -ms-user-select: none;
             user-select: none;
         }
+
+        .deck-placeholder {
+            width: 50%;
+            min-height: 150px;
+            border-radius: 20px;
+            border: 2px dashed #ddd;
+            background: #fafafa;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 
@@ -329,13 +338,7 @@
     <main class="page">
         <h1>My Decks</h1>
 
-        
-
-                
-
-                
-
-            </div>
+        <div class="deck-grid">
             {% for deck in decks %}
                 <div class="deck" data-deck-id="{{ deck[0] }}">
                     <div class="drag-handle">
@@ -416,8 +419,9 @@
         }
 
         let draggedDeck = null;
+        let placeholder = null;
         let startY = 0;
-        let currentY = 0;
+        let startTop = 0;
 
         document.querySelectorAll(".drag-handle").forEach(handle => {
             handle.addEventListener("pointerdown", startDrag);
@@ -427,9 +431,22 @@
             draggedDeck = event.target.closest(".deck");
 
             startY = event.clientY;
-            currentY = 0;
+            startTop = draggedDeck.offsetTop;
+
+            placeholder = document.createElement("div");
+            placeholder.className = "deck-placeholder";
+
+            draggedDeck.parentNode.insertBefore(
+                placeholder,
+                draggedDeck.nextSibling
+            );
 
             draggedDeck.classList.add("dragging");
+
+            draggedDeck.style.position = "absolute";
+            draggedDeck.style.width = draggedDeck.offsetWidth + "px";
+            draggedDeck.style.left = draggedDeck.offsetLeft + "px";
+            draggedDeck.style.top = startTop + "px";
 
             document.addEventListener("pointermove", dragMove);
             document.addEventListener("pointerup", endDrag);
@@ -438,31 +455,41 @@
         function dragMove(event) {
             if (!draggedDeck) return;
 
-            const offset = (event.clientY - startY) * 0.4;
+            const movement = event.clientY - startY;
 
-            draggedDeck.style.transform =
-                `translateY(${offset}px)`;
+            draggedDeck.style.top = startTop + movement + "px";
 
             const deckGrid = document.querySelector(".deck-grid");
-            const decks = [...deckGrid.querySelectorAll(".deck:not(.dragging)")];
+
+            const decks = [
+                ...deckGrid.querySelectorAll(".deck:not(.dragging)")
+            ];
 
             for (const deck of decks) {
                 const box = deck.getBoundingClientRect();
-                const middle = box.top + box.height / 2;
+                const middleY = box.top + box.height / 2;
 
-                if (event.clientY < middle) {
-                    deckGrid.insertBefore(draggedDeck, deck);
+                if (event.clientY < middleY) {
+                    deckGrid.insertBefore(placeholder, deck);
                     return;
                 }
             }
 
-            deckGrid.appendChild(draggedDeck);
+            deckGrid.appendChild(placeholder);
         }
 
         function endDrag() {
             if (!draggedDeck) return;
 
+            placeholder.parentNode.insertBefore(draggedDeck, placeholder);
+            placeholder.remove();
+
             draggedDeck.classList.remove("dragging");
+
+            draggedDeck.style.position = "";
+            draggedDeck.style.width = "";
+            draggedDeck.style.left = "";
+            draggedDeck.style.top = "";
             draggedDeck.style.transform = "";
 
             document.removeEventListener("pointermove", dragMove);
@@ -471,6 +498,7 @@
             saveDeckOrder();
 
             draggedDeck = null;
+            placeholder = null;
         }
 
         function saveDeckOrder() {
