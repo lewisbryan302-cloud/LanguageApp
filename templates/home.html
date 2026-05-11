@@ -53,6 +53,25 @@
             color: #666;
         }
 
+        .banner-button {
+            text-decoration: none;
+
+            background: #2563eb;
+            color: white;
+
+            padding: 10px 18px;
+
+            border-radius: 12px;
+
+            font-weight: bold;
+
+            transition: background 0.15s ease;
+        }
+
+        .banner-button:hover {
+            background: #1d4ed8;
+        }
+
         .page {
             max-width: 900px;
             margin: 60px auto;
@@ -298,7 +317,11 @@
             </div>
 
             <div class="banner-right">
-                Profile area
+
+                <a href="/add-deck" class="banner-button">
+                    + Add Deck
+                </a>
+
             </div>
         </div>
     </header>
