@@ -63,29 +63,48 @@
             text-align: center;
         }
 
+        .top-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
         .deck-grid {
             display: flex;
             flex-direction: column;
             gap: 20px;
+            align-items: flex-start;
         }
 
         .deck {
-            background: rgb(255, 255, 255);
-            padding: 30px;
+            background: white;
+            padding: 30px 30px 30px 55px;
             border-radius: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 
             position: relative;
-            left: 0px;
 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
 
-            min-height: 120px;
-
             width: 50%;
+            min-height: 150px;
             box-sizing: border-box;
+
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .deck.dragging {
+            z-index: 1000;
+            opacity: 0.95;
+            transition: none;
+            cursor: grabbing;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+        }
+
+        .deck-title-section {
+            margin-top: 20px;
+            text-align: center;
         }
 
         .deck-title {
@@ -100,21 +119,12 @@
             margin-top: 12px;
         }
 
-        .deck-title-section {
-            margin-top: 30px;
-            text-align: center;
-        }
-
         .deck-stats {
             display: flex;
             justify-content: space-between;
-
             gap: 10px;
-
             margin-top: 30px;
-
             padding-top: 18px;
-
             border-top: 1px solid #eee;
         }
 
@@ -132,11 +142,6 @@
         .stat-value {
             font-size: 22px;
             font-weight: bold;
-        }
-
-        .top-links {
-            text-align: center;
-            margin-bottom: 30px;
         }
 
         .menu-container {
@@ -184,6 +189,39 @@
         .menu button:hover {
             background: #f0f0f0;
         }
+
+        .drag-handle {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .drag-dot {
+            width: 10px;
+            height: 10px;
+            background: #bbb;
+            border-radius: 3px;
+        }
+
+        .deck,
+        .drag-handle,
+        .deck * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 
@@ -213,7 +251,12 @@
 
         <div class="deck-grid">
             {% for deck in decks %}
-                <div class="deck">
+                <div class="deck" data-deck-id="{{ deck[0] }}">
+                    <div class="drag-handle">
+                        <div class="drag-dot"></div>
+                        <div class="drag-dot"></div>
+                        <div class="drag-dot"></div>
+                    </div>
                     <div class="menu-container">
                         <button class="menu-button" onclick="toggleMenu('{{ deck[0] }}')">⋮</button>
 
@@ -271,6 +314,86 @@
 
                 menu.style.display = "block";
             }
+        }
+
+        let draggedDeck = null;
+        let startY = 0;
+        let currentY = 0;
+
+        document.querySelectorAll(".drag-handle").forEach(handle => {
+            handle.addEventListener("pointerdown", startDrag);
+        });
+
+        function startDrag(event) {
+            draggedDeck = event.target.closest(".deck");
+
+            startY = event.clientY;
+            currentY = 0;
+
+            draggedDeck.classList.add("dragging");
+
+            document.addEventListener("pointermove", dragMove);
+            document.addEventListener("pointerup", endDrag);
+        }
+
+        function dragMove(event) {
+            if (!draggedDeck) return;
+
+            const offset = (event.clientY - startY) * 0.4;
+
+            draggedDeck.style.transform =
+                `translateY(${offset}px)`;
+
+            const deckGrid = document.querySelector(".deck-grid");
+            const decks = [...deckGrid.querySelectorAll(".deck:not(.dragging)")];
+
+            for (const deck of decks) {
+                const box = deck.getBoundingClientRect();
+                const middle = box.top + box.height / 2;
+
+                if (event.clientY < middle) {
+                    deckGrid.insertBefore(draggedDeck, deck);
+                    return;
+                }
+            }
+
+            deckGrid.appendChild(draggedDeck);
+        }
+
+        function endDrag() {
+            if (!draggedDeck) return;
+
+            draggedDeck.classList.remove("dragging");
+            draggedDeck.style.transform = "";
+
+            document.removeEventListener("pointermove", dragMove);
+            document.removeEventListener("pointerup", endDrag);
+
+            saveDeckOrder();
+
+            draggedDeck = null;
+        }
+
+        function saveDeckOrder() {
+
+            const deckIds = [
+                ...document.querySelectorAll(".deck")
+            ].map(deck =>
+                Number(deck.dataset.deckId)
+            );
+
+            fetch("/save-deck-order", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    deck_ids: deckIds
+                })
+            });
         }
     </script>
 </body>

@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer, util
 from embedding_helper import get_similar_words
 from embedding_helper import get_similar_words_with_translations
 from fsrs_scheduler import schedule_review
+from pydantic import BaseModel
 
 embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
@@ -78,9 +79,12 @@ def home(request: Request):
 
         GROUP BY
             decks.id,
-            decks.name
+            decks.name,
+            decks.deck_order
 
-        ORDER BY decks.id;
+        ORDER BY
+            decks.deck_order ASC,
+            decks.id ASC;
     """)
 
     decks = cursor.fetchall()
@@ -730,3 +734,25 @@ def smart_add_card_create(
     conn.close()
 
     return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+
+class DeckOrderRequest(BaseModel):
+    deck_ids: list[int]
+
+
+@app.post("/save-deck-order")
+def save_deck_order(data: DeckOrderRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    for index, deck_id in enumerate(data.deck_ids):
+        cursor.execute("""
+            UPDATE decks
+            SET deck_order = %s
+            WHERE id = %s;
+        """, (index, deck_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"status": "success"}
