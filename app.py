@@ -44,13 +44,42 @@ def home(request: Request):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT 
+        SELECT
             decks.id,
             decks.name,
-            COUNT(flashcards.id) AS total_cards
+
+            COUNT(flashcards.id) AS total_cards,
+
+            COUNT(
+                CASE
+                    WHEN flashcards.times_correct > 0
+                    THEN 1
+                END
+            ) AS words_learnt,
+
+            COUNT(
+                CASE
+                    WHEN flashcards.times_seen = 0
+                    THEN 1
+                END
+            ) AS new_cards,
+
+            COUNT(
+                CASE
+                    WHEN flashcards.next_review <= NOW()
+                    THEN 1
+                END
+            ) AS cards_to_review
+
         FROM decks
-        LEFT JOIN flashcards ON decks.id = flashcards.deck_id
-        GROUP BY decks.id, decks.name
+
+        LEFT JOIN flashcards
+            ON flashcards.deck_id = decks.id
+
+        GROUP BY
+            decks.id,
+            decks.name
+
         ORDER BY decks.id;
     """)
 

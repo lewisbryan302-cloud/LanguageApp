@@ -74,11 +74,17 @@
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            text-align: center;
+
             position: relative;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            min-height: 240px;
         }
 
-        .deck a {
+        .deck-title {
             text-decoration: none;
             color: black;
             font-size: 24px;
@@ -88,6 +94,40 @@
         .count {
             color: #666;
             margin-top: 12px;
+        }
+
+        .deck-title-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .deck-stats {
+            display: flex;
+            justify-content: space-between;
+
+            gap: 10px;
+
+            margin-top: 30px;
+
+            padding-top: 18px;
+
+            border-top: 1px solid #eee;
+        }
+
+        .stat-block {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
         }
 
         .top-links {
@@ -185,8 +225,30 @@
                         </div>
                     </div>
 
-                    <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
-                    <div class="count">{{ deck[2] }} cards</div>
+                    <div class="deck-title-section">
+                        <a href="/review/{{ deck[0] }}" class="deck-title">
+                            {{ deck[1] }}
+                        </a>
+                    </div>
+
+                    <div class="deck-stats">
+
+                        <div class="stat-block">
+                            <div class="stat-label">Words Learnt</div>
+                            <div class="stat-value">{{ deck[3] }}</div>
+                        </div>
+
+                        <div class="stat-block">
+                            <div class="stat-label">New Cards</div>
+                            <div class="stat-value">{{ deck[4] }}</div>
+                        </div>
+
+                        <div class="stat-block">
+                            <div class="stat-label">To Review</div>
+                            <div class="stat-value">{{ deck[5] }}</div>
+                        </div>
+
+                    </div>
                 </div>
             {% endfor %}
         </div>
