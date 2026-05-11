@@ -213,7 +213,11 @@ def submit_answer(
 
 # --- Mechanism to add new flashcards ---
 @app.get("/add-card")
-def add_card_page(request: Request, deck_id: int | None = None):
+def add_card_page(
+    request: Request,
+    deck_id: int | None = None,
+    add_reverse: str | None = None
+):
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -233,7 +237,8 @@ def add_card_page(request: Request, deck_id: int | None = None):
         "add_card.html",
         {
             "decks": decks,
-            "selected_deck_id": deck_id
+            "selected_deck_id": deck_id,
+            "add_reverse": add_reverse
         }
     )
 
@@ -263,7 +268,10 @@ def add_card(
     cursor.close()
     conn.close()
 
-    return RedirectResponse("/add-card", status_code=303)
+    return RedirectResponse(
+        f"/add-card?deck_id={deck_id}&add_reverse={add_reverse or ''}",
+        status_code=303
+    )
 
 # --- Mechanism to add new decks ---
 @app.get("/add-deck")

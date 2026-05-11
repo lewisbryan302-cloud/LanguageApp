@@ -2,20 +2,199 @@
 <html>
 <head>
     <title>Add Card</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #ffffff;
+        }
+
+        .site-banner {
+            width: 100%;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 18px 40px;
+            box-sizing: border-box;
+        }
+
+        .banner-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .banner-right {
+            color: #666;
+        }
+
+        .banner-button {
+            text-decoration: none;
+
+            background: #2563eb;
+            color: white;
+
+            padding: 10px 18px;
+
+            border-radius: 12px;
+
+            font-weight: bold;
+
+            transition: background 0.15s ease;
+        }
+
+        .banner-button:hover {
+            background: #1d4ed8;
+        }
+
+        .page {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 10px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .add-card {
+            width: 70%;
+            min-height: 30px;
+
+            resize: none;
+
+            overflow: hidden;
+
+            padding: 12px;
+
+            font-size: 16px;
+
+            border-radius: 12px;
+
+            border: 1px solid #ddd;
+
+            box-sizing: border-box;
+
+            font-size: large;
+            text-align: center;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            margin: 0 auto -20px auto;
+        }
+
+        .add-label {
+            display: block;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px auto 10px auto;
+        }
+
+        .add-card-button {
+            display: block;
+            margin: 30px auto;
+            padding: 12px 22px;
+            font-size: 16px;
+            border-radius: 14px;
+            border: #2563eb;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            transition: background 0.15s ease;}
+
+            .reverse-label {
+                display: block;
+                text-align: center;
+                margin: 28px auto 0 auto;
+                font-weight: bold;
+            }
+    </style>
 </head>
 <body>
+    <header class="site-banner">
+        <div class="banner-content">
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
+                <div class="brand-name">LanguageApp</div>
+            </div>
+
+            <div class="banner-right">
+
+                <a href="/" class="banner-button">
+                    ← Back to Decks
+                </a>
+
+            </div>
+        </div>
+    </header>
     <h1>Add Card</h1>
 
-    <form method="post" action="/add-card">
-        <input type="hidden" name="deck_id" value="{{ selected_deck_id }}">
+    <form id="add-card-form" action="/add-card" method="post">
+        <label class="add-label">
+            Deck
+        </label>
 
-        <label>Front</label>
-        <input type="text" name="front" required>
+        <select name="deck_id" required class="add-card">
+            {% for deck in decks %}
+                <option
+                    value="{{ deck[0] }}"
+                    {% if selected_deck_id and deck[0] == selected_deck_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ deck[1] }}
+                </option>
+            {% endfor %}
+        </select>
 
-        <label>Back</label>
-        <input type="text" name="back" required>
+        <label class="add-label">Front</label>
+        <textarea name="front" class="add-card" required></textarea>
 
-        <button type="submit">Add Card</button>
+        <label class="add-label">Back</label>
+        <textarea name="back" class="add-card" required></textarea>
+
+        <label class="reverse-label">
+            <input
+                type="checkbox"
+                name="add_reverse"
+                value="yes"
+
+                {% if add_reverse == "yes" %}
+                    checked
+                {% endif %}
+            >
+            Add reverse card
+        </label>
+
+        <button type="submit" class="add-card-button">
+            Add Card
+        </button>
     </form>
 
     <hr>
@@ -71,17 +250,6 @@
 
         <br><br>
 
-        <label>
-            <input
-                type="checkbox"
-                name="add_reverse"
-                value="yes"
-            >
-
-            Add reverse card
-        </label>
-
-        <br><br>
 
         <button type="submit">
             Generate Suggestions
@@ -89,8 +257,24 @@
 
     </form>
 
-   
-
     <p><a href="/">Back to review</a></p>
+
+    <script>
+        const form = document.getElementById("add-card-form");
+
+        form.addEventListener("keydown", function(event) {
+            if (event.ctrlKey && event.key === "Enter") {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        document.querySelectorAll(".add-card").forEach(textarea => {
+            textarea.addEventListener("input", () => {
+                textarea.style.height = "auto";
+                textarea.style.height = textarea.scrollHeight + "px";
+            });
+        });
+    </script>
 </body>
 </html>
