@@ -213,7 +213,7 @@ def submit_answer(
 
 # --- Mechanism to add new flashcards ---
 @app.get("/add-card")
-def add_card_page(request: Request):
+def add_card_page(request: Request, deck_id: int | None = None):
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -232,7 +232,8 @@ def add_card_page(request: Request):
         request,
         "add_card.html",
         {
-            "decks": decks
+            "decks": decks,
+            "selected_deck_id": deck_id
         }
     )
 

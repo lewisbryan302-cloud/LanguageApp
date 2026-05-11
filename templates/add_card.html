@@ -4,37 +4,92 @@
     <title>Add Card</title>
 </head>
 <body>
-    <h1>Add a New Flashcard</h1>
+    <h1>Add Card</h1>
 
-    <form action="/add-card" method="post">
-        <label>Choose deck:</label>
+    <form method="post" action="/add-card">
+        <input type="hidden" name="deck_id" value="{{ selected_deck_id }}">
+
+        <label>Front</label>
+        <input type="text" name="front" required>
+
+        <label>Back</label>
+        <input type="text" name="back" required>
+
+        <button type="submit">Add Card</button>
+    </form>
+
+    <hr>
+
+    <h2>Smart Add</h2>
+
+    <form method="post" action="/smart-add-card/preview">
+
+        <label for="deck_id">
+            Deck
+        </label>
+
         <select name="deck_id" required>
+
             {% for deck in decks %}
-                <option value="{{ deck[0] }}">{{ deck[1] }}</option>
+
+                <option
+                    value="{{ deck[0] }}"
+                    {% if deck[0] == selected_deck_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ deck[1] }}
+                </option>
+
             {% endfor %}
+
         </select>
 
         <br><br>
 
-        <label>Front:</label>
-        <input type="text" name="front" required>
+        <label for="front">
+            Front
+        </label>
+
+        <input
+            type="text"
+            name="front"
+            required
+        >
 
         <br><br>
 
-        <label>Back:</label>
-        <input type="text" name="back" required>
+        <label for="back">
+            Back
+        </label>
+
+        <input
+            type="text"
+            name="back"
+            required
+        >
 
         <br><br>
 
         <label>
-            <input type="checkbox" name="add_reverse" value="yes">
-            Also add reverse card
+            <input
+                type="checkbox"
+                name="add_reverse"
+                value="yes"
+            >
+
+            Add reverse card
         </label>
 
         <br><br>
 
-        <button type="submit">Add Card</button>
+        <button type="submit">
+            Generate Suggestions
+        </button>
+
     </form>
+
+   
 
     <p><a href="/">Back to review</a></p>
 </body>
