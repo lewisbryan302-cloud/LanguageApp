@@ -6,9 +6,57 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            background: #ffffff;
+        }
+
+        .site-banner {
+            width: 100%;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 18px 40px;
+            box-sizing: border-box;
+        }
+
+        .banner-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .banner-right {
+            color: #666;
+        }
+
+        .page {
             max-width: 900px;
             margin: 60px auto;
-            background: #ffffff;
+            padding: 0 20px;
         }
 
         h1 {
@@ -96,37 +144,53 @@
 </head>
 
 <body>
-    <h1>My Decks</h1>
 
-    <div class="top-links">
-        <a href="/add-card">Add Card</a> |
-        <a href="/add-deck">Add Deck</a> |
-        <a href="/smart-add-card">Smart Add Card</a>
-    </div>
-
-    <div class="deck-grid">
-        {% for deck in decks %}
-            <div class="deck">
-                <div class="menu-container">
-                    <button class="menu-button" onclick="toggleMenu('{{ deck[0] }}')">⋮</button>
-
-                    <div id="menu-{{ deck[0] }}" class="menu">
-                        <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
-                        <a href="/rename-deck/{{ deck[0] }}">Rename</a>
-
-                        <form action="/delete-deck/{{ deck[0] }}" method="post">
-                            <button type="submit" onclick="return confirm('Delete this deck and all its cards?');">
-                                Delete
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
-                <div class="count">{{ deck[2] }} cards</div>
+    <header class="site-banner">
+        <div class="banner-content">
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
+                <div class="brand-name">LanguageApp</div>
             </div>
-        {% endfor %}
-    </div>
+
+            <div class="banner-right">
+                Profile area
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <h1>My Decks</h1>
+
+        <div class="top-links">
+            <a href="/add-card">Add Card</a> |
+            <a href="/add-deck">Add Deck</a> |
+            <a href="/smart-add-card">Smart Add Card</a>
+        </div>
+
+        <div class="deck-grid">
+            {% for deck in decks %}
+                <div class="deck">
+                    <div class="menu-container">
+                        <button class="menu-button" onclick="toggleMenu('{{ deck[0] }}')">⋮</button>
+
+                        <div id="menu-{{ deck[0] }}" class="menu">
+                            <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
+                            <a href="/rename-deck/{{ deck[0] }}">Rename</a>
+
+                            <form action="/delete-deck/{{ deck[0] }}" method="post">
+                                <button type="submit" onclick="return confirm('Delete this deck and all its cards?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <a href="/review/{{ deck[0] }}">{{ deck[1] }}</a>
+                    <div class="count">{{ deck[2] }} cards</div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
 
     <script>
         function toggleMenu(deckId) {
