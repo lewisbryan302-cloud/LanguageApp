@@ -8,6 +8,7 @@ from typing import Optional
 from sentence_transformers import SentenceTransformer, util
 from embedding_helper import get_similar_words
 from embedding_helper import get_similar_words_with_translations
+from fsrs_scheduler import schedule_review
 
 embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
@@ -102,31 +103,74 @@ def submit_answer(
     deck_id: int = Form(...),
     rating: int = Form(...)
 ):
-    next_review = get_next_review_date(rating)
-
     conn = get_connection()
     cursor = conn.cursor()
 
-    if rating == 0:
+    cursor.execute("""
+        SELECT
+            difficulty,
+            stability,
+            reps,
+            lapses,
+            last_reviewed
+        FROM flashcards
+        WHERE id = %s;
+    """, (card_id,))
+
+    row = cursor.fetchone()
+
+    card = {
+        "difficulty": row[0] or 0,
+        "stability": row[1] or 0,
+        "reps": row[2] or 0,
+        "lapses": row[3] or 0,
+        "last_review": row[4].date().isoformat() if row[4] else None
+    }
+
+    updated_card = schedule_review(card, rating)
+
+    if rating == 1:
         cursor.execute("""
             UPDATE flashcards
             SET
                 times_seen = times_seen + 1,
                 times_wrong = times_wrong + 1,
+                difficulty = %s,
+                stability = %s,
+                reps = %s,
+                lapses = %s,
                 last_reviewed = NOW(),
                 next_review = %s
             WHERE id = %s;
-        """, (next_review, card_id))
+        """, (
+            updated_card["difficulty"],
+            updated_card["stability"],
+            updated_card["reps"],
+            updated_card["lapses"],
+            updated_card["due_date"],
+            card_id
+        ))
     else:
         cursor.execute("""
             UPDATE flashcards
             SET
                 times_seen = times_seen + 1,
                 times_correct = times_correct + 1,
+                difficulty = %s,
+                stability = %s,
+                reps = %s,
+                lapses = %s,
                 last_reviewed = NOW(),
                 next_review = %s
             WHERE id = %s;
-        """, (next_review, card_id))
+        """, (
+            updated_card["difficulty"],
+            updated_card["stability"],
+            updated_card["reps"],
+            updated_card["lapses"],
+            updated_card["due_date"],
+            card_id
+        ))
 
     conn.commit()
     cursor.close()
