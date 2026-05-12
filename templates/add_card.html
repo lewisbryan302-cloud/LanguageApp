@@ -114,7 +114,7 @@
             display: block;
             text-align: center;
             font-weight: bold;
-            margin: 20px auto 10px auto;
+            margin: 50px auto 10px auto;
         }
 
         .add-card-button {
@@ -148,7 +148,7 @@
             .deck-selector-top-right {
                 position: absolute;
 
-                top: 85px;
+                top: 100px;
                 right: 40px;
 
                 display: flex;
@@ -194,6 +194,53 @@
             .smart-add-button:hover {
                 background: #6d28d9;
             }
+
+            .banner-actions {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .banner-button.secondary {
+                background: #e5e7eb;
+                color: black;
+            }
+
+            .banner-button.secondary:hover {
+                background: #d1d5db;
+            }
+
+            @media (max-width: 800px) {
+            .banner-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .banner-actions {
+                flex-wrap: wrap;
+            }
+
+            .deck-selector-top-right {
+                position: static;
+                margin: 20px auto;
+                justify-content: center;
+            }
+
+            .add-card {
+                width: 92%;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .add-card-button {
+                width: 80%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -221,9 +268,29 @@
 
             <div class="banner-right">
 
-                <a href="/" class="banner-button">
-                    ← Back to Decks
-                </a>
+                <div class="banner-actions">
+
+                    <a
+                        href="#"
+                        class="banner-button secondary"
+                        onclick="goToSelectedDeck(event)"
+                    >
+                        View Deck
+                    </a>
+
+                    <a
+                        href="#"
+                        class="banner-button secondary"
+                        onclick="goToSelectedReview(event)"
+                    >
+                        Review Deck
+                    </a>
+
+                    <a href="/" class="banner-button">
+                        ← Back to Decks
+                    </a>
+
+                </div>
 
             </div>
         </div>
@@ -287,22 +354,6 @@
             >
                 Smart Add
             </button>
-
-            <a
-                href="#"
-                class="add-card-button"
-                onclick="goToSelectedDeck(event)"
-            >
-                View Deck
-            </a>
-
-            <a
-                href="#"
-                class="add-card-button"
-                onclick="goToSelectedReview(event)"
-            >
-                Review Cards
-            </a>
 
         </div>
     </form>
