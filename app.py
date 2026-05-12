@@ -283,14 +283,14 @@ def add_deck_page(request: Request):
 
 
 @app.post("/add-deck")
-def add_deck(name: str = Form(...)):
+def add_deck(name: str = Form(...), target_language: str = Form(...)):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO decks (name)
-        VALUES (%s);
-    """, (name,))
+        INSERT INTO decks (name, target_language)
+        VALUES (%s, %s);
+    """, (name, target_language))
 
     conn.commit()
     cursor.close()
@@ -615,7 +615,6 @@ def smart_add_card_preview(
         FROM flashcards
         WHERE deck_id = %s;
     """, (deck_id,))
-
     existing_cards = cursor.fetchall()
 
     cursor.execute("""
@@ -625,8 +624,20 @@ def smart_add_card_preview(
     """)
     decks = cursor.fetchall()
 
+    cursor.execute("""
+        SELECT target_language
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+    target_language_row = cursor.fetchone()
+
     cursor.close()
     conn.close()
+
+    if target_language_row:
+        target_language = target_language_row[0]
+    else:
+        target_language = "de"
 
     suggestions = []
 
@@ -638,10 +649,22 @@ def smart_add_card_preview(
         score_cross_1 = embedding_similarity(front, existing_back)
         score_cross_2 = embedding_similarity(back, existing_front)
 
-        score = max(score_front, score_back, score_cross_1, score_cross_2)
+        score = max(
+            score_front,
+            score_back,
+            score_cross_1,
+            score_cross_2
+        )
 
         if score > 0.75:
-            suggestions.append((card_id, existing_front, existing_back, score))
+            suggestions.append(
+                (
+                    card_id,
+                    existing_front,
+                    existing_back,
+                    score
+                )
+            )
 
     suggestions.sort(key=lambda x: x[3], reverse=True)
 
@@ -650,7 +673,7 @@ def smart_add_card_preview(
         k=10,
         threshold=0.45,
         source="en",
-        target="de"
+        target=target_language
     )
 
     return templates.TemplateResponse(
@@ -667,6 +690,7 @@ def smart_add_card_preview(
         }
     )
 
+
 @app.post("/smart-add-card/create")
 def smart_add_card_create(
     deck_id: int = Form(...),
@@ -681,7 +705,6 @@ def smart_add_card_create(
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Add main card
     cursor.execute("""
         INSERT INTO flashcards (deck_id, front, back)
         VALUES (%s, %s, %s);
@@ -693,7 +716,6 @@ def smart_add_card_create(
             VALUES (%s, %s, %s);
         """, (deck_id, back, front))
 
-    # Add reverse versions of selected similar cards if missing
     if selected_card_ids:
         for card_id in selected_card_ids:
             cursor.execute("""
@@ -738,11 +760,16 @@ def smart_add_card_create(
                     INSERT INTO flashcards (deck_id, front, back)
                     VALUES (%s, %s, %s);
                 """, (deck_id, translation, word))
+
     conn.commit()
     cursor.close()
     conn.close()
 
-    return RedirectResponse(f"/deck/{deck_id}/cards", status_code=303)
+    return RedirectResponse(
+        f"/deck/{deck_id}/cards",
+        status_code=303
+    )
+
 
 class DeckOrderRequest(BaseModel):
     deck_ids: list[int]

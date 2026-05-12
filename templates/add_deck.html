@@ -128,6 +128,22 @@
             margin: 20px auto 0px 20px;
             font-weight: bold;
         }
+
+        .deck-language-select {
+            display: block;
+
+            width: 320px;
+
+            margin: 10px auto 30px auto;
+
+            padding: 12px;
+
+            border-radius: 12px;
+
+            border: 1px solid #ddd;
+
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -153,6 +169,23 @@
         <label class="deck-label">
             Deck name:
         </label>
+        <label class="deck-label">
+            Target Language
+        </label>
+
+        <select
+            name="target_language"
+            class="deck-language-select"
+            required
+        >
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="no">Norwegian</option>
+            <option value="ja">Japanese</option>
+        </select>
         <input type="text" name="name" class="create-name-input" required>
 
         <button type="submit" class="create-deck-button">

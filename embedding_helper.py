@@ -1,12 +1,12 @@
+from deep_translator import GoogleTranslator
 from wordfreq import top_n_list
 from sentence_transformers import SentenceTransformer, util
-from deep_translator import GoogleTranslator
 
 model = SentenceTransformer(
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 )
 
-words = top_n_list("en", 10000)
+words = top_n_list("en", 5000)
 embeddings = model.encode(words, convert_to_tensor=True)
 
 
@@ -58,3 +58,5 @@ def get_similar_words_with_translations(
         })
 
     return results
+
+#print(get_similar_words("happy"))
