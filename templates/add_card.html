@@ -134,14 +134,62 @@
                 margin: 28px auto 0 auto;
                 font-weight: bold;
             }
+
+            .page-title {
+                font-size: 14px;
+                color: #666;
+                margin-top: 2px;
+                font-weight: bold;
+            }
+
+            .deck-selector-top-right {
+                position: absolute;
+
+                top: 85px;
+                right: 40px;
+
+                display: flex;
+                align-items: center;
+
+                gap: 10px;
+            }
+
+            .deck-selector-label {
+                font-weight: bold;
+            }
+
+            .deck-selector {
+                padding: 10px 14px;
+
+                border-radius: 12px;
+
+                border: 1px solid #ddd;
+
+                font-size: 15px;
+            }
     </style>
 </head>
 <body>
     <header class="site-banner">
         <div class="banner-content">
             <div class="brand-section">
-                <div class="logo-placeholder">L</div>
-                <div class="brand-name">LanguageApp</div>
+
+                <div class="logo-placeholder">
+                    L
+                </div>
+
+                <div>
+
+                    <div class="brand-name">
+                        LanguageApp
+                    </div>
+
+                    <div class="page-title">
+                        Add Card
+                    </div>
+
+                </div>
+
             </div>
 
             <div class="banner-right">
@@ -153,25 +201,28 @@
             </div>
         </div>
     </header>
-    <h1>Add Card</h1>
 
     <form id="add-card-form" action="/add-card" method="post">
-        <label class="add-label">
-            Deck
-        </label>
+        <div class="deck-selector-top-right">
 
-        <select name="deck_id" required class="add-card">
-            {% for deck in decks %}
-                <option
-                    value="{{ deck[0] }}"
-                    {% if selected_deck_id and deck[0] == selected_deck_id %}
-                        selected
-                    {% endif %}
-                >
-                    {{ deck[1] }}
-                </option>
-            {% endfor %}
-        </select>
+            <label class="deck-selector-label">
+                Deck
+            </label>
+
+            <select name="deck_id" required class="deck-selector">
+                {% for deck in decks %}
+                    <option
+                        value="{{ deck[0] }}"
+                        {% if selected_deck_id and deck[0] == selected_deck_id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ deck[1] }}
+                    </option>
+                {% endfor %}
+            </select>
+
+        </div>
 
         <label class="add-label">Front</label>
         <textarea name="front" class="add-card" required></textarea>
