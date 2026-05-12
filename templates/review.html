@@ -2,24 +2,108 @@
 <html>
 <head>
     <title>Flashcard Review</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 80px auto;
+            margin: 0;
+            background: #f5f5f5;
             text-align: center;
         }
 
-        .card {
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            padding: 40px;
+        .site-banner {
+            width: 100%;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 18px 40px;
+            box-sizing: border-box;
+        }
+
+        .banner-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .page-title {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .banner-button {
+            text-decoration: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: background 0.15s ease;
+        }
+
+        .banner-button:hover {
+            background: #1d4ed8;
+        }
+
+        .banner-button.secondary {
+            background: #e5e7eb;
+            color: black;
+        }
+
+        .banner-button.secondary:hover {
+            background: #d1d5db;
+        }
+
+        .page {
+            max-width: 700px;
+            margin: 70px auto;
+            padding: 0 20px;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 24px;
+            padding: 50px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
         .front {
             font-size: 40px;
             margin-bottom: 30px;
+            font-weight: bold;
         }
 
         .back {
@@ -28,13 +112,65 @@
             color: #444;
         }
 
-        button {
-            padding: 15px 25px;
+        button,
+        .page-button {
+            padding: 14px 24px;
             margin: 8px;
-            font-size: 18px;
-            border-radius: 10px;
+            font-size: 17px;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .reveal-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .rating-again {
+            background: #fee2e2;
+        }
+
+        .rating-hard {
+            background: #ffedd5;
+        }
+
+        .rating-good {
+            background: #dcfce7;
+        }
+
+        .rating-easy {
+            background: #dbeafe;
+        }
+
+        .empty {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        @media (max-width: 800px) {
+            .banner-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .banner-actions {
+                flex-wrap: wrap;
+            }
+
+            .front {
+                font-size: 32px;
+            }
+
+            .back {
+                font-size: 24px;
+            }
         }
     </style>
 
@@ -46,42 +182,99 @@
         }
     </script>
 </head>
+
 <body>
 
-    <h1>Flashcard Review</h1>
+    <header class="site-banner">
+        <div class="banner-content">
 
-    <p>
-        <a href="/">My Decks</a> |
-        <a href="/add-card">Add Card</a>
-    </p>
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
 
-    {% if card %}
-        <div class="card">
-            <div class="front">{{ card[1] }}</div>
-
-            <button id="revealButton" onclick="revealAnswer()">Reveal Answer</button>
-
-            <div id="answer" class="back" style="display: none;">
-                {{ card[2] }}
+                <div>
+                    <div class="brand-name">LanguageApp</div>
+                    <div class="page-title">Flashcard Review</div>
+                </div>
             </div>
 
-            <form id="ratings" action="/answer" method="post" style="display: none;">
-                <input type="hidden" name="card_id" value="{{ card[0] }}">
-                <input type="hidden" name="deck_id" value="{{ deck_id }}">
+            <div class="banner-actions">
+                <a href="/add-card?deck_id={{ deck_id }}" class="banner-button secondary">
+                    Add Card
+                </a>
 
-                <button type="submit" name="rating" value="1">Again</button>
-                <button type="submit" name="rating" value="2">Hard</button>
-                <button type="submit" name="rating" value="3">Good</button>
-                <button type="submit" name="rating" value="4">Easy</button>
-            </form>
+                <a href="/deck/{{ deck_id }}/cards" class="banner-button secondary">
+                    View Deck
+                </a>
+
+                <a href="/" class="banner-button">
+                    ← Back to Decks
+                </a>
+            </div>
+
         </div>
-    {% else %}
-        <p>No cards due for review.</p>
-    {% endif %}
+    </header>
 
-    <p>
-    <a href="/add-card">Add Card</a>
-    </p>
+    <main class="page">
+
+        {% if card %}
+            <div class="review-card">
+                <div class="front">
+                    {{ card[1] }}
+                </div>
+
+                <button
+                    id="revealButton"
+                    class="reveal-button"
+                    onclick="revealAnswer()"
+                >
+                    Reveal Answer
+                </button>
+
+                <div
+                    id="answer"
+                    class="back"
+                    style="display: none;"
+                >
+                    {{ card[2] }}
+                </div>
+
+                <form
+                    id="ratings"
+                    action="/answer"
+                    method="post"
+                    style="display: none;"
+                >
+                    <input type="hidden" name="card_id" value="{{ card[0] }}">
+                    <input type="hidden" name="deck_id" value="{{ deck_id }}">
+
+                    <button type="submit" name="rating" value="1" class="rating-again">
+                        Again
+                    </button>
+
+                    <button type="submit" name="rating" value="2" class="rating-hard">
+                        Hard
+                    </button>
+
+                    <button type="submit" name="rating" value="3" class="rating-good">
+                        Good
+                    </button>
+
+                    <button type="submit" name="rating" value="4" class="rating-easy">
+                        Easy
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No cards due for review.</p>
+
+                <a href="/add-card?deck_id={{ deck_id }}" class="banner-button">
+                    Add Card
+                </a>
+            </div>
+        {% endif %}
+
+    </main>
 
 </body>
 </html>
