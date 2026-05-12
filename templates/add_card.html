@@ -107,6 +107,7 @@
             align-items: center;
 
             margin: 0 auto -20px auto;
+            
         }
 
         .add-label {
@@ -118,7 +119,7 @@
 
         .add-card-button {
             display: block;
-            margin: 30px auto;
+            margin: 10px 0px auto;
             padding: 12px 22px;
             font-size: 16px;
             border-radius: 14px;
@@ -126,7 +127,9 @@
             background: #2563eb;
             color: white;
             font-weight: bold;
-            transition: background 0.15s ease;}
+            transition: background 0.15s ease;
+            cursor: pointer;
+            text-decoration: none;}
 
             .reverse-label {
                 display: block;
@@ -166,6 +169,30 @@
                 border: 1px solid #ddd;
 
                 font-size: 15px;
+            }
+
+            .button-row {
+                display: flex;
+                justify-content: center;
+                gap: 16px;
+                margin-top: 30px;
+            }
+
+            .smart-add-button {
+                display: block;
+                padding: 12px 22px;
+                font-size: 16px;
+                border-radius: 14px;
+                border: none;
+                background: #7c3aed;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.15s ease;
+            }
+
+            .smart-add-button:hover {
+                background: #6d28d9;
             }
     </style>
 </head>
@@ -243,72 +270,42 @@
             Add reverse card
         </label>
 
-        <button type="submit" class="add-card-button">
-            Add Card
-        </button>
+        <div class="button-row">
+
+            <button
+                type="submit"
+                class="add-card-button"
+                formaction="/add-card"
+            >
+                Add Card
+            </button>
+
+            <button
+                type="submit"
+                class="add-card-button"
+                formaction="/smart-add-card/preview"
+            >
+                Smart Add
+            </button>
+
+            <a
+                href="#"
+                class="add-card-button"
+                onclick="goToSelectedDeck(event)"
+            >
+                View Deck
+            </a>
+
+            <a
+                href="#"
+                class="add-card-button"
+                onclick="goToSelectedReview(event)"
+            >
+                Review Cards
+            </a>
+
+        </div>
     </form>
-
-    <hr>
-
-    <h2>Smart Add</h2>
-
-    <form method="post" action="/smart-add-card/preview">
-
-        <label for="deck_id">
-            Deck
-        </label>
-
-        <select name="deck_id" required>
-
-            {% for deck in decks %}
-
-                <option
-                    value="{{ deck[0] }}"
-                    {% if deck[0] == selected_deck_id %}
-                        selected
-                    {% endif %}
-                >
-                    {{ deck[1] }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-        <label for="front">
-            Front
-        </label>
-
-        <input
-            type="text"
-            name="front"
-            required
-        >
-
-        <br><br>
-
-        <label for="back">
-            Back
-        </label>
-
-        <input
-            type="text"
-            name="back"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Generate Suggestions
-        </button>
-
-    </form>
-
-    <p><a href="/">Back to review</a></p>
 
     <script>
         const form = document.getElementById("add-card-form");
@@ -326,6 +323,27 @@
                 textarea.style.height = textarea.scrollHeight + "px";
             });
         });
+
+        function goToSelectedDeck(event) {
+            event.preventDefault();
+
+            const deckId = document.querySelector(
+                "select[name='deck_id']"
+            ).value;
+
+            window.location.href = "/deck/" + deckId + "/cards";
+        }
+
+        function goToSelectedReview(event) {
+            event.preventDefault();
+
+            const deckId = document.querySelector(
+                "select[name='deck_id']"
+            ).value;
+
+            window.location.href =
+                "/review/" + deckId;
+        }
     </script>
 </body>
 </html>
