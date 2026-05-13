@@ -233,6 +233,47 @@
                 font-weight: bold;
             }
 
+            .editor-row {
+                width: 70%;
+                margin: 0 auto;
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .rich-editor {
+                flex: 1;
+                min-height: 90px;
+                padding: 14px;
+                border: 1px solid #ddd;
+                border-radius: 14px;
+                font-size: 18px;
+                line-height: 1.6;
+                background: white;
+                text-align: center;
+            }
+
+            .rich-editor img {
+                max-width: 220px;
+                max-height: 180px;
+                display: block;
+                margin: 12px auto;
+                border-radius: 12px;
+            }
+
+            .image-insert-button {
+                padding: 10px 14px;
+                border-radius: 12px;
+                border: none;
+                background: #e5e7eb;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .image-insert-button:hover {
+                background: #d1d5db;
+            }
+
             @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -319,7 +360,12 @@
         </div>
     </header>
 
-    <form id="add-card-form" action="/add-card" method="post">
+    <form
+        id="add-card-form"
+        action="/add-card"
+        method="post"
+        enctype="multipart/form-data"
+    >
         <div class="deck-selector-top-right">
 
             <label class="deck-selector-label">
@@ -353,10 +399,42 @@
         <div id="basic-options">
 
             <label class="add-label">Front</label>
-            <textarea name="front_basic" class="add-card" id="front-basic-field"></textarea>
+            <div class="editor-row">
+                <div
+                    id="front-basic-editor"
+                    class="rich-editor"
+                    contenteditable="true"
+                ></div>
+
+                <button
+                    type="button"
+                    class="image-insert-button"
+                    onclick="chooseImageFor('front')"
+                >
+                    Insert Image
+                </button>
+            </div>
+
+            <input type="hidden" id="front-basic-field">
 
             <label class="add-label">Back</label>
-            <textarea name="back" class="add-card" id="back-field"></textarea>
+            <div class="editor-row">
+                <div
+                    id="back-editor"
+                    class="rich-editor"
+                    contenteditable="true"
+                ></div>
+
+                <button
+                    type="button"
+                    class="image-insert-button"
+                    onclick="chooseImageFor('back')"
+                >
+                    Insert Image
+                </button>
+            </div>
+
+            <input type="hidden" name="back" id="back-field">
 
             <label class="reverse-label">
                 <input
@@ -376,18 +454,23 @@
 
             <label class="add-label">Cloze Text</label>
 
-            <div
-                id="cloze-editor"
-                class="cloze-editor"
-                contenteditable="true"
-            ></div>
+            <div class="editor-row">
 
-            <input
-                type="hidden"
-                name="back"
-                id="back-hidden"
-                value="cloze"
-            >
+                <div
+                    id="cloze-editor"
+                    class="rich-editor"
+                    contenteditable="true"
+                ></div>
+
+                <button
+                    type="button"
+                    class="image-insert-button"
+                    onclick="chooseImageFor('cloze')"
+                >
+                    Insert Image
+                </button>
+
+            </div>
 
             <button
                 type="button"
@@ -398,6 +481,40 @@
             </button>
 
         </div>
+
+        <input
+            type="file"
+            name="image"
+            accept="image/*"
+            class="deck-selector"
+        >
+
+        <input
+            type="hidden"
+            name="pasted_image_data"
+            id="pasted-image-data"
+        >
+
+        <input
+            type="file"
+            id="image-file"
+            name="image"
+            accept="image/*"
+            hidden
+        >
+
+        <input
+            type="hidden"
+            name="pasted_image_data"
+            id="pasted-image-data"
+        >
+
+        <input
+            type="file"
+            id="image-file"
+            accept="image/*"
+            hidden
+        >
 
         <div class="button-row">
 
@@ -445,6 +562,8 @@
                 textarea.style.height = textarea.scrollHeight + "px";
             });
         });
+
+        const imageFileInput = document.getElementById("image-file");
 
         function goToSelectedDeck(event) {
             event.preventDefault();
@@ -534,6 +653,78 @@
                 backField.value = "cloze";
             } else {
                 frontHidden.value = frontBasicField.value;
+            }
+        });
+
+        let activeImageTarget = null;
+
+        function chooseImageFor(target) {
+            activeImageTarget = target;
+            document.getElementById("image-file").click();
+        }
+
+        function getEditorForTarget(target) {
+            if (target === "front") {
+                return document.getElementById("front-basic-editor");
+            }
+
+            if (target === "back") {
+                return document.getElementById("back-editor");
+            }
+
+            if (target === "cloze") {
+                return document.getElementById("cloze-editor");
+            }
+        }
+
+        function insertImageIntoEditor(src, target) {
+            const editor = getEditorForTarget(target);
+
+            if (!editor) return;
+
+            const img = document.createElement("img");
+            img.src = src;
+
+            editor.appendChild(img);
+        }
+
+        document.getElementById("image-file").addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (!file || !activeImageTarget) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                insertImageIntoEditor(event.target.result, activeImageTarget);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        document.addEventListener("paste", function (event) {
+            const activeEditor = document.activeElement;
+
+            if (!activeEditor.classList.contains("rich-editor")) {
+                return;
+            }
+
+            for (const item of event.clipboardData.items) {
+                if (item.type.startsWith("image/")) {
+                    event.preventDefault();
+
+                    const file = item.getAsFile();
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        const img = document.createElement("img");
+                        img.src = e.target.result;
+                        activeEditor.appendChild(img);
+                    };
+
+                    reader.readAsDataURL(file);
+                    break;
+                }
             }
         });
     </script>

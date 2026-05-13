@@ -12,6 +12,11 @@ from fsrs_scheduler import schedule_review
 from pydantic import BaseModel
 import re
 from markupsafe import Markup, escape
+from fastapi.staticfiles import StaticFiles
+from fastapi import UploadFile, File
+import os
+import uuid
+import base64
 
 
 def render_cloze_hidden(text: str) -> Markup:
@@ -40,6 +45,7 @@ def render_cloze_revealed(text: str) -> Markup:
 embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 templates.env.filters["cloze_hidden"] = render_cloze_hidden
 templates.env.filters["cloze_revealed"] = render_cloze_revealed
@@ -135,7 +141,7 @@ def review_page(request: Request, deck_id: int):
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT id, front, back, card_type
+    SELECT id, front, back, card_type, image_path
     FROM flashcards
     WHERE deck_id = %s
     AND next_review <= NOW()
@@ -277,21 +283,50 @@ def add_card(
     front: str = Form(...),
     back: str = Form(...),
     card_type: str = Form("basic"),
-    add_reverse: str | None = Form(None)
+    add_reverse: str | None = Form(None),
+    image: UploadFile | None = File(None),
+    pasted_image_data: str | None = Form(None)
 ):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO flashcards (deck_id, front, back, card_type)
-        VALUES (%s, %s, %s, %s);
-    """, (deck_id, front, back, card_type))
+        INSERT INTO flashcards (deck_id, front, back, card_type, image_path)
+        VALUES (%s, %s, %s, %s, %s);
+    """, (deck_id, front, back, card_type, image_path))
 
     if add_reverse == "yes" and card_type == "basic":
         cursor.execute("""
             INSERT INTO flashcards (deck_id, front, back)
             VALUES (%s, %s, %s);
         """, (deck_id, back, front))
+
+    image_path = None
+
+    upload_dir = "static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    if image and image.filename:
+        ext = os.path.splitext(image.filename)[1]
+        filename = f"{uuid.uuid4()}{ext}"
+        file_path = os.path.join(upload_dir, filename)
+
+        with open(file_path, "wb") as f:
+            f.write(image.file.read())
+
+        image_path = f"/static/uploads/{filename}"
+
+    elif pasted_image_data:
+        header, encoded = pasted_image_data.split(",", 1)
+        image_bytes = base64.b64decode(encoded)
+
+        filename = f"{uuid.uuid4()}.png"
+        file_path = os.path.join(upload_dir, filename)
+
+        with open(file_path, "wb") as f:
+            f.write(image_bytes)
+
+        image_path = f"/static/uploads/{filename}"
 
     conn.commit()
     cursor.close()

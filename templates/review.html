@@ -168,6 +168,14 @@
             font-weight: bold;
         }
 
+        .review-image {
+            max-width: 100%;
+            max-height: 320px;
+            margin: 24px auto;
+            display: block;
+            border-radius: 18px;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -256,6 +264,13 @@
                     >
                         {{ card[1] | cloze_revealed }}
                     </div>
+
+                {% if card[4] %}
+                    <img
+                        src="{{ card[4] }}"
+                        class="review-image"
+                    >
+                {% endif %}
 
                 {% else %}
 
