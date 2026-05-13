@@ -153,6 +153,21 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
 
+        .cloze-blank {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 3px solid #2563eb;
+            color: transparent;
+        }
+
+        .cloze-answer {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -217,26 +232,54 @@
     <main class="page">
 
         {% if card %}
+
             <div class="review-card">
-                <div class="front">
-                    {{ card[1] }}
-                </div>
 
-                <button
-                    id="revealButton"
-                    class="reveal-button"
-                    onclick="revealAnswer()"
-                >
-                    Reveal Answer
-                </button>
+                {% if card[3] == "cloze" %}
 
-                <div
-                    id="answer"
-                    class="back"
-                    style="display: none;"
-                >
-                    {{ card[2] }}
-                </div>
+                    <div class="front">
+                        {{ card[1] | cloze_hidden }}
+                    </div>
+
+                    <button
+                        id="revealButton"
+                        class="reveal-button"
+                        onclick="revealAnswer()"
+                    >
+                        Reveal Answer
+                    </button>
+
+                    <div
+                        id="answer"
+                        class="back"
+                        style="display: none;"
+                    >
+                        {{ card[1] | cloze_revealed }}
+                    </div>
+
+                {% else %}
+
+                    <div class="front">
+                        {{ card[1] }}
+                    </div>
+
+                    <button
+                        id="revealButton"
+                        class="reveal-button"
+                        onclick="revealAnswer()"
+                    >
+                        Reveal Answer
+                    </button>
+
+                    <div
+                        id="answer"
+                        class="back"
+                        style="display: none;"
+                    >
+                        {{ card[2] }}
+                    </div>
+
+                {% endif %}
 
                 <form
                     id="ratings"
@@ -263,8 +306,11 @@
                         Easy
                     </button>
                 </form>
+
             </div>
+
         {% else %}
+
             <div class="empty">
                 <p>No cards due for review.</p>
 
@@ -272,6 +318,7 @@
                     Add Card
                 </a>
             </div>
+
         {% endif %}
 
     </main>

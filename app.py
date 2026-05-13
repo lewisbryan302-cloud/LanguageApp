@@ -10,11 +10,39 @@ from embedding_helper import get_similar_words
 from embedding_helper import get_similar_words_with_translations
 from fsrs_scheduler import schedule_review
 from pydantic import BaseModel
+import re
+from markupsafe import Markup, escape
+
+
+def render_cloze_hidden(text: str) -> Markup:
+    escaped = escape(text)
+
+    hidden = re.sub(
+        r"\{\{c\d+::(.*?)\}\}",
+        '<span class="cloze-blank">_____</span>',
+        str(escaped)
+    )
+
+    return Markup(hidden)
+
+
+def render_cloze_revealed(text: str) -> Markup:
+    escaped = escape(text)
+
+    revealed = re.sub(
+        r"\{\{c\d+::(.*?)\}\}",
+        r'<span class="cloze-answer">\1</span>',
+        str(escaped)
+    )
+
+    return Markup(revealed)
 
 embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["cloze_hidden"] = render_cloze_hidden
+templates.env.filters["cloze_revealed"] = render_cloze_revealed
 
 def get_next_review_date(rating: int):
     if rating == 0:
@@ -107,7 +135,7 @@ def review_page(request: Request, deck_id: int):
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT id, front, back
+    SELECT id, front, back, card_type
     FROM flashcards
     WHERE deck_id = %s
     AND next_review <= NOW()
@@ -248,17 +276,18 @@ def add_card(
     deck_id: int = Form(...),
     front: str = Form(...),
     back: str = Form(...),
+    card_type: str = Form("basic"),
     add_reverse: str | None = Form(None)
 ):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO flashcards (deck_id, front, back)
-        VALUES (%s, %s, %s);
-    """, (deck_id, front, back))
+        INSERT INTO flashcards (deck_id, front, back, card_type)
+        VALUES (%s, %s, %s, %s);
+    """, (deck_id, front, back, card_type))
 
-    if add_reverse == "yes":
+    if add_reverse == "yes" and card_type == "basic":
         cursor.execute("""
             INSERT INTO flashcards (deck_id, front, back)
             VALUES (%s, %s, %s);

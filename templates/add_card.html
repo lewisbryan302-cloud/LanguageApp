@@ -210,6 +210,29 @@
                 background: #d1d5db;
             }
 
+            .cloze-editor {
+                width: 70%;
+                min-height: 120px;
+                margin: 0 auto;
+                padding: 16px;
+
+                border: 1px solid #ddd;
+                border-radius: 14px;
+
+                font-size: 18px;
+                line-height: 1.6;
+
+                background: white;
+            }
+
+            .cloze-highlight {
+                background: #dbeafe;
+                color: #1d4ed8;
+                padding: 2px 5px;
+                border-radius: 6px;
+                font-weight: bold;
+            }
+
             @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -318,24 +341,63 @@
 
         </div>
 
-        <label class="add-label">Front</label>
-        <textarea name="front" class="add-card" required></textarea>
+        <label class="add-label">Card Type</label>
 
-        <label class="add-label">Back</label>
-        <textarea name="back" class="add-card" required></textarea>
+        <select name="card_type" id="card-type-select" class="deck-selector">
+            <option value="basic">Basic</option>
+            <option value="cloze">Cloze</option>
+        </select>
 
-        <label class="reverse-label">
+        <input type="hidden" name="front" id="front-hidden">
+
+        <div id="basic-options">
+
+            <label class="add-label">Front</label>
+            <textarea name="front_basic" class="add-card" id="front-basic-field"></textarea>
+
+            <label class="add-label">Back</label>
+            <textarea name="back" class="add-card" id="back-field"></textarea>
+
+            <label class="reverse-label">
+                <input
+                    type="checkbox"
+                    name="add_reverse"
+                    value="yes"
+                    {% if add_reverse == "yes" %}
+                        checked
+                    {% endif %}
+                >
+                Add reverse card
+            </label>
+
+        </div>
+
+        <div id="cloze-options">
+
+            <label class="add-label">Cloze Text</label>
+
+            <div
+                id="cloze-editor"
+                class="cloze-editor"
+                contenteditable="true"
+            ></div>
+
             <input
-                type="checkbox"
-                name="add_reverse"
-                value="yes"
-
-                {% if add_reverse == "yes" %}
-                    checked
-                {% endif %}
+                type="hidden"
+                name="back"
+                id="back-hidden"
+                value="cloze"
             >
-            Add reverse card
-        </label>
+
+            <button
+                type="button"
+                class="add-card-button"
+                onclick="makeCloze()"
+            >
+                Make Cloze
+            </button>
+
+        </div>
 
         <div class="button-row">
 
@@ -360,6 +422,15 @@
 
     <script>
         const form = document.getElementById("add-card-form");
+        const cardTypeSelect = document.getElementById("card-type-select");
+
+        const basicOptions = document.getElementById("basic-options");
+        const clozeOptions = document.getElementById("cloze-options");
+
+        const frontBasicField = document.getElementById("front-basic-field");
+        const backField = document.getElementById("back-field");
+        const frontHidden = document.getElementById("front-hidden");
+        const clozeEditor = document.getElementById("cloze-editor");
 
         form.addEventListener("keydown", function(event) {
             if (event.ctrlKey && event.key === "Enter") {
@@ -392,9 +463,79 @@
                 "select[name='deck_id']"
             ).value;
 
-            window.location.href =
-                "/review/" + deckId;
+            window.location.href = "/review/" + deckId;
         }
+
+        function makeCloze() {
+            const selection = window.getSelection();
+
+            if (!selection.rangeCount || selection.toString().trim() === "") {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+
+            const span = document.createElement("span");
+            span.className = "cloze-highlight";
+            span.dataset.cloze = "true";
+
+            range.surroundContents(span);
+
+            selection.removeAllRanges();
+        }
+
+        function updateCardTypeView() {
+            if (cardTypeSelect.value === "cloze") {
+                basicOptions.style.display = "none";
+                clozeOptions.style.display = "block";
+
+                frontBasicField.required = false;
+                backField.required = false;
+            } else {
+                basicOptions.style.display = "block";
+                clozeOptions.style.display = "none";
+
+                frontBasicField.required = true;
+                backField.required = true;
+            }
+        }
+
+        cardTypeSelect.addEventListener("change", function () {
+
+            localStorage.setItem(
+                "selected_card_type",
+                cardTypeSelect.value
+            );
+
+            updateCardTypeView();
+        });
+
+        const savedCardType =
+            localStorage.getItem("selected_card_type");
+
+        if (savedCardType) {
+            cardTypeSelect.value = savedCardType;
+        }
+
+        updateCardTypeView();
+
+        form.addEventListener("submit", function () {
+            if (cardTypeSelect.value === "cloze") {
+                let html = clozeEditor.innerHTML;
+
+                html = html.replace(
+                    /<span class="cloze-highlight" data-cloze="true">(.*?)<\/span>/g,
+                    "{% raw %}{{c1::$1}}{% endraw %}"
+                );
+
+                html = html.replace(/<[^>]+>/g, "");
+
+                frontHidden.value = html;
+                backField.value = "cloze";
+            } else {
+                frontHidden.value = frontBasicField.value;
+            }
+        });
     </script>
 </body>
 </html>
