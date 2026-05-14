@@ -1040,3 +1040,25 @@ def undo_review(request: Request):
         "status": "success",
         "deck_id": deck_id
     }
+
+@app.post("/card/{card_id}/quick-edit")
+def quick_edit_card(
+    card_id: int,
+    front: str = Form(...),
+    back: str = Form(...)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE flashcards
+        SET front = %s,
+            back = %s
+        WHERE id = %s;
+    """, (front, back, card_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"status": "success"}

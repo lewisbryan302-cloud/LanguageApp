@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <head>
-        <title>Flashcard Review</title>
+    <title>Flashcard Review</title>
 
-        <script>
+    <script>
         window.MathJax = {
             tex: {
                 inlineMath: [['\\(', '\\)'], ['$', '$']]
             }
         };
-        </script>
+    </script>
 
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         body {
@@ -211,6 +210,31 @@
             font-weight: bold;
         }
 
+        .editing {
+            outline: 3px solid #2563eb;
+            border-radius: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            cursor: text;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 24px auto;
+        }
+
+        .editor-toolbar select,
+        .editor-toolbar input,
+        .editor-toolbar button {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -231,18 +255,6 @@
             }
         }
     </style>
-
-    <script>
-        function revealAnswer() {
-            document.getElementById("answer").style.display = "block";
-            document.getElementById("ratings").style.display = "block";
-            document.getElementById("revealButton").style.display = "none";
-
-            document.querySelectorAll(".occlusion-box").forEach(box => {
-                box.style.display = "none";
-            });
-        }
-    </script>
 </head>
 
 <body>
@@ -314,7 +326,11 @@
 
                 {% else %}
 
-                    <div class="front">
+                    <div
+                        id="editable-front"
+                        class="front editable-card-part"
+                        ondblclick="enterEditMode()"
+                    >
                         {{ card[1] | safe }}
                     </div>
 
@@ -322,7 +338,12 @@
                         Reveal Answer
                     </button>
 
-                    <div id="answer" class="back" style="display: none;">
+                    <div
+                        id="answer"
+                        class="back editable-card-part"
+                        style="display: none;"
+                        ondblclick="enterEditMode()"
+                    >
                         {{ card[2] | safe }}
                     </div>
 
@@ -332,14 +353,60 @@
                     <img src="{{ card[4] }}" class="review-image">
                 {% endif %}
 
+                <div id="reviewEditToolbar" class="editor-toolbar" style="display: none;">
+                    <select id="font-family">
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Consolas">Consolas</option>
+                    </select>
+
+                    <select id="font-size">
+                        <option value="12pt">12 pt</option>
+                        <option value="16pt">16 pt</option>
+                        <option value="20pt">20 pt</option>
+                        <option value="24pt" selected>24 pt</option>
+                        <option value="32pt">32 pt</option>
+                        <option value="42pt">42 pt</option>
+                        <option value="60pt">60 pt</option>
+                    </select>
+
+                    <input type="color" id="text-color" value="#000000">
+
+                    <button type="button" onclick="formatSelection('bold')">B</button>
+                    <button type="button" onclick="formatSelection('italic')">I</button>
+                    <button type="button" onclick="insertLatex()">LaTeX</button>
+                </div>
+
+                <button
+                    id="saveEditButton"
+                    class="reveal-button"
+                    style="display: none;"
+                    onclick="saveQuickEdit()"
+                >
+                    Enter
+                </button>
+
                 <form id="ratings" action="/answer" method="post" style="display: none;">
                     <input type="hidden" name="card_id" value="{{ card[0] }}">
                     <input type="hidden" name="deck_id" value="{{ deck_id }}">
 
-                    <button type="submit" name="rating" value="1" class="rating-again">Again</button>
-                    <button type="submit" name="rating" value="2" class="rating-hard">Hard</button>
-                    <button type="submit" name="rating" value="3" class="rating-good">Good</button>
-                    <button type="submit" name="rating" value="4" class="rating-easy">Easy</button>
+                    <button type="submit" name="rating" value="1" class="rating-again">
+                        Again
+                    </button>
+
+                    <button type="submit" name="rating" value="2" class="rating-hard">
+                        Hard
+                    </button>
+
+                    <button type="submit" name="rating" value="3" class="rating-good">
+                        Good
+                    </button>
+
+                    <button type="submit" name="rating" value="4" class="rating-easy">
+                        Easy
+                    </button>
                 </form>
 
             </div>
@@ -360,26 +427,38 @@
 
     <script>
         function revealAnswer() {
-                document.getElementById("answer").style.display = "block";
-                document.getElementById("ratings").style.display = "block";
-                document.getElementById("revealButton").style.display = "none";
+            const answer = document.getElementById("answer");
+            const ratings = document.getElementById("ratings");
+            const revealButton = document.getElementById("revealButton");
 
-                document.querySelectorAll(".occlusion-box").forEach(box => {
-                    box.style.display = "none";
-                });
+            if (answer) {
+                answer.style.display = "block";
             }
 
-            document.addEventListener("keydown", function(event) {
-                if (event.code === "Space") {
-                    event.preventDefault();
+            if (ratings) {
+                ratings.style.display = "block";
+            }
 
-                    const revealButton = document.getElementById("revealButton");
+            if (revealButton) {
+                revealButton.style.display = "none";
+            }
 
-                    if (revealButton && revealButton.style.display !== "none") {
-                        revealAnswer();
-                    }
-                }
+            document.querySelectorAll(".occlusion-box").forEach(box => {
+                box.style.display = "none";
             });
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space") {
+                event.preventDefault();
+
+                const revealButton = document.getElementById("revealButton");
+
+                if (revealButton && revealButton.style.display !== "none") {
+                    revealAnswer();
+                }
+            }
+        });
 
         document.addEventListener("keydown", function(event) {
             const ratings = document.getElementById("ratings");
@@ -419,8 +498,14 @@
 
                 if (answer && answer.style.display !== "none") {
                     answer.style.display = "none";
-                    ratings.style.display = "none";
-                    revealButton.style.display = "inline-block";
+
+                    if (ratings) {
+                        ratings.style.display = "none";
+                    }
+
+                    if (revealButton) {
+                        revealButton.style.display = "inline-block";
+                    }
 
                     document.querySelectorAll(".occlusion-box").forEach(box => {
                         box.style.display = "";
@@ -440,6 +525,130 @@
                 }
             }
         });
+
+        function enterEditMode() {
+            document.getElementById("reviewEditToolbar").style.display = "flex";
+            const front = document.getElementById("editable-front");
+            const back = document.getElementById("answer");
+            const saveButton = document.getElementById("saveEditButton");
+            const revealButton = document.getElementById("revealButton");
+            const ratings = document.getElementById("ratings");
+
+            if (front) {
+                front.contentEditable = "true";
+                front.classList.add("editing");
+            }
+
+            if (back) {
+                back.style.display = "block";
+                back.contentEditable = "true";
+                back.classList.add("editing");
+            }
+
+            if (saveButton) {
+                saveButton.style.display = "inline-block";
+            }
+
+            if (revealButton) {
+                revealButton.style.display = "none";
+            }
+
+            if (ratings) {
+                ratings.style.display = "none";
+            }
+        }
+
+        async function saveQuickEdit() {
+            document.getElementById("reviewEditToolbar").style.display = "none";
+            const front = document.getElementById("editable-front");
+            const back = document.getElementById("answer");
+            const saveButton = document.getElementById("saveEditButton");
+            const revealButton = document.getElementById("revealButton");
+
+            const formData = new FormData();
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+
+            if (front) {
+                formData.append("front", front.innerHTML);
+            }
+
+            if (back) {
+                formData.append("back", back.innerHTML);
+            }
+
+            const response = await fetch("/card/{{ card[0] }}/quick-edit", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.status === "success") {
+                if (front) {
+                    front.contentEditable = "false";
+                    front.classList.remove("editing");
+                }
+
+                if (back) {
+                    back.contentEditable = "false";
+                    back.classList.remove("editing");
+                    back.style.display = "none";
+                }
+
+                if (saveButton) {
+                    saveButton.style.display = "none";
+                }
+
+                if (revealButton) {
+                    revealButton.style.display = "inline-block";
+                }
+            }
+        }
+
+        function formatSelection(command) {
+            document.execCommand(command, false, null);
+        }
+
+        document.getElementById("font-family").addEventListener("change", function () {
+            document.execCommand("fontName", false, this.value);
+        });
+
+        document.getElementById("font-size").addEventListener("change", function () {
+            const size = this.value;
+            const selection = window.getSelection();
+
+            if (!selection.rangeCount) return;
+
+            const range = selection.getRangeAt(0);
+            const span = document.createElement("span");
+
+            span.style.fontSize = size;
+            span.appendChild(range.extractContents());
+            range.insertNode(span);
+        });
+
+        document.getElementById("text-color").addEventListener("change", function () {
+            document.execCommand("foreColor", false, this.value);
+        });
+
+        function insertLatex() {
+            const latex = prompt("Enter LaTeX, e.g. x^2 + y^2 = z^2");
+
+            if (!latex) return;
+
+            document.execCommand(
+                "insertHTML",
+                false,
+                `<span class="latex">\\(${latex}\\)</span>`
+            );
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
     </script>
 
 </body>
