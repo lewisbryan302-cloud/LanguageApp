@@ -314,9 +314,72 @@
             box-sizing: border-box;
         }
 
-        @media (max-width: 700px) {
-            .deck {
+        .deck-carousel,
+        .carousel-dots {
+            display: none;
+        }
+
+        @media (max-width: 800px) {
+            .deck-grid {
+                display: none;
+            }
+
+            .deck-carousel {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
                 width: 100%;
+                margin-top: 30px;
+            }
+
+            .deck-carousel-window {
+                width: 80%;
+                overflow: hidden;
+            }
+
+            .deck-carousel-track {
+                display: flex;
+                transition: transform 0.3s ease;
+            }
+
+            .deck-slide {
+                min-width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .mobile-deck {
+                width: 100%;
+            }
+
+            .carousel-arrow {
+                border: none;
+                background: white;
+                border-radius: 50%;
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            .carousel-dots {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .carousel-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #d1d5db;
+            }
+
+            .carousel-dot.active {
+                background: #2563eb;
             }
         }
     </style>
@@ -343,7 +406,6 @@
 
     <main class="page">
         <h1>My Decks</h1>
-
         <div class="deck-grid">
             {% for deck in decks %}
                 <div class="deck" data-deck-id="{{ deck[0] }}">
@@ -405,6 +467,71 @@
                         </a>
                     </div>
                 </div>
+            {% endfor %}
+        </div>
+
+        <div class="deck-carousel">
+
+            <button class="carousel-arrow" id="prevDeck">◀</button>
+
+            <div class="deck-carousel-window">
+                <div class="deck-carousel-track" id="deckTrack">
+
+                    {% for deck in decks %}
+                        <div class="deck-slide">
+                            <div class="deck mobile-deck">
+
+                                <div class="deck-title-section">
+                                    <a href="/review/{{ deck[0] }}" class="deck-title">
+                                        {{ deck[1] }}
+                                    </a>
+                                </div>
+
+                                <div class="deck-stats">
+                                    <div class="stat-block">
+                                        <div class="stat-label">Words Learnt</div>
+                                        <div class="stat-value">{{ deck[3] }}</div>
+                                    </div>
+
+                                    <div class="stat-block">
+                                        <div class="stat-label">New Cards</div>
+                                        <div class="stat-value">{{ deck[4] }}</div>
+                                    </div>
+
+                                    <div class="stat-block">
+                                        <div class="stat-label">To Review</div>
+                                        <div class="stat-value">{{ deck[5] }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="deck-actions">
+                                    <a href="/add-card?deck_id={{ deck[0] }}" class="deck-action-button">
+                                        Add Card
+                                    </a>
+
+                                    <a href="/deck/{{ deck[0] }}/cards" class="deck-action-button">
+                                        View Cards
+                                    </a>
+
+                                    <a href="/review/{{ deck[0] }}" class="deck-action-button primary">
+                                        Review
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <button class="carousel-arrow" id="nextDeck">▶</button>
+
+        </div>
+
+        <div class="carousel-dots">
+            {% for deck in decks %}
+                <span class="carousel-dot"></span>
             {% endfor %}
         </div>
     </main>
@@ -528,6 +655,47 @@
                 })
             });
         }
+
+        let currentDeckIndex = 0;
+
+        const track = document.getElementById("deckTrack");
+        const slides = document.querySelectorAll(".deck-slide");
+        const dots = document.querySelectorAll(".carousel-dot");
+
+        function updateCarousel() {
+            if (!track || slides.length === 0) return;
+
+            track.style.transform =
+                `translateX(-${currentDeckIndex * 100}%)`;
+
+            dots.forEach(dot => dot.classList.remove("active"));
+
+            if (dots[currentDeckIndex]) {
+                dots[currentDeckIndex].classList.add("active");
+            }
+        }
+
+        document.getElementById("nextDeck")?.addEventListener("click", function () {
+            currentDeckIndex++;
+
+            if (currentDeckIndex >= slides.length) {
+                currentDeckIndex = 0;
+            }
+
+            updateCarousel();
+        });
+
+        document.getElementById("prevDeck")?.addEventListener("click", function () {
+            currentDeckIndex--;
+
+            if (currentDeckIndex < 0) {
+                currentDeckIndex = slides.length - 1;
+            }
+
+            updateCarousel();
+        });
+
+        updateCarousel();
     </script>
 </body>
 </html>
