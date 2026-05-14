@@ -259,6 +259,14 @@
                             Reset SRS for Selected
                         </button>
 
+                        <button
+                            type="submit"
+                            formaction="/cards/delete-front-back-duplicates"
+                            onclick="return confirm('Delete exact front-back duplicate cards in this deck?');"
+                        >
+                            Delete Front-Back Duplicates
+                        </button>
+
                         <label>
                             <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
                             Select All

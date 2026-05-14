@@ -860,3 +860,35 @@ def save_deck_order(data: DeckOrderRequest):
     conn.close()
 
     return {"status": "success"}
+
+@app.post("/cards/delete-front-back-duplicates")
+def delete_front_back_duplicates(deck_id: int = Form(...)):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM flashcards
+        WHERE id IN (
+            SELECT id
+            FROM (
+                SELECT
+                    id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY deck_id, front, back
+                        ORDER BY id
+                    ) AS duplicate_number
+                FROM flashcards
+                WHERE deck_id = %s
+            ) duplicates
+            WHERE duplicate_number > 1
+        );
+    """, (deck_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(
+        f"/deck/{deck_id}/cards",
+        status_code=303
+    )
