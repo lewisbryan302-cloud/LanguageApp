@@ -736,13 +736,34 @@ def smart_add_card_preview(
 
     suggestions.sort(key=lambda x: x[3], reverse=True)
 
-    word_suggestions = get_similar_words_with_translations(
+    raw_word_suggestions = get_similar_words_with_translations(
         front,
         k=10,
         threshold=0.45,
         source="en",
         target=target_language
     )
+
+    existing_pairs = {
+        (existing_front.strip().lower(), existing_back.strip().lower())
+        for _, existing_front, existing_back in existing_cards
+    }
+
+    word_suggestions = []
+
+    for item in raw_word_suggestions:
+        suggested_pair = (
+            item["word"].strip().lower(),
+            item["translation"].strip().lower()
+        )
+
+        reverse_pair = (
+            item["translation"].strip().lower(),
+            item["word"].strip().lower()
+        )
+
+        if suggested_pair not in existing_pairs and reverse_pair not in existing_pairs:
+            word_suggestions.append(item)
 
     return templates.TemplateResponse(
         request,
@@ -774,15 +795,37 @@ def smart_add_card_create(
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO flashcards (deck_id, front, back)
-        VALUES (%s, %s, %s);
+        SELECT id
+        FROM flashcards
+        WHERE deck_id = %s
+        AND front = %s
+        AND back = %s;
     """, (deck_id, front, back))
 
-    if add_reverse == "yes":
+    main_duplicate_exists = cursor.fetchone()
+
+    if not main_duplicate_exists:
         cursor.execute("""
             INSERT INTO flashcards (deck_id, front, back)
             VALUES (%s, %s, %s);
+        """, (deck_id, front, back))
+
+    if add_reverse == "yes":
+        cursor.execute("""
+            SELECT id
+            FROM flashcards
+            WHERE deck_id = %s
+            AND front = %s
+            AND back = %s;
         """, (deck_id, back, front))
+
+        main_reverse_duplicate_exists = cursor.fetchone()
+
+        if not main_reverse_duplicate_exists:
+            cursor.execute("""
+                INSERT INTO flashcards (deck_id, front, back)
+                VALUES (%s, %s, %s);
+            """, (deck_id, back, front))
 
     if selected_card_ids:
         for card_id in selected_card_ids:
@@ -819,15 +862,37 @@ def smart_add_card_create(
             translation = suggested_translations[index]
 
             cursor.execute("""
-                INSERT INTO flashcards (deck_id, front, back)
-                VALUES (%s, %s, %s);
+                SELECT id
+                FROM flashcards
+                WHERE deck_id = %s
+                AND front = %s
+                AND back = %s;
             """, (deck_id, word, translation))
 
-            if add_reverse == "yes":
+            duplicate_exists = cursor.fetchone()
+
+            if not duplicate_exists:
                 cursor.execute("""
                     INSERT INTO flashcards (deck_id, front, back)
                     VALUES (%s, %s, %s);
+                """, (deck_id, word, translation))
+
+            if add_reverse == "yes":
+                cursor.execute("""
+                    SELECT id
+                    FROM flashcards
+                    WHERE deck_id = %s
+                    AND front = %s
+                    AND back = %s;
                 """, (deck_id, translation, word))
+
+                reverse_duplicate_exists = cursor.fetchone()
+
+                if not reverse_duplicate_exists:
+                    cursor.execute("""
+                        INSERT INTO flashcards (deck_id, front, back)
+                        VALUES (%s, %s, %s);
+                    """, (deck_id, translation, word))
 
     conn.commit()
     cursor.close()
