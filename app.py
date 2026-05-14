@@ -17,6 +17,7 @@ from fastapi import UploadFile, File
 import os
 import uuid
 import base64
+from starlette.middleware.sessions import SessionMiddleware
 
 
 def render_cloze_hidden(text: str) -> Markup:
@@ -45,6 +46,10 @@ def render_cloze_revealed(text: str) -> Markup:
 embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 app = FastAPI()
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="change-this-to-any-random-string"
+)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 templates.env.filters["cloze_hidden"] = render_cloze_hidden
@@ -179,12 +184,36 @@ def review_page(request: Request, deck_id: int):
 
 @app.post("/answer")
 def submit_answer(
+    request: Request,
     card_id: int = Form(...),
     deck_id: int = Form(...),
     rating: int = Form(...)
 ):
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            times_seen,
+            times_correct,
+            times_wrong,
+            last_reviewed,
+            next_review
+        FROM flashcards
+        WHERE id = %s;
+    """, (card_id,))
+
+    old_card_state = cursor.fetchone()
+
+    request.session["last_review_action"] = {
+        "card_id": card_id,
+        "deck_id": deck_id,
+        "times_seen": old_card_state[0],
+        "times_correct": old_card_state[1],
+        "times_wrong": old_card_state[2],
+        "last_reviewed": str(old_card_state[3]) if old_card_state[3] else None,
+        "next_review": str(old_card_state[4]) if old_card_state[4] else None
+    }
 
     cursor.execute("""
         SELECT
@@ -970,3 +999,44 @@ def delete_front_back_duplicates(deck_id: int = Form(...)):
         f"/deck/{deck_id}/cards",
         status_code=303
     )
+
+@app.post("/undo-review")
+def undo_review(request: Request):
+    last_action = request.session.get("last_review_action")
+
+    if not last_action:
+        return {"status": "nothing_to_undo"}
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE flashcards
+        SET
+            times_seen = %s,
+            times_correct = %s,
+            times_wrong = %s,
+            last_reviewed = %s,
+            next_review = %s
+        WHERE id = %s;
+    """, (
+        last_action["times_seen"],
+        last_action["times_correct"],
+        last_action["times_wrong"],
+        last_action["last_reviewed"],
+        last_action["next_review"],
+        last_action["card_id"]
+    ))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    deck_id = last_action["deck_id"]
+
+    request.session["last_review_action"] = None
+
+    return {
+        "status": "success",
+        "deck_id": deck_id
+    }

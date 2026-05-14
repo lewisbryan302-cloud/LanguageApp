@@ -408,6 +408,38 @@
                 ratings.querySelector("button[value='4']").click();
             }
         });
+
+        document.addEventListener("keydown", async function(event) {
+            if (event.ctrlKey && event.key.toLowerCase() === "z") {
+                event.preventDefault();
+
+                const answer = document.getElementById("answer");
+                const ratings = document.getElementById("ratings");
+                const revealButton = document.getElementById("revealButton");
+
+                if (answer && answer.style.display !== "none") {
+                    answer.style.display = "none";
+                    ratings.style.display = "none";
+                    revealButton.style.display = "inline-block";
+
+                    document.querySelectorAll(".occlusion-box").forEach(box => {
+                        box.style.display = "";
+                    });
+
+                    return;
+                }
+
+                const response = await fetch("/undo-review", {
+                    method: "POST"
+                });
+
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    window.location.href = "/review/" + data.deck_id;
+                }
+            }
+        });
     </script>
 
 </body>
