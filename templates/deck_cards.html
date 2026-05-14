@@ -165,6 +165,30 @@
             font-size: 16px;
         }
 
+        .card-row {
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+
+        .card-row:hover {
+            background: #f8fafc;
+        }
+
+        .card-row.selected {
+            background: #dbeafe;
+        }
+
+        .card-checkbox {
+            display: none;
+        }
+
+        .card-row,
+        .card-row * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -307,7 +331,7 @@
                         </tr>
 
                         {% for card in cards %}
-                            <tr class="card-row">
+                            <tr class="card-row" data-card-row>
                                 <td>
                                     <input type="checkbox" class="card-checkbox" name="card_ids" value="{{ card[0] }}">
                                 </td>
@@ -374,6 +398,36 @@
     {% endif %}
 
     <script>
+
+    let autoScrollInterval = null;
+    let dragMode = null;
+    let dragStartRow = null;
+ 
+
+    function handleAutoScroll(event) {
+        const scrollMargin = 120;
+        const scrollSpeed = 12;
+
+        const mouseY = event.clientY;
+        const windowHeight = window.innerHeight;
+
+        clearInterval(autoScrollInterval);
+
+        if (mouseY < scrollMargin) {
+
+            autoScrollInterval = setInterval(() => {
+                window.scrollBy(0, -scrollSpeed);
+            }, 10);
+
+        } else if (mouseY > windowHeight - scrollMargin) {
+
+            autoScrollInterval = setInterval(() => {
+                window.scrollBy(0, scrollSpeed);
+            }, 10);
+
+        }
+    }
+
     function toggleSelectAll() {
         const selectAll = document.getElementById("selectAll");
         const checkboxes = document.querySelectorAll(".card-checkbox");
@@ -400,6 +454,118 @@
                 row.style.display = "none";
             }
         });
+    }
+
+    let mouseDown = false;
+
+    document.addEventListener("mousedown", () => {
+        mouseDown = true;
+    });
+
+    document.addEventListener("mouseup", () => {
+
+        mouseDown = false;
+
+        dragStartRow = null;
+        dragMode = null;
+
+        clearInterval(autoScrollInterval);
+    });
+
+    document.querySelectorAll("[data-card-row]").forEach(row => {
+
+        row.addEventListener("mousedown", function (event) {
+            event.preventDefault();
+
+            mouseDown = true;
+
+            dragStartRow = row;
+
+            const checkbox = row.querySelector(".card-checkbox");
+
+            dragMode = checkbox.checked ? "deselect" : "select";
+
+            updateDragSelection(row);
+        });
+
+        row.addEventListener("mouseover", function (event) {
+            if (!mouseDown || !dragStartRow) return;
+
+            event.preventDefault();
+
+            updateDragSelection(row);
+
+            handleAutoScroll(event);
+        });
+    });
+
+    function toggleRowSelection(row) {
+        const checkbox = row.querySelector(".card-checkbox");
+
+        checkbox.checked = !checkbox.checked;
+
+        row.classList.toggle("selected", checkbox.checked);
+    }
+
+    function updateDragSelection(currentRow) {
+
+        const rows = [
+            ...document.querySelectorAll("[data-card-row]")
+        ];
+
+        const startIndex = rows.indexOf(dragStartRow);
+        const currentIndex = rows.indexOf(currentRow);
+
+        const minIndex = Math.min(startIndex, currentIndex);
+        const maxIndex = Math.max(startIndex, currentIndex);
+
+        rows.forEach((row, index) => {
+
+            const checkbox = row.querySelector(".card-checkbox");
+
+            const insideRange =
+                index >= minIndex &&
+                index <= maxIndex;
+
+            if (insideRange) {
+
+                if (dragMode === "select") {
+                    checkbox.checked = true;
+                    row.classList.add("selected");
+                }
+
+                if (dragMode === "deselect") {
+                    checkbox.checked = false;
+                    row.classList.remove("selected");
+                }
+
+            } else {
+
+                if (dragMode === "select") {
+                    checkbox.checked = false;
+                    row.classList.remove("selected");
+                }
+
+                if (dragMode === "deselect") {
+                    checkbox.checked = true;
+                    row.classList.add("selected");
+                }
+            }
+        });
+    }
+
+    function applyRowSelection(row) {
+        const checkbox = row.querySelector(".card-checkbox");
+
+        if (dragMode === "select") {
+            checkbox.checked = true;
+            row.classList.add("selected");
+        }
+
+        if (dragMode === "deselect") {
+            checkbox.checked = false;
+            row.classList.remove("selected");
+        }
     }
 
 </script>
