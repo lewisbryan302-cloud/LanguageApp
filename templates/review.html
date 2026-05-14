@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flashcard Review</title>
+    <head>
+        <title>Flashcard Review</title>
+
+        <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)'], ['$', '$']]
+            }
+        };
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         body {
@@ -293,7 +304,7 @@
                 {% else %}
 
                     <div class="front">
-                        {{ card[1] }}
+                        {{ card[1] | safe }}
                     </div>
 
                     <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
@@ -301,7 +312,7 @@
                     </button>
 
                     <div id="answer" class="back" style="display: none;">
-                        {{ card[2] }}
+                        {{ card[2] | safe }}
                     </div>
 
                 {% endif %}
