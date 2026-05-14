@@ -242,7 +242,7 @@
         <h1>{{ deck[1] }}</h1>
 
         {% if cards %}
-            <table>
+            
                 <form method="post">
                     <input type="hidden" name="deck_id" value="{{ deck[0] }}">
 
@@ -285,8 +285,30 @@
                                     <input type="checkbox" class="card-checkbox" name="card_ids" value="{{ card[0] }}">
                                 </td>
 
-                                <td>{{ card[1] }}</td>
-                                <td>{{ card[2] }}</td>
+                                <td>
+
+                                    {% if card[8] == "image_occlusion" %}
+
+                                        Image Occlusion Card
+
+                                    {% elif card[8] == "cloze" %}
+
+                                        {{ card[1] | cloze_hidden }}
+
+                                    {% else %}
+
+                                        {{ card[1] }}
+
+                                    {% endif %}
+
+                                </td>
+                                <td>
+                                    {% if card[8] == "image_occlusion" %}
+                                        Hidden boxes
+                                    {% else %}
+                                        {{ card[2] }}
+                                    {% endif %}
+                                </td>
                                 <td>{{ card[3] }}</td>
                                 <td>{{ card[4] }}</td>
                                 <td>{{ card[5] }}</td>
@@ -310,7 +332,7 @@
                         {% endfor %}
                     </table>
                 </form>
-            </table>
+            
         {% else %}
             <div class="empty">
                 <p>No cards in this deck yet.</p>

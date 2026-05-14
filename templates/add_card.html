@@ -274,6 +274,24 @@
                 background: #d1d5db;
             }
 
+            .occlusion-editor {
+                position: relative;
+                min-height: 260px;
+            }
+
+            .occlusion-editor img {
+                max-width: 100%;
+                display: block;
+                margin: 0 auto;
+            }
+
+            .occlusion-box {
+                position: absolute;
+                background: white;
+                border: 2px solid #2563eb;
+                cursor: pointer;
+            }
+
             @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -392,6 +410,7 @@
         <select name="card_type" id="card-type-select" class="deck-selector">
             <option value="basic">Basic</option>
             <option value="cloze">Cloze</option>
+            <option value="image_occlusion">Image Occlusion</option>
         </select>
 
         <input type="hidden" name="front" id="front-hidden">
@@ -482,6 +501,39 @@
 
         </div>
 
+        <div id="image-occlusion-options">
+
+            <label class="add-label">Image Occlusion</label>
+
+            <div class="editor-row">
+
+                <div
+                    id="occlusion-editor"
+                    class="rich-editor occlusion-editor"
+                    contenteditable="true"
+                    tabindex="0"
+                ></div>
+
+                <button
+                    type="button"
+                    class="image-insert-button"
+                    onclick="chooseImageFor('occlusion')"
+                >
+                    Insert Image
+                </button>
+
+            </div>
+
+            <button
+                type="button"
+                class="add-card-button"
+                id="draw-occlusion-button"
+            >
+                Draw Occlusion Box
+            </button>
+
+        </div>
+
        <input
             type="file"
             id="image-file"
@@ -535,6 +587,9 @@
         const backField = document.getElementById("back-field");
         const frontHidden = document.getElementById("front-hidden");
         const clozeEditor = document.getElementById("cloze-editor");
+
+        const imageOcclusionOptions = document.getElementById("image-occlusion-options");
+        
 
         form.addEventListener("keydown", function(event) {
             if (event.ctrlKey && event.key === "Enter") {
@@ -594,12 +649,23 @@
             if (cardTypeSelect.value === "cloze") {
                 basicOptions.style.display = "none";
                 clozeOptions.style.display = "block";
+                imageOcclusionOptions.style.display = "none";
 
                 frontBasicField.required = false;
                 backField.required = false;
+
+            } else if (cardTypeSelect.value === "image_occlusion") {
+                basicOptions.style.display = "none";
+                clozeOptions.style.display = "none";
+                imageOcclusionOptions.style.display = "block";
+
+                frontBasicField.required = false;
+                backField.required = false;
+
             } else {
                 basicOptions.style.display = "block";
                 clozeOptions.style.display = "none";
+                imageOcclusionOptions.style.display = "none";
 
                 frontBasicField.required = true;
                 backField.required = true;
@@ -638,7 +704,16 @@
 
                 frontHidden.value = html;
                 backField.value = "cloze";
-            } else {
+            } 
+
+            else if (cardTypeSelect.value === "image_occlusion") {
+                const editor = document.getElementById("occlusion-editor");
+
+                frontHidden.value = editor.innerHTML;
+                backField.value = "image_occlusion";
+            }
+            
+            else {
                 frontHidden.value = frontBasicField.value;
             }
         });
@@ -651,6 +726,7 @@
         }
 
         function getEditorForTarget(target) {
+
             if (target === "front") {
                 return document.getElementById("front-basic-editor");
             }
@@ -661,6 +737,10 @@
 
             if (target === "cloze") {
                 return document.getElementById("cloze-editor");
+            }
+
+            if (target === "occlusion") {
+                return document.getElementById("occlusion-editor");
             }
         }
 
@@ -692,7 +772,10 @@
         document.addEventListener("paste", function (event) {
             const activeEditor = document.activeElement;
 
-            if (!activeEditor.classList.contains("rich-editor")) {
+            if (
+                !activeEditor.classList.contains("rich-editor") &&
+                !activeEditor.classList.contains("occlusion-editor")
+            ) {
                 return;
             }
 
@@ -706,6 +789,12 @@
                     reader.onload = function (e) {
                         const img = document.createElement("img");
                         img.src = e.target.result;
+
+                        img.style.maxWidth = "100%";
+                        img.style.display = "block";
+                        img.style.margin = "0 auto";
+
+                        activeEditor.innerHTML = "";
                         activeEditor.appendChild(img);
                     };
 
@@ -713,6 +802,68 @@
                     break;
                 }
             }
+        });
+
+        let drawingOcclusion = false;
+        let startX = 0;
+        let startY = 0;
+        let currentBox = null;
+
+        document
+            .getElementById("draw-occlusion-button")
+            .addEventListener("click", function () {
+                drawingOcclusion = true;
+            });
+
+        document
+            .getElementById("occlusion-editor")
+            .addEventListener("mousedown", function (event) {
+                if (!drawingOcclusion) return;
+
+                const editor = document.getElementById("occlusion-editor");
+                const rect = editor.getBoundingClientRect();
+
+                startX = event.clientX - rect.left;
+                startY = event.clientY - rect.top;
+
+                currentBox = document.createElement("div");
+                currentBox.className = "occlusion-box";
+
+                currentBox.style.left = startX + "px";
+                currentBox.style.top = startY + "px";
+                currentBox.style.width = "0px";
+                currentBox.style.height = "0px";
+
+                editor.appendChild(currentBox);
+            });
+
+        document
+            .getElementById("occlusion-editor")
+            .addEventListener("mousemove", function (event) {
+                if (!drawingOcclusion || !currentBox) return;
+
+                const editor = document.getElementById("occlusion-editor");
+                const rect = editor.getBoundingClientRect();
+
+                const currentX = event.clientX - rect.left;
+                const currentY = event.clientY - rect.top;
+
+                const left = Math.min(startX, currentX);
+                const top = Math.min(startY, currentY);
+                const width = Math.abs(currentX - startX);
+                const height = Math.abs(currentY - startY);
+
+                currentBox.style.left = left + "px";
+                currentBox.style.top = top + "px";
+                currentBox.style.width = width + "px";
+                currentBox.style.height = height + "px";
+            });
+
+        document.addEventListener("mouseup", function () {
+            if (!drawingOcclusion || !currentBox) return;
+
+            drawingOcclusion = false;
+            currentBox = null;
         });
     </script>
 </body>

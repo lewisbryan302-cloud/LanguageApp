@@ -287,6 +287,9 @@ def add_card(
     image: UploadFile | None = File(None),
     pasted_image_data: str | None = Form(None)
 ):
+    
+    image_path = None
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -449,7 +452,8 @@ def view_deck_cards(request: Request, deck_id: int):
             times_correct,
             times_wrong,
             last_reviewed,
-            next_review
+            next_review,
+            card_type
         FROM flashcards
         WHERE deck_id = %s
         ORDER BY id;

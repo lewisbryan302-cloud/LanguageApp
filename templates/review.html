@@ -176,6 +176,23 @@
             border-radius: 18px;
         }
 
+        .image-occlusion-review {
+            position: relative;
+        }
+
+        .image-occlusion-review img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-occlusion-review .occlusion-box {
+            position: absolute;
+            background: white;
+            border: 2px solid #2563eb;
+            z-index: 10;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -202,6 +219,10 @@
             document.getElementById("answer").style.display = "block";
             document.getElementById("ratings").style.display = "block";
             document.getElementById("revealButton").style.display = "none";
+
+            document.querySelectorAll(".occlusion-box").forEach(box => {
+                box.style.display = "none";
+            });
         }
     </script>
 </head>
@@ -249,28 +270,25 @@
                         {{ card[1] | cloze_hidden }}
                     </div>
 
-                    <button
-                        id="revealButton"
-                        class="reveal-button"
-                        onclick="revealAnswer()"
-                    >
+                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
                         Reveal Answer
                     </button>
 
-                    <div
-                        id="answer"
-                        class="back"
-                        style="display: none;"
-                    >
+                    <div id="answer" class="back" style="display: none;">
                         {{ card[1] | cloze_revealed }}
                     </div>
 
-                {% if card[4] %}
-                    <img
-                        src="{{ card[4] }}"
-                        class="review-image"
-                    >
-                {% endif %}
+                {% elif card[3] == "image_occlusion" %}
+
+                    <div class="front image-occlusion-review">
+                        {{ card[1] | safe }}
+                    </div>
+
+                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
+                        Reveal Answer
+                    </button>
+
+                    <div id="answer" style="display: none;"></div>
 
                 {% else %}
 
@@ -278,48 +296,28 @@
                         {{ card[1] }}
                     </div>
 
-                    <button
-                        id="revealButton"
-                        class="reveal-button"
-                        onclick="revealAnswer()"
-                    >
+                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
                         Reveal Answer
                     </button>
 
-                    <div
-                        id="answer"
-                        class="back"
-                        style="display: none;"
-                    >
+                    <div id="answer" class="back" style="display: none;">
                         {{ card[2] }}
                     </div>
 
                 {% endif %}
 
-                <form
-                    id="ratings"
-                    action="/answer"
-                    method="post"
-                    style="display: none;"
-                >
+                {% if card[4] %}
+                    <img src="{{ card[4] }}" class="review-image">
+                {% endif %}
+
+                <form id="ratings" action="/answer" method="post" style="display: none;">
                     <input type="hidden" name="card_id" value="{{ card[0] }}">
                     <input type="hidden" name="deck_id" value="{{ deck_id }}">
 
-                    <button type="submit" name="rating" value="1" class="rating-again">
-                        Again
-                    </button>
-
-                    <button type="submit" name="rating" value="2" class="rating-hard">
-                        Hard
-                    </button>
-
-                    <button type="submit" name="rating" value="3" class="rating-good">
-                        Good
-                    </button>
-
-                    <button type="submit" name="rating" value="4" class="rating-easy">
-                        Easy
-                    </button>
+                    <button type="submit" name="rating" value="1" class="rating-again">Again</button>
+                    <button type="submit" name="rating" value="2" class="rating-hard">Hard</button>
+                    <button type="submit" name="rating" value="3" class="rating-good">Good</button>
+                    <button type="submit" name="rating" value="4" class="rating-easy">Easy</button>
                 </form>
 
             </div>
