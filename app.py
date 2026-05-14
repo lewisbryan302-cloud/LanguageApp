@@ -151,16 +151,29 @@ def review_page(request: Request, deck_id: int):
 
     card = cursor.fetchone()
 
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM flashcards
+        WHERE deck_id = %s
+        AND (
+            next_review IS NULL
+            OR next_review <= NOW()
+        );
+    """, (deck_id,))
+
+    remaining_reviews = cursor.fetchone()[0]
+
     cursor.close()
     conn.close()
 
     return templates.TemplateResponse(
-    request,
-    "review.html",
-    {
-        "card": card,
-        "deck_id": deck_id
-    }
+        request,
+        "review.html",
+        {
+            "card": card,
+            "deck_id": deck_id,
+            "remaining_reviews": remaining_reviews
+        }
     )
 
 

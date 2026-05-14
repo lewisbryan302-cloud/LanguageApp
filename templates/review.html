@@ -204,6 +204,13 @@
             z-index: 10;
         }
 
+        .remaining-counter {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 24px;
+            font-weight: bold;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -274,6 +281,10 @@
         {% if card %}
 
             <div class="review-card">
+
+                <div class="remaining-counter">
+                    {{ remaining_reviews }} cards remaining
+                </div>
 
                 {% if card[3] == "cloze" %}
 
@@ -346,6 +357,58 @@
         {% endif %}
 
     </main>
+
+    <script>
+        function revealAnswer() {
+                document.getElementById("answer").style.display = "block";
+                document.getElementById("ratings").style.display = "block";
+                document.getElementById("revealButton").style.display = "none";
+
+                document.querySelectorAll(".occlusion-box").forEach(box => {
+                    box.style.display = "none";
+                });
+            }
+
+            document.addEventListener("keydown", function(event) {
+                if (event.code === "Space") {
+                    event.preventDefault();
+
+                    const revealButton = document.getElementById("revealButton");
+
+                    if (revealButton && revealButton.style.display !== "none") {
+                        revealAnswer();
+                    }
+                }
+            });
+
+        document.addEventListener("keydown", function(event) {
+            const ratings = document.getElementById("ratings");
+
+            if (!ratings || ratings.style.display === "none") {
+                return;
+            }
+
+            if (event.key === "1") {
+                event.preventDefault();
+                ratings.querySelector("button[value='1']").click();
+            }
+
+            if (event.key === "2") {
+                event.preventDefault();
+                ratings.querySelector("button[value='2']").click();
+            }
+
+            if (event.key === "3") {
+                event.preventDefault();
+                ratings.querySelector("button[value='3']").click();
+            }
+
+            if (event.key === "4") {
+                event.preventDefault();
+                ratings.querySelector("button[value='4']").click();
+            }
+        });
+    </script>
 
 </body>
 </html>
