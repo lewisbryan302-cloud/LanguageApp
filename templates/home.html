@@ -463,7 +463,11 @@
 
             <div class="banner-right">
 
-                <a href="/add-deck" class="banner-button">
+                <a
+                    id="addButton"
+                    href="/add-deck"
+                    class="banner-button"
+                >
                     + Add Deck
                 </a>
 
@@ -988,6 +992,26 @@
                 "home_view_index",
                 currentHomeViewIndex
             );
+
+            const addButton =
+                document.getElementById("addButton");
+
+            if (currentView.title === "Languages") {
+
+                addButton.textContent =
+                    "+ Add Language";
+
+                addButton.href =
+                    "/add-language";
+
+            } else {
+
+                addButton.textContent =
+                    "+ Add Deck";
+
+                addButton.href =
+                    "/add-deck";
+            }
         }
 
         function nextHomeView() {

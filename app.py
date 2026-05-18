@@ -1085,3 +1085,38 @@ def set_deck_profile(
     conn.close()
 
     return RedirectResponse("/", status_code=303)
+
+@app.get("/add-language")
+def add_language_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "add_language.html"
+    )
+
+@app.post("/add-language")
+def add_language(
+    language_name: str = Form(...)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO decks (
+            name,
+            profile
+        )
+        VALUES (%s, %s);
+    """, (
+        language_name,
+        "Languages"
+    ))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse(
+        "/",
+        status_code=303
+    )
