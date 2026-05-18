@@ -109,7 +109,9 @@ def home(request: Request):
                     WHEN flashcards.next_review <= NOW()
                     THEN 1
                 END
-            ) AS cards_to_review
+            ) AS cards_to_review,
+
+            decks.profile
 
         FROM decks
 
@@ -119,7 +121,8 @@ def home(request: Request):
         GROUP BY
             decks.id,
             decks.name,
-            decks.deck_order
+            decks.deck_order,
+            decks.profile
 
         ORDER BY
             decks.deck_order ASC,
@@ -1062,3 +1065,23 @@ def quick_edit_card(
     conn.close()
 
     return {"status": "success"}
+
+@app.post("/deck/{deck_id}/set-profile")
+def set_deck_profile(
+    deck_id: int,
+    profile: str = Form(...)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE decks
+        SET profile = %s
+        WHERE id = %s;
+    """, (profile, deck_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return RedirectResponse("/", status_code=303)
