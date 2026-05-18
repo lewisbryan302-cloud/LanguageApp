@@ -18,6 +18,10 @@ import os
 import uuid
 import base64
 from starlette.middleware.sessions import SessionMiddleware
+import json
+from fsrs import Scheduler, Card, Rating
+
+scheduler = Scheduler()
 
 
 def render_cloze_hidden(text: str) -> Markup:
@@ -197,6 +201,7 @@ def submit_answer(
 
     cursor.execute("""
         SELECT
+            fsrs_card,
             times_seen,
             times_correct,
             times_wrong,
@@ -206,81 +211,70 @@ def submit_answer(
         WHERE id = %s;
     """, (card_id,))
 
-    old_card_state = cursor.fetchone()
+    row = cursor.fetchone()
+
+    fsrs_card_json = row[0]
 
     request.session["last_review_action"] = {
         "card_id": card_id,
         "deck_id": deck_id,
-        "times_seen": old_card_state[0],
-        "times_correct": old_card_state[1],
-        "times_wrong": old_card_state[2],
-        "last_reviewed": str(old_card_state[3]) if old_card_state[3] else None,
-        "next_review": str(old_card_state[4]) if old_card_state[4] else None
+        "fsrs_card": fsrs_card_json,
+        "times_seen": row[1],
+        "times_correct": row[2],
+        "times_wrong": row[3],
+        "last_reviewed": str(row[4]) if row[4] else None,
+        "next_review": str(row[5]) if row[5] else None
     }
 
-    cursor.execute("""
-        SELECT
-            difficulty,
-            stability,
-            reps,
-            lapses,
-            last_reviewed
-        FROM flashcards
-        WHERE id = %s;
-    """, (card_id,))
+    if fsrs_card_json:
+        fsrs_card = Card.from_dict(json.loads(fsrs_card_json))
+    else:
+        fsrs_card = Card()
 
-    row = cursor.fetchone()
-
-    card = {
-        "difficulty": row[0] or 0,
-        "stability": row[1] or 0,
-        "reps": row[2] or 0,
-        "lapses": row[3] or 0,
-        "last_review": row[4].date().isoformat() if row[4] else None
+    rating_map = {
+        1: Rating.Again,
+        2: Rating.Hard,
+        3: Rating.Good,
+        4: Rating.Easy
     }
 
-    updated_card = schedule_review(card, rating)
+    fsrs_rating = rating_map[rating]
+
+    fsrs_card, review_log = scheduler.review_card(
+        fsrs_card,
+        fsrs_rating
+    )
+
+    new_fsrs_card_json = json.dumps(fsrs_card.to_dict())
 
     if rating == 1:
         cursor.execute("""
             UPDATE flashcards
             SET
+                fsrs_card = %s,
                 times_seen = times_seen + 1,
                 times_wrong = times_wrong + 1,
-                difficulty = %s,
-                stability = %s,
-                reps = %s,
-                lapses = %s,
                 last_reviewed = NOW(),
                 next_review = %s
             WHERE id = %s;
         """, (
-            updated_card["difficulty"],
-            updated_card["stability"],
-            updated_card["reps"],
-            updated_card["lapses"],
-            updated_card["due_date"],
+            new_fsrs_card_json,
+            fsrs_card.due,
             card_id
         ))
     else:
         cursor.execute("""
             UPDATE flashcards
             SET
+                fsrs_card = %s,
                 times_seen = times_seen + 1,
                 times_correct = times_correct + 1,
-                difficulty = %s,
-                stability = %s,
-                reps = %s,
-                lapses = %s,
                 last_reviewed = NOW(),
                 next_review = %s
             WHERE id = %s;
         """, (
-            updated_card["difficulty"],
-            updated_card["stability"],
-            updated_card["reps"],
-            updated_card["lapses"],
-            updated_card["due_date"],
+            new_fsrs_card_json,
+            fsrs_card.due,
             card_id
         ))
 
@@ -288,7 +282,10 @@ def submit_answer(
     cursor.close()
     conn.close()
 
-    return RedirectResponse(f"/review/{deck_id}", status_code=303)
+    return RedirectResponse(
+        f"/review/{deck_id}",
+        status_code=303
+    )
 
 # --- Mechanism to add new flashcards ---
 @app.get("/add-card")
@@ -1016,6 +1013,7 @@ def undo_review(request: Request):
     cursor.execute("""
         UPDATE flashcards
         SET
+            fsrs_card = %s,
             times_seen = %s,
             times_correct = %s,
             times_wrong = %s,
@@ -1023,6 +1021,7 @@ def undo_review(request: Request):
             next_review = %s
         WHERE id = %s;
     """, (
+        last_action["fsrs_card"],
         last_action["times_seen"],
         last_action["times_correct"],
         last_action["times_wrong"],
