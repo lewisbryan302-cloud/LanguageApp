@@ -2,27 +2,394 @@
 <html>
 <head>
     <title>Add Language</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 60px auto;
+            padding: 0 30px;
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .language-layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .language-sidebar {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .language-content {
+            flex: 1;
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            min-height: 500px;
+        }
+
+        .language-tile {
+            width: 100%;
+            height: 120px;
+
+            background: white;
+            border: none;
+            border-radius: 22px;
+
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 18px;
+
+            padding: 0 24px;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .language-tile:hover {
+            transform: translateX(6px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .language-icon {
+            font-size: 42px;
+            width: 56px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 28px;
+            text-decoration: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .language-left {
+            width: 50%;
+        }
+
+        .language-search {
+            width: 100%;
+            max-width: 650px;
+
+            display: block;
+            margin: 0 auto 28px auto;
+
+            padding: 14px 18px;
+
+            border-radius: 18px;
+            border: 1px solid #ddd;
+
+            font-size: 18px;
+            box-sizing: border-box;
+
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .language-carousel-arrow {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .language-layout {
+                flex-direction: column;
+            }
+
+            .language-left {
+                width: 100%;
+            }
+
+            .language-carousel-mobile {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .language-carousel-window {
+                width: 75%;
+                overflow: hidden;
+            }
+
+            .language-sidebar {
+                display: flex;
+                flex-direction: row;
+                gap: 0;
+                transition: transform 0.25s ease;
+                width: 100%;
+            }
+
+            .language-option {
+                min-width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .language-tile {
+                width: 100%;
+                height: 120px;
+                justify-content: center;
+            }
+
+            .language-carousel-arrow {
+                border: none;
+                background: white;
+                border-radius: 50%;
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            .language-carousel-arrow {
+                display: flex;
+
+                align-items: center;
+                justify-content: center;
+
+                border: none;
+                background: white;
+
+                border-radius: 50%;
+
+                width: 42px;
+                height: 42px;
+
+                font-size: 20px;
+                cursor: pointer;
+
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <main class="page">
 
-    <h1>Add Language</h1>
-
-    <form action="/add-language" method="post">
-
-        <label>Language Name</label>
+        <h1>Add Language</h1>
 
         <input
             type="text"
-            name="language_name"
-            required
+            id="language-search"
+            class="language-search"
+            placeholder="Search languages..."
+            oninput="filterLanguages()"
         >
 
-        <button type="submit">
-            Create Language
-        </button>
+        <div class="language-layout">
 
-    </form>
+            <div class="language-left">
 
+                <div class="language-carousel-mobile">
+
+                    <button
+                        type="button"
+                        class="language-carousel-arrow"
+                        onclick="previousLanguage()"
+                    >
+                        ◀
+                    </button>
+
+                    <div class="language-carousel-window">
+
+                        <div
+                            class="language-sidebar"
+                            id="languageSidebar"
+                        >
+
+                            {% for language in languages %}
+
+                                <form
+                                    action="/add-language"
+                                    method="post"
+                                    class="language-option"
+                                    data-language="{{ language.name | lower }}"
+                                >
+
+                                    <input
+                                        type="hidden"
+                                        name="language_name"
+                                        value="{{ language.name }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="target_language"
+                                        value="{{ language.code }}"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="language-tile"
+                                    >
+                                        <div class="language-icon">
+                                            {{ language.icon }}
+                                        </div>
+
+                                        <span>
+                                            {{ language.name }}
+                                        </span>
+                                    </button>
+
+                                </form>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="language-carousel-arrow"
+                        onclick="nextLanguage()"
+                    >
+                        ▶
+                    </button>
+
+                </div>
+
+            <div class="language-content">
+
+                <h2>Choose a Language</h2>
+
+                <p>
+                    Click a language on the left to create a new language deck.
+                </p>
+
+                <a href="/" class="back-link">
+                    ← Back Home
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let currentLanguageIndex = 0;
+
+        function getVisibleLanguageOptions() {
+            return [
+                ...document.querySelectorAll(".language-option")
+            ].filter(option => option.style.display !== "none");
+        }
+
+        function updateLanguageCarousel() {
+            const sidebar =
+                document.getElementById("languageSidebar");
+
+            const visibleOptions =
+                getVisibleLanguageOptions();
+
+            if (visibleOptions.length === 0) {
+                sidebar.style.transform = "translateX(0)";
+                return;
+            }
+
+            if (currentLanguageIndex >= visibleOptions.length) {
+                currentLanguageIndex = visibleOptions.length - 1;
+            }
+
+            if (currentLanguageIndex < 0) {
+                currentLanguageIndex = 0;
+            }
+
+            sidebar.style.transform =
+                `translateX(-${currentLanguageIndex * 100}%)`;
+        }
+
+        function nextLanguage() {
+            const visibleOptions =
+                getVisibleLanguageOptions();
+
+            if (visibleOptions.length === 0) return;
+
+            currentLanguageIndex++;
+
+            if (currentLanguageIndex >= visibleOptions.length) {
+                currentLanguageIndex = 0;
+            }
+
+            updateLanguageCarousel();
+        }
+
+        function previousLanguage() {
+            const visibleOptions =
+                getVisibleLanguageOptions();
+
+            if (visibleOptions.length === 0) return;
+
+            currentLanguageIndex--;
+
+            if (currentLanguageIndex < 0) {
+                currentLanguageIndex = visibleOptions.length - 1;
+            }
+
+            updateLanguageCarousel();
+        }
+
+        function filterLanguages() {
+            const searchTerm = document
+                .getElementById("language-search")
+                .value
+                .toLowerCase();
+
+            const languageOptions =
+                document.querySelectorAll(".language-option");
+
+            languageOptions.forEach(option => {
+                const languageName =
+                    option.dataset.language.toLowerCase();
+
+                if (languageName.includes(searchTerm)) {
+                    option.style.display = "flex";
+                } else {
+                    option.style.display = "none";
+                }
+            });
+
+            currentLanguageIndex = 0;
+            updateLanguageCarousel();
+        }
+
+        updateLanguageCarousel();
+    </script>
 </body>
 </html>
