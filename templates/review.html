@@ -235,6 +235,17 @@
             font-weight: bold;
         }
 
+        .review-deck-title {
+            text-align: center;
+
+            font-size: 26px;
+            font-weight: bold;
+
+            color: #444;
+
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -291,6 +302,10 @@
     <main class="page">
 
         {% if card %}
+
+            <div class="review-deck-title">
+                {{ deck_name }}
+            </div>
 
             <div class="review-card">
 

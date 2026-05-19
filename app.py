@@ -175,6 +175,14 @@ def review_page(request: Request, deck_id: int):
 
     remaining_reviews = cursor.fetchone()[0]
 
+    cursor.execute("""
+        SELECT name
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+
+    deck_name = cursor.fetchone()[0]
+
     cursor.close()
     conn.close()
 
@@ -184,6 +192,7 @@ def review_page(request: Request, deck_id: int):
         {
             "card": card,
             "deck_id": deck_id,
+            "deck_name": deck_name,
             "remaining_reviews": remaining_reviews
         }
     )
