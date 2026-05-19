@@ -122,6 +122,72 @@
             display: none;
         }
 
+        .site-banner {
+            width: 100%;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 18px 40px;
+            box-sizing: border-box;
+        }
+
+        .banner-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .page-title {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .banner-button {
+            text-decoration: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: background 0.15s ease;
+        }
+
+        .banner-button:hover {
+            background: #1d4ed8;
+        }
+
         @media (max-width: 900px) {
             .language-layout {
                 flex-direction: column;
@@ -194,11 +260,63 @@
 
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             }
+
+            @media (max-width: 800px) {
+                .banner-content {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+
+                .banner-actions {
+                    flex-wrap: wrap;
+                }
+            }
         }
     </style>
 </head>
 
 <body>
+
+    <header class="site-banner">
+
+        <div class="banner-content">
+
+            <div class="brand-section">
+
+                <div class="logo-placeholder">
+                    L
+                </div>
+
+                <div>
+
+                    <div class="brand-name">
+                        LanguageApp
+                    </div>
+
+                    <div class="page-title">
+                        Add Language
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="banner-actions">
+
+                <a
+                    href="/"
+                    class="banner-button"
+                >
+                    ← Back Home
+                </a>
+
+            </div>
+
+        </div>
+
+    </header>
+
     <main class="page">
 
         <h1>Add Language</h1>
@@ -283,20 +401,6 @@
                     </button>
 
                 </div>
-
-            <div class="language-content">
-
-                <h2>Choose a Language</h2>
-
-                <p>
-                    Click a language on the left to create a new language deck.
-                </p>
-
-                <a href="/" class="back-link">
-                    ← Back Home
-                </a>
-
-            </div>
 
         </div>
 
