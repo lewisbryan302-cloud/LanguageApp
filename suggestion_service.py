@@ -1,0 +1,306 @@
+from database import get_connection
+from embedding_helper import (
+    embedding_similarity,
+    get_similar_words_with_translations,
+)
+
+
+def get_existing_cards(deck_id: int) -> list:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, front, back
+        FROM flashcards
+        WHERE deck_id = %s;
+    """, (deck_id,))
+
+    existing_cards = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return existing_cards
+
+
+def get_deck_target_language(deck_id: int) -> str:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT target_language
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+
+    target_language_row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if target_language_row:
+        return target_language_row[0]
+
+    return "de"
+
+
+def get_deck_options() -> list:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        ORDER BY id;
+    """)
+
+    decks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return decks
+
+
+def find_similar_existing_cards(
+    front: str,
+    back: str,
+    existing_cards: list,
+    threshold: float = 0.75
+) -> list:
+    suggestions = []
+
+    for card in existing_cards:
+        card_id, existing_front, existing_back = card
+
+        score_front = embedding_similarity(front, existing_front)
+        score_back = embedding_similarity(back, existing_back)
+        score_cross_1 = embedding_similarity(front, existing_back)
+        score_cross_2 = embedding_similarity(back, existing_front)
+
+        score = max(
+            score_front,
+            score_back,
+            score_cross_1,
+            score_cross_2
+        )
+
+        if score > threshold:
+            suggestions.append(
+                (
+                    card_id,
+                    existing_front,
+                    existing_back,
+                    score
+                )
+            )
+
+    suggestions.sort(key=lambda x: x[3], reverse=True)
+
+    return suggestions
+
+
+def filter_existing_word_suggestions(
+    raw_word_suggestions: list,
+    existing_cards: list
+) -> list:
+    existing_pairs = {
+        (existing_front.strip().lower(), existing_back.strip().lower())
+        for _, existing_front, existing_back in existing_cards
+    }
+
+    word_suggestions = []
+
+    for item in raw_word_suggestions:
+        suggested_pair = (
+            item["word"].strip().lower(),
+            item["translation"].strip().lower()
+        )
+
+        reverse_pair = (
+            item["translation"].strip().lower(),
+            item["word"].strip().lower()
+        )
+
+        if (
+            suggested_pair not in existing_pairs
+            and reverse_pair not in existing_pairs
+        ):
+            word_suggestions.append(item)
+
+    return word_suggestions
+
+
+def get_smart_add_preview_data(
+    deck_id: int,
+    front: str,
+    back: str,
+    add_reverse: str | None = None
+) -> dict:
+    existing_cards = get_existing_cards(deck_id)
+    decks = get_deck_options()
+    target_language = get_deck_target_language(deck_id)
+
+    similar_existing_cards = find_similar_existing_cards(
+        front=front,
+        back=back,
+        existing_cards=existing_cards,
+    )
+
+    raw_word_suggestions = get_similar_words_with_translations(
+        front,
+        k=10,
+        threshold=0.45,
+        source="en",
+        target=target_language
+    )
+
+    word_suggestions = filter_existing_word_suggestions(
+        raw_word_suggestions=raw_word_suggestions,
+        existing_cards=existing_cards,
+    )
+
+    return {
+        "decks": decks,
+        "suggestions": similar_existing_cards[:10],
+        "word_suggestions": word_suggestions,
+        "deck_id": deck_id,
+        "front": front,
+        "back": back,
+        "add_reverse": add_reverse,
+    }
+
+def card_exists(cursor, deck_id: int, front: str, back: str) -> bool:
+    cursor.execute("""
+        SELECT id
+        FROM flashcards
+        WHERE deck_id = %s
+        AND front = %s
+        AND back = %s;
+    """, (deck_id, front, back))
+
+    return cursor.fetchone() is not None
+
+
+def insert_card_if_missing(
+    cursor,
+    deck_id: int,
+    front: str,
+    back: str
+) -> None:
+    if not card_exists(cursor, deck_id, front, back):
+        cursor.execute("""
+            INSERT INTO flashcards (deck_id, front, back)
+            VALUES (%s, %s, %s);
+        """, (deck_id, front, back))
+
+
+def add_reverse_of_existing_card(
+    cursor,
+    deck_id: int,
+    card_id: int
+) -> None:
+    cursor.execute("""
+        SELECT front, back
+        FROM flashcards
+        WHERE id = %s AND deck_id = %s;
+    """, (card_id, deck_id))
+
+    card = cursor.fetchone()
+
+    if not card:
+        return
+
+    old_front, old_back = card
+
+    insert_card_if_missing(
+        cursor=cursor,
+        deck_id=deck_id,
+        front=old_back,
+        back=old_front,
+    )
+
+
+def create_selected_word_suggestions(
+    cursor,
+    deck_id: int,
+    add_reverse: str | None,
+    selected_suggestion_indices: list[int] | None,
+    suggested_words: list[str] | None,
+    suggested_translations: list[str] | None
+) -> None:
+    if not (
+        selected_suggestion_indices
+        and suggested_words
+        and suggested_translations
+    ):
+        return
+
+    for index in selected_suggestion_indices:
+        word = suggested_words[index]
+        translation = suggested_translations[index]
+
+        insert_card_if_missing(
+            cursor=cursor,
+            deck_id=deck_id,
+            front=word,
+            back=translation,
+        )
+
+        if add_reverse == "yes":
+            insert_card_if_missing(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=translation,
+                back=word,
+            )
+
+
+def create_smart_add_cards(
+    deck_id: int,
+    front: str,
+    back: str,
+    add_reverse: str | None = None,
+    selected_card_ids: list[int] | None = None,
+    selected_suggestion_indices: list[int] | None = None,
+    suggested_words: list[str] | None = None,
+    suggested_translations: list[str] | None = None
+) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    insert_card_if_missing(
+        cursor=cursor,
+        deck_id=deck_id,
+        front=front,
+        back=back,
+    )
+
+    if add_reverse == "yes":
+        insert_card_if_missing(
+            cursor=cursor,
+            deck_id=deck_id,
+            front=back,
+            back=front,
+        )
+
+    if selected_card_ids:
+        for card_id in selected_card_ids:
+            add_reverse_of_existing_card(
+                cursor=cursor,
+                deck_id=deck_id,
+                card_id=card_id,
+            )
+
+    create_selected_word_suggestions(
+        cursor=cursor,
+        deck_id=deck_id,
+        add_reverse=add_reverse,
+        selected_suggestion_indices=selected_suggestion_indices,
+        suggested_words=suggested_words,
+        suggested_translations=suggested_translations,
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()

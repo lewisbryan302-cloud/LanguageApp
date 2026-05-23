@@ -3,7 +3,6 @@
 from datetime import date, timedelta
 import math
 
-
 DEFAULT_W = [
     0.4072, 1.1829, 3.1262, 15.4722,
     7.2102, 0.5316, 1.0651, 0.0234,

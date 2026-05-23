@@ -8,3 +8,15 @@ def get_connection():
         host="localhost",
         port="5432"
     )
+
+def test_connection() -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT 1;")
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result[0]

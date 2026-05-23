@@ -2,6 +2,7 @@ from deep_translator import GoogleTranslator
 from wordfreq import top_n_list
 from sentence_transformers import SentenceTransformer, util
 
+
 model = SentenceTransformer(
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 )
@@ -60,3 +61,14 @@ def get_similar_words_with_translations(
     return results
 
 #print(get_similar_words("happy"))
+
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+
+
+def embedding_similarity(a: str, b: str) -> float:
+    embedding_a = embedding_model.encode(a, convert_to_tensor=True)
+    embedding_b = embedding_model.encode(b, convert_to_tensor=True)
+
+    similarity = util.cos_sim(embedding_a, embedding_b)
+
+    return float(similarity[0][0])

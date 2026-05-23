@@ -1,0 +1,124 @@
+v0.2 file audit
+
+Files:
+
+app.py
+
+Current contents:
+- imports
+- cloze rendering helpers
+- FastAPI app setup
+- session middleware
+- static/template setup
+- old/basic review-date helper
+- database test route
+- home/dashboard route
+- review routes
+- add-card routes
+- deck create/rename/delete routes
+- deck card-management routes
+- smart-add routes
+- deck ordering route
+- duplicate deletion route
+- undo-review route
+- quick-edit route
+- deck profile route
+- add-language routes
+
+Current responsibility:
+- almost everything
+
+Main issue:
+- app.py is acting as routes + database layer + business logic + scheduling logic + smart suggestion logic + card/deck service logic
+
+v0.2 goal:
+- keep route definitions in app.py
+- move SQL into database.py
+- move review/card logic into card_service.py or review_service.py
+- move deck logic into deck_service.py
+- move smart-add logic into suggestion_service.py
+- move cloze helpers into cloze.py or card_rendering.py
+
+database.py
+
+Current contents:
+- one import
+- one helper function, probably get_connection()
+
+Current responsibility:
+- creates database connections
+
+Main issue:
+- database.py is too small compared with the amount of SQL in app.py
+- SQL is currently scattered through route functions
+- repeated connection/cursor/commit/close patterns appear throughout app.py
+
+v0.2 goal:
+- become the central database access/helper file
+- keep get_connection()
+- add reusable helpers such as fetch_one(), fetch_all(), execute()
+- eventually contain or support database functions used by card/deck/review services
+
+embedding_helper.py
+
+Current contents:
+- imports
+- transformer/model setup
+- functions for embedding similarity, similar-word search, and translation
+
+Current responsibility:
+- low-level embedding/translation support for smart-add features
+
+Main issue:
+- embedding/model logic partly overlaps with app.py, because app.py also creates embedding_model and defines embedding_similarity()
+- app.py should not directly manage transformer similarity calculations
+- this file may become too broad if it handles both low-level embeddings and full smart-add workflow
+
+v0.2 goal:
+- keep low-level model/vector/translation functions here
+- move embedding_similarity() from app.py into this file
+- do not put route logic or SQL here
+- create suggestion_service.py for high-level smart-add workflow
+
+fsrs_scheduler.py
+
+Current contents:
+- imports
+- functions for rating reviewed cards
+- functions to calculate when to next test a card
+
+Current responsibility:
+- scheduling/review timing logic
+
+Main issue:
+- app.py currently contains FSRS-specific review logic directly inside POST /answer
+- app.py imports both schedule_review and also directly uses fsrs Scheduler, Card, and Rating
+- there may be overlap between old/basic scheduling and FSRS scheduling
+
+v0.2 goal:
+- centralise all FSRS/rating/scheduling calculations here
+- remove old get_next_review_date() from app.py if it is no longer used
+- app.py should not directly manipulate FSRS Card/Rating/Scheduler objects
+- review_service.py should call fsrs_scheduler.py
+
+review_flashcards.py
+
+Current contents:
+- imports
+- SQL
+- function to retrieve next review date / next card for review
+
+Current responsibility:
+- review-related database retrieval
+
+Main issue:
+- unclear overlap with app.py review routes and fsrs_scheduler.py
+- contains SQL, so it overlaps with database.py
+- name sounds like a script rather than a service module
+- may not be clearly responsible for either review business logic or database access
+
+v0.2 goal:
+- decide whether to rename/rework into review_service.py
+- move generic SQL helper code to database.py
+- keep review workflow functions here if useful
+- avoid duplicating logic already in app.py or fsrs_scheduler.py
