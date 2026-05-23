@@ -1,5 +1,6 @@
+import re
 from markupsafe import Markup, escape
-from sympy import re
+
 
 def render_cloze_hidden(text: str) -> Markup:
     escaped = escape(text)

@@ -384,6 +384,57 @@
 
                         {% endif %}
 
+
+                        {% if phrase_suggestions %}
+
+                            <div class="suggestion-section">
+
+                                <h2>Suggested Phrases</h2>
+
+                                {% for item in phrase_suggestions %}
+                                    <div class="suggestion-card">
+
+                                        <label>
+
+                                            <input
+                                                type="checkbox"
+                                                name="selected_phrase_indices"
+                                                value="{{ loop.index0 }}"
+                                            >
+
+                                            <div class="suggestion-title">
+                                                {{ item.phrase }}
+                                            </div>
+
+                                            Found {{ item.count }} time{% if item.count != 1 %}s{% endif %}
+
+                                        </label>
+
+                                        {% if item.examples %}
+                                            <div class="example-sentences">
+                                                <p><strong>Examples:</strong></p>
+
+                                                <ul>
+                                                    {% for example in item.examples %}
+                                                        <li>{{ example }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+
+                                        <input
+                                            type="hidden"
+                                            name="suggested_phrases"
+                                            value="{{ item.phrase }}"
+                                        >
+
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
                         <div class="button-row">
 
                             <button

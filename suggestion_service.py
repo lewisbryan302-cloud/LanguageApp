@@ -2,6 +2,7 @@ from database import get_connection
 from embedding_helper import (
     embedding_similarity,
     get_similar_words_with_translations,
+    translate_word,
 )
 
 
@@ -264,7 +265,9 @@ def create_smart_add_cards(
     selected_card_ids: list[int] | None = None,
     selected_suggestion_indices: list[int] | None = None,
     suggested_words: list[str] | None = None,
-    suggested_translations: list[str] | None = None
+    suggested_translations: list[str] | None = None,
+    selected_phrase_indices: list[int] | None = None,
+    suggested_phrases: list[str] | None = None
 ) -> None:
     conn = get_connection()
     cursor = conn.cursor()
@@ -300,6 +303,35 @@ def create_smart_add_cards(
         suggested_words=suggested_words,
         suggested_translations=suggested_translations,
     )
+
+    # Add selected phrase suggestions
+    if selected_phrase_indices and suggested_phrases:
+        for index in selected_phrase_indices:
+            phrase_front = suggested_phrases[index].strip()
+
+            if not phrase_front:
+                continue
+
+            phrase_back = translate_word(
+                phrase_front,
+                source="de",
+                target="en"
+            )
+
+            insert_card_if_missing(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=phrase_front,
+                back=phrase_back,
+            )
+
+            if add_reverse == "yes":
+                insert_card_if_missing(
+                    cursor=cursor,
+                    deck_id=deck_id,
+                    front=phrase_back,
+                    back=phrase_front,
+                )
 
     conn.commit()
     cursor.close()

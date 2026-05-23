@@ -41,6 +41,7 @@ from deck_service import (
 )
 from suggestion_service import get_smart_add_preview_data, create_smart_add_cards
 from constants import LANGUAGE_OPTIONS
+from phrase_helper import get_phrase_suggestions
 
 app = FastAPI()
 app.add_middleware(
@@ -271,6 +272,22 @@ def reset_srs_selected_cards(
         status_code=303
     )
 
+
+def choose_german_phrase_query(front: str, back: str) -> str | None:
+    """
+    Choose which side of the card should be used for German phrase search.
+
+    Since the phrase corpus is German, we want to use the German side,
+    whether the user put it in Front or Back.
+    """
+    front = front.strip()
+    back = back.strip()
+
+    # Very simple first version:
+    # Try the front first, then the back.
+    # The phrase helper will return [] if the word is not found.
+    return front or back
+
 # --- Smart add card mechanism ---
 @app.get("/smart-add-card")
 def smart_add_card_page(request: Request):
@@ -281,7 +298,8 @@ def smart_add_card_page(request: Request):
         "smart_add_card.html",
         {
             "decks": decks,
-            "suggestions": None
+            "suggestions": None,
+            "phrase_suggestions": None
         }
     )
 
@@ -300,6 +318,30 @@ def smart_add_card_preview(
         add_reverse=add_reverse,
     )
 
+    phrase_suggestions = []
+
+    # First try the front side.
+    if front.strip():
+        phrase_suggestions = get_phrase_suggestions(
+            query_word=front.strip(),
+            top_n=10,
+            window=2,
+            max_candidates=10000,
+            max_matches=1000
+        )
+
+    # If front gives nothing, try the back side.
+    if not phrase_suggestions and back.strip():
+        phrase_suggestions = get_phrase_suggestions(
+            query_word=back.strip(),
+            top_n=10,
+            window=2,
+            max_candidates=10000,
+            max_matches=1000
+        )
+
+    page_data["phrase_suggestions"] = phrase_suggestions
+
     return templates.TemplateResponse(
         request,
         "smart_add_card.html",
@@ -316,7 +358,9 @@ def smart_add_card_create(
     selected_card_ids: Optional[list[int]] = Form(None),
     selected_suggestion_indices: Optional[list[int]] = Form(None),
     suggested_words: Optional[list[str]] = Form(None),
-    suggested_translations: Optional[list[str]] = Form(None)
+    suggested_translations: Optional[list[str]] = Form(None),
+    selected_phrase_indices: Optional[list[int]] = Form(None),
+    suggested_phrases: Optional[list[str]] = Form(None)
 ):
     create_smart_add_cards(
         deck_id=deck_id,
@@ -327,10 +371,12 @@ def smart_add_card_create(
         selected_suggestion_indices=selected_suggestion_indices,
         suggested_words=suggested_words,
         suggested_translations=suggested_translations,
+        selected_phrase_indices=selected_phrase_indices,
+        suggested_phrases=suggested_phrases,
     )
 
     return RedirectResponse(
-        f"/deck/{deck_id}/cards",
+        f"/add-card?deck_id={deck_id}",
         status_code=303
     )
 
