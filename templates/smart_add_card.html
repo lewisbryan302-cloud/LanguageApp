@@ -242,49 +242,24 @@
                 </select>
 
                 <label class="form-label">
-                    Front
+                    Search in English
                 </label>
 
                 <input
                     type="text"
-                    name="front"
+                    name="query_word"
                     class="smart-input"
-                    value="{{ front if front is defined else '' }}"
+                    value="{{ query_word if query_word is defined else '' }}"
+                    placeholder="e.g. house, cold, go, animal"
                     required
                 >
-
-                <label class="form-label">
-                    Back
-                </label>
-
-                <input
-                    type="text"
-                    name="back"
-                    class="smart-input"
-                    value="{{ back if back is defined else '' }}"
-                    required
-                >
-
-                <label class="checkbox-label">
-                    <input
-                        type="checkbox"
-                        name="add_reverse"
-                        value="yes"
-
-                        {% if add_reverse is defined and add_reverse == "yes" %}
-                            checked
-                        {% endif %}
-                    >
-
-                    Add reverse of new card
-                </label>
 
                 <div class="button-row">
                     <button
                         type="submit"
                         class="action-button preview-button"
                     >
-                        Find Similar Cards
+                        Find Suggestions
                     </button>
                 </div>
 
@@ -297,12 +272,7 @@
                     <form action="/smart-add-card/create" method="post">
 
                         <input type="hidden" name="deck_id" value="{{ deck_id }}">
-                        <input type="hidden" name="front" value="{{ front }}">
-                        <input type="hidden" name="back" value="{{ back }}">
-
-                        {% if add_reverse == "yes" %}
-                            <input type="hidden" name="add_reverse" value="yes">
-                        {% endif %}
+                        <input type="hidden" name="query_word" value="{{ query_word }}">
 
                         <h2>Similar Existing Cards</h2>
 
@@ -389,7 +359,12 @@
 
                             <div class="suggestion-section">
 
-                                <h2>Suggested Phrases</h2>
+                                <h2>
+                                    Suggested Phrases
+                                    {% if phrase_query %}
+                                        for "{{ phrase_query }}"
+                                    {% endif %}
+                                </h2>
 
                                 {% for item in phrase_suggestions %}
                                     <div class="suggestion-card">

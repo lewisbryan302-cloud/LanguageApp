@@ -113,7 +113,7 @@ def find_common_phrases_fast(
 
 
 if __name__ == "__main__":
-    query = "kalt"
+    query = "Haus"
 
     results = find_common_phrases_fast(
         query_word=query,

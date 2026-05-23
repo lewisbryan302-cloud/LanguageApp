@@ -131,6 +131,52 @@ def filter_existing_word_suggestions(
 
     return word_suggestions
 
+def get_smart_add_preview_data_from_query(
+    deck_id: int,
+    query_word: str
+) -> dict:
+    query_word = query_word.strip()
+
+    existing_cards = get_existing_cards(deck_id)
+    decks = get_deck_options()
+    target_language = get_deck_target_language(deck_id)
+
+    similar_existing_cards = find_similar_existing_cards(
+        front=query_word,
+        back=query_word,
+        existing_cards=existing_cards,
+    )
+
+    raw_word_suggestions = get_similar_words_with_translations(
+        query_word,
+        k=10,
+        threshold=0.45,
+        source="en",
+        target=target_language
+    )
+
+    word_suggestions = filter_existing_word_suggestions(
+        raw_word_suggestions=raw_word_suggestions,
+        existing_cards=existing_cards,
+    )
+
+    target_query_word = translate_word(
+        query_word,
+        source="en",
+        target=target_language
+    )
+
+    return {
+        "decks": decks,
+        "suggestions": similar_existing_cards[:10],
+        "word_suggestions": word_suggestions,
+        "deck_id": deck_id,
+        "query_word": query_word,
+        "target_query_word": target_query_word,
+        "target_language": target_language,
+        "phrase_suggestions": None,
+        "phrase_query": None,
+    }
 
 def get_smart_add_preview_data(
     deck_id: int,
@@ -256,6 +302,67 @@ def create_selected_word_suggestions(
                 back=word,
             )
 
+def create_smart_add_cards_from_query(
+    deck_id: int,
+    query_word: str,
+    selected_card_ids: list[int] | None = None,
+    selected_suggestion_indices: list[int] | None = None,
+    suggested_words: list[str] | None = None,
+    suggested_translations: list[str] | None = None,
+    selected_phrase_indices: list[int] | None = None,
+    suggested_phrases: list[str] | None = None
+) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    target_language = get_deck_target_language(deck_id)
+
+    if selected_card_ids:
+        for card_id in selected_card_ids:
+            add_reverse_of_existing_card(
+                cursor=cursor,
+                deck_id=deck_id,
+                card_id=card_id,
+            )
+
+    if selected_suggestion_indices and suggested_words and suggested_translations:
+        for index in selected_suggestion_indices:
+            word_front = suggested_words[index].strip()
+            word_back = suggested_translations[index].strip()
+
+            if not word_front or not word_back:
+                continue
+
+            insert_card_if_missing(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=word_front,
+                back=word_back,
+            )
+
+    if selected_phrase_indices and suggested_phrases:
+        for index in selected_phrase_indices:
+            target_phrase = suggested_phrases[index].strip()
+
+            if not target_phrase:
+                continue
+
+            english_phrase = translate_word(
+                target_phrase,
+                source="en",
+                target=target_language
+            )
+
+            insert_card_if_missing(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=english_phrase,
+                back=target_phrase,
+            )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def create_smart_add_cards(
     deck_id: int,
@@ -314,8 +421,8 @@ def create_smart_add_cards(
 
             phrase_back = translate_word(
                 phrase_front,
-                source="de",
-                target="en"
+                source="en",
+                target="de"
             )
 
             insert_card_if_missing(

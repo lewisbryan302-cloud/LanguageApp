@@ -39,7 +39,7 @@ from deck_service import (
     save_deck_order_by_ids,
     update_deck_profile,
 )
-from suggestion_service import get_smart_add_preview_data, create_smart_add_cards
+from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
 
@@ -290,7 +290,10 @@ def choose_german_phrase_query(front: str, back: str) -> str | None:
 
 # --- Smart add card mechanism ---
 @app.get("/smart-add-card")
-def smart_add_card_page(request: Request):
+def smart_add_card_page(
+    request: Request,
+    deck_id: int | None = None
+):
     decks = get_deck_options()
 
     return templates.TemplateResponse(
@@ -298,49 +301,43 @@ def smart_add_card_page(request: Request):
         "smart_add_card.html",
         {
             "decks": decks,
+            "deck_id": deck_id,
+            "query_word": "",
             "suggestions": None,
-            "phrase_suggestions": None
+            "word_suggestions": None,
+            "phrase_suggestions": None,
+            "phrase_query": None,
         }
     )
+
 
 @app.post("/smart-add-card/preview")
 def smart_add_card_preview(
     request: Request,
     deck_id: int = Form(...),
-    front: str = Form(...),
-    back: str = Form(...),
-    add_reverse: str | None = Form(None)
+    query_word: str = Form(...)
 ):
-    page_data = get_smart_add_preview_data(
+    query_word = query_word.strip()
+
+    page_data = get_smart_add_preview_data_from_query(
         deck_id=deck_id,
-        front=front,
-        back=back,
-        add_reverse=add_reverse,
+        query_word=query_word,
     )
 
-    phrase_suggestions = []
+    target_language = page_data["target_language"]
+    phrase_query = page_data["target_query_word"]
 
-    # First try the front side.
-    if front.strip():
-        phrase_suggestions = get_phrase_suggestions(
-            query_word=front.strip(),
-            top_n=10,
-            window=2,
-            max_candidates=10000,
-            max_matches=1000
-        )
-
-    # If front gives nothing, try the back side.
-    if not phrase_suggestions and back.strip():
-        phrase_suggestions = get_phrase_suggestions(
-            query_word=back.strip(),
-            top_n=10,
-            window=2,
-            max_candidates=10000,
-            max_matches=1000
-        )
+    phrase_suggestions = get_phrase_suggestions(
+        query_word=phrase_query,
+        target_language=target_language,
+        top_n=10,
+        window=2,
+        max_candidates=10000,
+        max_matches=1000
+    )
 
     page_data["phrase_suggestions"] = phrase_suggestions
+    page_data["phrase_query"] = phrase_query
 
     return templates.TemplateResponse(
         request,
@@ -352,9 +349,7 @@ def smart_add_card_preview(
 @app.post("/smart-add-card/create")
 def smart_add_card_create(
     deck_id: int = Form(...),
-    front: str = Form(...),
-    back: str = Form(...),
-    add_reverse: str | None = Form(None),
+    query_word: str = Form(...),
     selected_card_ids: Optional[list[int]] = Form(None),
     selected_suggestion_indices: Optional[list[int]] = Form(None),
     suggested_words: Optional[list[str]] = Form(None),
@@ -362,11 +357,9 @@ def smart_add_card_create(
     selected_phrase_indices: Optional[list[int]] = Form(None),
     suggested_phrases: Optional[list[str]] = Form(None)
 ):
-    create_smart_add_cards(
+    create_smart_add_cards_from_query(
         deck_id=deck_id,
-        front=front,
-        back=back,
-        add_reverse=add_reverse,
+        query_word=query_word,
         selected_card_ids=selected_card_ids,
         selected_suggestion_indices=selected_suggestion_indices,
         suggested_words=suggested_words,
@@ -376,7 +369,7 @@ def smart_add_card_create(
     )
 
     return RedirectResponse(
-        f"/add-card?deck_id={deck_id}",
+        f"/smart-add-card?deck_id={deck_id}",
         status_code=303
     )
 
