@@ -342,22 +342,22 @@ def create_smart_add_cards_from_query(
 
     if selected_phrase_indices and suggested_phrases:
         for index in selected_phrase_indices:
-            target_phrase = suggested_phrases[index].strip()
+            phrase_front = suggested_phrases[index].strip()
 
-            if not target_phrase:
+            if not phrase_front:
                 continue
 
-            english_phrase = translate_word(
-                target_phrase,
-                source="en",
-                target=target_language
+            phrase_back = translate_word(
+                phrase_front,
+                source=target_language,
+                target="en"
             )
 
             insert_card_if_missing(
                 cursor=cursor,
                 deck_id=deck_id,
-                front=english_phrase,
-                back=target_phrase,
+                front=phrase_front,
+                back=phrase_back,
             )
 
     conn.commit()

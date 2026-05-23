@@ -168,6 +168,23 @@
             color: #666;
         }
 
+        .success-message {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .success-message.hide {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -221,6 +238,12 @@
     <main class="page">
 
         <div class="smart-card-box">
+
+            {% if success_message %}
+                <div id="successMessage" class="success-message">
+                    {{ success_message }}
+                </div>
+            {% endif %}
 
             <form action="/smart-add-card/preview" method="post">
 
@@ -430,6 +453,20 @@
         </div>
 
     </main>
+
+    <script>
+        const successMessage = document.getElementById("successMessage");
+
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.classList.add("hide");
+
+                setTimeout(() => {
+                    successMessage.remove();
+                }, 400);
+            }, 2500);
+        }
+    </script>
 
 </body>
 </html>

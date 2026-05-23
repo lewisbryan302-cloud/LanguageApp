@@ -23,7 +23,7 @@ LANGUAGE_CORPORA = {
         "spacy_model": "it_core_news_sm",
     },
 
-    "nb": {
+    "no": {
         "tsv_path": r"C:\Users\lewis\OneDrive\Documents\LanguageApp\Language_Phrases\nob_sentences.tsv\nob_sentences.tsv",
         "tatoeba_code": "nob",
         "spacy_model": "nb_core_news_sm",
