@@ -39,6 +39,44 @@ def load_sentences(target_language: str):
 
     return sentences
 
+@lru_cache(maxsize=None)
+def build_lemma_sentence_index(target_language: str):
+    sentences_df = load_sentences(target_language)
+    nlp = get_nlp(target_language)
+
+    lemma_index = defaultdict(list)
+
+    sentences = sentences_df["sentence"].dropna().tolist()
+    sentence_ids = sentences_df["sentence_id"].tolist()
+
+    for doc, sentence_id, sentence in zip(
+        nlp.pipe(sentences, batch_size=200),
+        sentence_ids,
+        sentences
+    ):
+        seen_lemmas_in_sentence = set()
+
+        for token in doc:
+            if not is_clean_token(token):
+                continue
+
+            lemma = token.lemma_.lower().strip()
+
+            if not lemma:
+                continue
+
+            if lemma in seen_lemmas_in_sentence:
+                continue
+
+            seen_lemmas_in_sentence.add(lemma)
+
+            lemma_index[lemma].append({
+                "sentence_id": sentence_id,
+                "sentence": sentence,
+            })
+
+    return lemma_index
+
 
 def get_query_lemma(query_word: str, target_language: str) -> str:
     nlp = get_nlp(target_language)
@@ -65,6 +103,32 @@ def is_good_phrase(phrase: str) -> bool:
 
     return True
 
+def extract_verb_sentence_phrases_from_doc(doc, query_lemma: str):
+    phrases = set()
+
+    contains_query_verb = any(
+        token.lemma_.lower() == query_lemma
+        and token.pos_ == "VERB"
+        for token in doc
+    )
+
+    if not contains_query_verb:
+        return phrases
+
+    clean_tokens = [
+        token.text
+        for token in doc
+        if is_clean_token(token)
+    ]
+
+    # Keep short, useful example sentences.
+    if 3 <= len(clean_tokens) <= 10:
+        phrase = normalise_phrase(" ".join(clean_tokens))
+
+        if is_good_phrase(phrase):
+            phrases.add(phrase)
+
+    return phrases
 
 def extract_linguistic_phrases_from_doc(doc, query_lemma: str):
     phrases = set()
@@ -130,6 +194,13 @@ def extract_linguistic_phrases_from_doc(doc, query_lemma: str):
                 if is_good_phrase(phrase):
                     phrases.add(phrase)
 
+    verb_sentence_phrases = extract_verb_sentence_phrases_from_doc(
+        doc=doc,
+        query_lemma=query_lemma
+    )
+
+    phrases.update(verb_sentence_phrases)
+
     return list(phrases)
 
 
@@ -156,16 +227,18 @@ def get_phrase_suggestions(
     phrase_counter = Counter()
     example_sentences = defaultdict(list)
 
-    rough_matches = sentences_df[
-        sentences_df["sentence"].str.contains(
-            query_word,
-            case=False,
-            na=False,
-            regex=False
-        )
-    ].head(max_candidates)
+    lemma_index = build_lemma_sentence_index(target_language)
 
-    rough_sentences = rough_matches["sentence"].dropna().tolist()
+    matched_items = lemma_index.get(query_lemma, [])
+
+    rough_sentences = [
+        item["sentence"]
+        for item in matched_items[:max_candidates]
+    ]
+
+    print("phrase query:", query_word, flush=True)
+    print("query lemma:", query_lemma, flush=True)
+    print("lemma-index matches:", len(rough_sentences), flush=True)
 
     matched_sentences = 0
 
@@ -217,3 +290,55 @@ def is_bare_det_noun_phrase(span) -> bool:
         clean_tokens[0].pos_ == "DET"
         and clean_tokens[1].pos_ in {"NOUN", "PROPN"}
     )
+
+def get_search_terms_for_query(query_word: str, target_language: str) -> list[str]:
+    query_word = query_word.strip().lower()
+
+    terms = [query_word]
+
+    # Simple Spanish verb expansion.
+    # This is not a full conjugator, but it helps with common present-tense forms.
+    if target_language == "es":
+        if query_word.endswith("ar"):
+            stem = query_word[:-2]
+            terms.extend([
+                stem + "o",
+                stem + "as",
+                stem + "a",
+                stem + "amos",
+                stem + "áis",
+                stem + "an",
+            ])
+
+        elif query_word.endswith("er"):
+            stem = query_word[:-2]
+            terms.extend([
+                stem + "o",
+                stem + "es",
+                stem + "e",
+                stem + "emos",
+                stem + "éis",
+                stem + "en",
+            ])
+
+        elif query_word.endswith("ir"):
+            stem = query_word[:-2]
+            terms.extend([
+                stem + "o",
+                stem + "es",
+                stem + "e",
+                stem + "imos",
+                stem + "ís",
+                stem + "en",
+            ])
+
+    # Remove duplicates while preserving order.
+    seen = set()
+    unique_terms = []
+
+    for term in terms:
+        if term not in seen:
+            seen.add(term)
+            unique_terms.append(term)
+
+    return unique_terms

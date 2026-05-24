@@ -152,8 +152,11 @@ def get_smart_add_preview_data_from_query(
         existing_cards=existing_cards,
     )
 
+    query_info = parse_english_query(query_word)
+    embedding_query = query_info["base_word"]
+
     raw_word_suggestions = get_similar_words_with_translations(
-        query_word,
+        embedding_query,
         k=10,
         threshold=0.45,
         source="en",
@@ -179,15 +182,17 @@ def get_smart_add_preview_data_from_query(
             "score": item.get("score"),
         })
 
-    word_suggestions = filter_existing_word_suggestions(
-        raw_word_suggestions=formatted_word_suggestions,
-        existing_cards=existing_cards,
-    )
+    if query_info["is_infinitive_query"]:
+        word_suggestions = []
+    else:
+        word_suggestions = filter_existing_word_suggestions(
+            raw_word_suggestions=formatted_word_suggestions,
+            existing_cards=existing_cards,
+        )
 
-    target_query_word = translate_word(
-        query_word,
-        source="en",
-        target=target_language
+    target_query_word = get_target_phrase_query(
+        query_word=query_word,
+        target_language=target_language
     )
 
     return {
@@ -577,3 +582,72 @@ def format_english_suggestion_word(word: str) -> dict:
         "translation_word": word,
         "pos_tag": None,
     }
+
+def parse_english_query(query_word: str) -> dict:
+    query_word = query_word.strip()
+    lower_query = query_word.lower()
+
+    if lower_query.startswith("to "):
+        base_word = query_word[3:].strip()
+
+        # Only treat simple "to X" as an infinitive query.
+        if base_word and " " not in base_word:
+            return {
+                "original_query": query_word,
+                "base_word": base_word,
+                "is_infinitive_query": True,
+            }
+
+    return {
+        "original_query": query_word,
+        "base_word": query_word,
+        "is_infinitive_query": False,
+    }
+
+def get_target_phrase_query(
+    query_word: str,
+    target_language: str
+) -> str:
+    query_info = parse_english_query(query_word)
+
+    if query_info["is_infinitive_query"]:
+        base_verb = query_info["base_word"]
+
+        # Translate in a sentence context to force verb meaning.
+        translated_sentence = translate_word(
+            f"I want to {base_verb}",
+            source="en",
+            target=target_language
+        )
+
+        try:
+            from phrase_helper import get_nlp
+
+            nlp = get_nlp(target_language)
+            doc = nlp(translated_sentence)
+
+            verb_lemmas = [
+                token.lemma_.lower()
+                for token in doc
+                if token.pos_ in {"VERB", "AUX"}
+            ]
+
+            if verb_lemmas:
+                # Usually the final verb is the actual infinitive/main verb.
+                return verb_lemmas[-1]
+
+        except Exception:
+            pass
+
+        # Fallback if spaCy extraction fails.
+        return translate_word(
+            base_verb,
+            source="en",
+            target=target_language
+        )
+
+    return translate_word(
+        query_word,
+        source="en",
+        target=target_language
+    )

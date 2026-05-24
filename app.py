@@ -328,6 +328,11 @@ def smart_add_card_preview(
     target_language = page_data["target_language"]
     phrase_query = page_data["target_query_word"]
 
+    print("SMART ADD DEBUG")
+    print("query_word:", query_word)
+    print("target_language:", target_language)
+    print("phrase_query:", phrase_query)
+
     phrase_suggestions = get_phrase_suggestions(
         query_word=phrase_query,
         target_language=target_language,
