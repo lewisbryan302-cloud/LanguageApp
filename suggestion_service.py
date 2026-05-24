@@ -4,7 +4,12 @@ from embedding_helper import (
     get_similar_words_with_translations,
     translate_word,
 )
+import spacy
+from functools import lru_cache
 
+@lru_cache(maxsize=1)
+def get_english_nlp():
+    return spacy.load("en_core_web_sm")
 
 def get_existing_cards(deck_id: int) -> list:
     conn = get_connection()
@@ -155,8 +160,27 @@ def get_smart_add_preview_data_from_query(
         target=target_language
     )
 
+    formatted_word_suggestions = []
+
+    for item in raw_word_suggestions:
+        formatted = format_english_suggestion_word(item["word"])
+
+        translation = translate_word(
+            formatted["translation_word"],
+            source="en",
+            target=target_language
+        )
+
+        formatted_word_suggestions.append({
+            "word": formatted["display_word"],
+            "translation": translation,
+            "pos_tag": formatted["pos_tag"],
+            "raw_word": item["word"],
+            "score": item.get("score"),
+        })
+
     word_suggestions = filter_existing_word_suggestions(
-        raw_word_suggestions=raw_word_suggestions,
+        raw_word_suggestions=formatted_word_suggestions,
         existing_cards=existing_cards,
     )
 
@@ -234,12 +258,16 @@ def insert_card_if_missing(
     deck_id: int,
     front: str,
     back: str
-) -> None:
-    if not card_exists(cursor, deck_id, front, back):
-        cursor.execute("""
-            INSERT INTO flashcards (deck_id, front, back)
-            VALUES (%s, %s, %s);
-        """, (deck_id, front, back))
+) -> bool:
+    if card_exists(cursor, deck_id, front, back):
+        return False
+
+    cursor.execute("""
+        INSERT INTO flashcards (deck_id, front, back)
+        VALUES (%s, %s, %s);
+    """, (deck_id, front, back))
+
+    return True
 
 
 def add_reverse_of_existing_card(
@@ -310,20 +338,39 @@ def create_smart_add_cards_from_query(
     suggested_words: list[str] | None = None,
     suggested_translations: list[str] | None = None,
     selected_phrase_indices: list[int] | None = None,
-    suggested_phrases: list[str] | None = None
-) -> None:
+    suggested_phrases: list[str] | None = None,
+    suggested_phrase_translations: list[str] | None = None
+) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
+    inserted_count = 0
     target_language = get_deck_target_language(deck_id)
 
     if selected_card_ids:
         for card_id in selected_card_ids:
-            add_reverse_of_existing_card(
+            cursor.execute("""
+                SELECT front, back
+                FROM flashcards
+                WHERE id = %s AND deck_id = %s;
+            """, (card_id, deck_id))
+
+            card = cursor.fetchone()
+
+            if not card:
+                continue
+
+            old_front, old_back = card
+
+            inserted = insert_card_if_missing(
                 cursor=cursor,
                 deck_id=deck_id,
-                card_id=card_id,
+                front=old_back,
+                back=old_front,
             )
+
+            if inserted:
+                inserted_count += 1
 
     if selected_suggestion_indices and suggested_words and suggested_translations:
         for index in selected_suggestion_indices:
@@ -333,36 +380,48 @@ def create_smart_add_cards_from_query(
             if not word_front or not word_back:
                 continue
 
-            insert_card_if_missing(
+            inserted = insert_card_if_missing(
                 cursor=cursor,
                 deck_id=deck_id,
                 front=word_front,
                 back=word_back,
             )
 
+            if inserted:
+                inserted_count += 1
+
+    # Important: this is NOT inside the word-suggestion block.
     if selected_phrase_indices and suggested_phrases:
         for index in selected_phrase_indices:
-            phrase_front = suggested_phrases[index].strip()
+            target_phrase = suggested_phrases[index].strip()
 
-            if not phrase_front:
+            if not target_phrase:
                 continue
 
-            phrase_back = translate_word(
-                phrase_front,
-                source=target_language,
-                target="en"
-            )
+            if suggested_phrase_translations:
+                english_phrase = suggested_phrase_translations[index].strip()
+            else:
+                english_phrase = translate_word(
+                    target_phrase,
+                    source=target_language,
+                    target="en"
+                )
 
-            insert_card_if_missing(
+            inserted = insert_card_if_missing(
                 cursor=cursor,
                 deck_id=deck_id,
-                front=phrase_front,
-                back=phrase_back,
+                front=english_phrase,
+                back=target_phrase,
             )
+
+            if inserted:
+                inserted_count += 1
 
     conn.commit()
     cursor.close()
     conn.close()
+
+    return inserted_count
 
 def create_smart_add_cards(
     deck_id: int,
@@ -443,3 +502,78 @@ def create_smart_add_cards(
     conn.commit()
     cursor.close()
     conn.close()
+
+def is_likely_english_infinitive(word: str) -> bool:
+    word = word.strip().lower()
+
+    if not word:
+        return False
+
+    # Do not handle multi-word suggestions here.
+    if " " in word:
+        return False
+
+    # Reject obvious non-infinitive forms.
+    if word.endswith("ing"):
+        return False
+
+    if word.endswith("ed"):
+        return False
+
+    # Avoid simple third-person forms like "favours", "runs", "eats".
+    # This is imperfect, but useful.
+    if word.endswith("s") and len(word) > 3:
+        return False
+
+    nlp = get_english_nlp()
+
+    # Test whether it behaves as a bare infinitive after "will".
+    # Example: "I will go", "I will eat", "I will favour".
+    doc = nlp(f"I will {word}")
+
+    target_token = None
+
+    for token in doc:
+        if token.text.lower() == word:
+            target_token = token
+            break
+
+    if target_token is None:
+        return False
+
+    # In Penn tags, VB means base-form verb.
+    # This rejects VBD, VBN, VBG, VBZ, Noun, etc.
+    if target_token.tag_ != "VB":
+        return False
+
+    # Extra safety check:
+    # If spaCy strongly reads the word by itself as a noun/proper noun,
+    # do not automatically add "to".
+    standalone_doc = nlp(word)
+
+    if len(standalone_doc) != 1:
+        return False
+
+    standalone_token = standalone_doc[0]
+
+    if standalone_token.pos_ in {"NOUN", "PROPN"}:
+        return False
+
+    return True
+
+
+def format_english_suggestion_word(word: str) -> dict:
+    word = word.strip()
+
+    if is_likely_english_infinitive(word):
+        return {
+            "display_word": f"to {word}",
+            "translation_word": word,
+            "pos_tag": "verb",
+        }
+
+    return {
+        "display_word": word,
+        "translation_word": word,
+        "pos_tag": None,
+    }

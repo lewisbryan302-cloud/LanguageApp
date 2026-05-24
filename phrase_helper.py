@@ -5,11 +5,6 @@ from functools import lru_cache
 
 from phrase_config import LANGUAGE_CORPORA
 
-TSV_PATH = r"C:\Users\lewis\Downloads\deu_sentences.tsv\deu_sentences.tsv"
-
-nlp = spacy.load("de_core_news_sm", disable=["parser", "ner"])
-
-
 @lru_cache(maxsize=None)
 def get_language_config(target_language: str) -> dict:
     if target_language not in LANGUAGE_CORPORA:
@@ -24,7 +19,7 @@ def get_nlp(target_language: str):
 
     return spacy.load(
         config["spacy_model"],
-        disable=["parser", "ner"]
+        disable=["ner"]
     )
 
 
@@ -45,7 +40,8 @@ def load_sentences(target_language: str):
     return sentences
 
 
-def get_query_lemma(query_word: str) -> str:
+def get_query_lemma(query_word: str, target_language: str) -> str:
+    nlp = get_nlp(target_language)
     doc = nlp(query_word)
     return doc[0].lemma_.lower()
 
@@ -54,26 +50,87 @@ def is_clean_token(token) -> bool:
     return not token.is_space and not token.is_punct
 
 
-def extract_phrases_from_doc(doc, query_lemma: str, window: int = 2):
-    phrases = []
+def normalise_phrase(text: str) -> str:
+    return " ".join(text.split()).strip()
 
-    for i, token in enumerate(doc):
-        if token.lemma_.lower() == query_lemma:
-            start = max(0, i - window)
-            end = min(len(doc), i + window + 1)
 
-            words = [
-                t.text
-                for t in doc[start:end]
-                if is_clean_token(t)
-            ]
+def is_good_phrase(phrase: str) -> bool:
+    words = phrase.split()
 
-            phrase = " ".join(words)
+    if len(words) < 2:
+        return False
 
-            if phrase:
-                phrases.append(phrase)
+    if len(words) > 7:
+        return False
 
-    return phrases
+    return True
+
+
+def extract_linguistic_phrases_from_doc(doc, query_lemma: str):
+    phrases = set()
+
+    # 1. Noun chunks containing the query word.
+    # Example: "das alte Haus", "ein wildes Tier"
+    for chunk in doc.noun_chunks:
+        if any(token.lemma_.lower() == query_lemma for token in chunk):
+
+            if not is_bare_det_noun_phrase(chunk):
+                phrase = normalise_phrase(chunk.text)
+
+                if is_good_phrase(phrase):
+                    phrases.add(phrase)
+
+            # Try to include a preceding preposition.
+            # Example: "in dem Haus", "mit dem Tier", "zu Hause"
+            start = chunk.start
+
+            if start > 0:
+                previous = doc[start - 1]
+
+                if previous.pos_ == "ADP":
+                    prep_phrase = normalise_phrase(
+                        doc[previous.i : chunk.end].text
+                    )
+
+                    if is_good_phrase(prep_phrase):
+                        phrases.add(prep_phrase)
+
+    # 2. Prepositional phrases around the query token.
+    # This catches phrases noun_chunks may miss.
+    for token in doc:
+        if token.lemma_.lower() != query_lemma:
+            continue
+
+        # If the token is attached to a preposition, collect prep + subtree.
+        if token.head.pos_ == "ADP":
+            subtree_tokens = sorted(
+                list(token.head.subtree),
+                key=lambda t: t.i
+            )
+
+            phrase = normalise_phrase(
+                " ".join(t.text for t in subtree_tokens if is_clean_token(t))
+            )
+
+            if is_good_phrase(phrase):
+                phrases.add(phrase)
+
+        # If the token has a preposition child, collect that phrase.
+        for child in token.children:
+            if child.pos_ == "ADP":
+                subtree_tokens = sorted(
+                    list(child.subtree),
+                    key=lambda t: t.i
+                )
+
+                phrase = normalise_phrase(
+                    " ".join(t.text for t in subtree_tokens if is_clean_token(t))
+                )
+
+                if is_good_phrase(phrase):
+                    phrases.add(phrase)
+
+    return list(phrases)
 
 
 def get_phrase_suggestions(
@@ -116,10 +173,9 @@ def get_phrase_suggestions(
         nlp.pipe(rough_sentences, batch_size=batch_size),
         rough_sentences
     ):
-        phrases = extract_phrases_from_doc(
+        phrases = extract_linguistic_phrases_from_doc(
             doc=doc,
-            query_lemma=query_lemma,
-            window=window
+            query_lemma=query_lemma
         )
 
         if not phrases:
@@ -146,3 +202,18 @@ def get_phrase_suggestions(
         })
 
     return results
+
+def is_bare_det_noun_phrase(span) -> bool:
+    clean_tokens = [
+        token
+        for token in span
+        if is_clean_token(token)
+    ]
+
+    if len(clean_tokens) != 2:
+        return False
+
+    return (
+        clean_tokens[0].pos_ == "DET"
+        and clean_tokens[1].pos_ in {"NOUN", "PROPN"}
+    )

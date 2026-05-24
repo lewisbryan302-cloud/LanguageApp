@@ -184,6 +184,17 @@
             transform: translateY(-8px);
         }
 
+        .pos-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #075985;
+            margin-left: 6px;
+        }
+
 
         @media (max-width: 800px) {
             .banner-content {
@@ -349,6 +360,9 @@
 
                                             <div class="suggestion-title">
                                                 {{ item.word }}
+                                                {% if item.pos_tag %}
+                                                    <span class="pos-tag">{{ item.pos_tag }}</span>
+                                                {% endif %}
                                                 →
                                                 {{ item.translation }}
                                             </div>
@@ -401,6 +415,8 @@
                                             >
 
                                             <div class="suggestion-title">
+                                                {{ item.translation }}
+                                                →
                                                 {{ item.phrase }}
                                             </div>
 
@@ -424,6 +440,12 @@
                                             type="hidden"
                                             name="suggested_phrases"
                                             value="{{ item.phrase }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="suggested_phrase_translations"
+                                            value="{{ item.translation }}"
                                         >
 
                                     </div>

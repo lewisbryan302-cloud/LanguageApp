@@ -42,6 +42,7 @@ from deck_service import (
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
+from embedding_helper import translate_word
 
 app = FastAPI()
 app.add_middleware(
@@ -336,6 +337,13 @@ def smart_add_card_preview(
         max_matches=1000
     )
 
+    for item in phrase_suggestions:
+        item["translation"] = translate_word(
+            item["phrase"],
+            source=target_language,
+            target="en"
+        )
+
     page_data["phrase_suggestions"] = phrase_suggestions
     page_data["phrase_query"] = phrase_query
 
@@ -356,11 +364,12 @@ def smart_add_card_create(
     suggested_words: Optional[list[str]] = Form(None),
     suggested_translations: Optional[list[str]] = Form(None),
     selected_phrase_indices: Optional[list[int]] = Form(None),
-    suggested_phrases: Optional[list[str]] = Form(None)
+    suggested_phrases: Optional[list[str]] = Form(None),
+    suggested_phrase_translations: Optional[list[str]] = Form(None)
 ):
     query_word = query_word.strip()
 
-    create_smart_add_cards_from_query(
+    inserted_count = create_smart_add_cards_from_query(
         deck_id=deck_id,
         query_word=query_word,
         selected_card_ids=selected_card_ids,
@@ -369,6 +378,7 @@ def smart_add_card_create(
         suggested_translations=suggested_translations,
         selected_phrase_indices=selected_phrase_indices,
         suggested_phrases=suggested_phrases,
+        suggested_phrase_translations=suggested_phrase_translations,
     )
 
     # Re-run the same preview search after adding cards.
@@ -380,27 +390,30 @@ def smart_add_card_create(
     phrase_query = page_data.get("target_query_word", query_word)
     target_language = page_data.get("target_language")
 
-    if target_language:
-        phrase_suggestions = get_phrase_suggestions(
-            query_word=phrase_query,
-            target_language=target_language,
-            top_n=10,
-            window=2,
-            max_candidates=10000,
-            max_matches=1000
-        )
-    else:
-        phrase_suggestions = get_phrase_suggestions(
-            query_word=phrase_query,
-            top_n=10,
-            window=2,
-            max_candidates=10000,
-            max_matches=1000
+    phrase_suggestions = get_phrase_suggestions(
+        query_word=phrase_query,
+        target_language=target_language,
+        top_n=10,
+        window=2,
+        max_candidates=10000,
+        max_matches=1000
+    )
+
+    for item in phrase_suggestions:
+        item["translation"] = translate_word(
+            item["phrase"],
+            source=target_language,
+            target="en"
         )
 
     page_data["phrase_suggestions"] = phrase_suggestions
     page_data["phrase_query"] = phrase_query
-    page_data["success_message"] = "Cards successfully added"
+    if inserted_count > 0:
+        page_data["success_message"] = (
+            f"{inserted_count} card{'s' if inserted_count != 1 else ''} successfully added"
+        )
+    else:
+        page_data["success_message"] = "No new cards were added"
 
     return templates.TemplateResponse(
         request,
