@@ -146,45 +146,49 @@ def get_smart_add_preview_data_from_query(
     decks = get_deck_options()
     target_language = get_deck_target_language(deck_id)
 
+    query_info = parse_english_query(query_word)
+
     similar_existing_cards = find_similar_existing_cards(
         front=query_word,
         back=query_word,
         existing_cards=existing_cards,
     )
 
-    query_info = parse_english_query(query_word)
-    embedding_query = query_info["base_word"]
+    if query_info["is_infinitive_query"]:
+        word_suggestions = []
+    else:
+        embedding_query = query_info["base_word"]
 
-    raw_word_suggestions = get_similar_words_with_translations(
-        embedding_query,
-        k=10,
-        threshold=0.45,
-        source="en",
-        target=target_language
-    )
-
-    formatted_word_suggestions = []
-
-    for item in raw_word_suggestions:
-        formatted = format_english_suggestion_word(item["word"])
-
-        translation = translate_word(
-            formatted["translation_word"],
+        raw_word_suggestions = get_similar_words_with_translations(
+            embedding_query,
+            k=10,
+            threshold=0.45,
             source="en",
             target=target_language
         )
 
-        formatted_word_suggestions.append({
-            "word": formatted["display_word"],
-            "translation": translation,
-            "pos_tag": formatted["pos_tag"],
-            "raw_word": item["word"],
-            "score": item.get("score"),
-        })
+        formatted_word_suggestions = []
 
-    if query_info["is_infinitive_query"]:
-        word_suggestions = []
-    else:
+        for item in raw_word_suggestions:
+            formatted = format_english_suggestion_word(item["word"])
+
+            if formatted["translation_word"] == item["word"]:
+                translation = item["translation"]
+            else:
+                translation = translate_word(
+                    formatted["translation_word"],
+                    source="en",
+                    target=target_language
+                )
+
+            formatted_word_suggestions.append({
+                "word": formatted["display_word"],
+                "translation": translation,
+                "pos_tag": formatted["pos_tag"],
+                "raw_word": item["word"],
+                "score": item.get("score"),
+            })
+
         word_suggestions = filter_existing_word_suggestions(
             raw_word_suggestions=formatted_word_suggestions,
             existing_cards=existing_cards,

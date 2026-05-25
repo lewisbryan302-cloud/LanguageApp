@@ -221,15 +221,31 @@ def get_phrase_suggestions(
     sentences_df = load_sentences(target_language)
     nlp = get_nlp(target_language)
 
-    query_doc = nlp(query_word)
-    query_lemma = query_doc[0].lemma_.lower()
-
     phrase_counter = Counter()
     example_sentences = defaultdict(list)
+
+    query_doc = nlp(query_word)
+
+    query_surface = query_word.strip().lower()
+    query_lemma = query_doc[0].lemma_.lower().strip()
 
     lemma_index = build_lemma_sentence_index(target_language)
 
     matched_items = lemma_index.get(query_lemma, [])
+
+    # Fallback: if spaCy gives a bad isolated-word lemma,
+    # try the original surface form too.
+    if not matched_items and query_surface != query_lemma:
+        surface_matches = lemma_index.get(query_surface, [])
+
+        if surface_matches:
+            print(
+                f"Using surface form fallback: {query_lemma} → {query_surface}",
+                flush=True
+            )
+
+            query_lemma = query_surface
+            matched_items = surface_matches
 
     rough_sentences = [
         item["sentence"]
