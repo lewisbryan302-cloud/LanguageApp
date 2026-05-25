@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Add Card</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,22 +49,26 @@
             font-weight: bold;
         }
 
-        .banner-right {
+        .page-title {
+            font-size: 14px;
             color: #666;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
         .banner-button {
             text-decoration: none;
-
             background: #2563eb;
             color: white;
-
             padding: 10px 18px;
-
             border-radius: 12px;
-
             font-weight: bold;
-
             transition: background 0.15s ease;
         }
 
@@ -71,228 +76,237 @@
             background: #1d4ed8;
         }
 
-        .page {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 0 10px;
+        .banner-button.secondary {
+            background: #e5e7eb;
+            color: black;
         }
 
-        h1 {
-            text-align: center;
+        .banner-button.secondary:hover {
+            background: #d1d5db;
         }
 
-        .add-card {
-            width: 70%;
-            min-height: 30px;
+        .top-controls {
+            position: relative;
+            min-height: 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-            resize: none;
-
-            overflow: hidden;
-
-            padding: 12px;
-
-            font-size: 16px;
-
-            border-radius: 12px;
-
-            border: 1px solid #ddd;
-
-            box-sizing: border-box;
-
-            font-size: large;
-            text-align: center;
-
+        .deck-selector-top-left,
+        .deck-selector-top-right {
+            position: absolute;
+            top: 20px;
             display: flex;
-            justify-content: center;
             align-items: center;
-
-            margin: 0 auto -20px auto;
-            
+            gap: 10px;
         }
 
-        .add-label {
+        .deck-selector-top-left {
+            left: 40px;
+        }
+
+        .deck-selector-top-right {
+            right: 40px;
+        }
+
+        .add-label,
+        .deck-selector-label {
+            font-weight: bold;
+        }
+
+        .deck-selector {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            background: white;
+        }
+
+        .card-field {
+            position: relative;
+            width: 70%;
+            margin: 80px auto;
+        }
+
+        .field-label {
             display: block;
             text-align: center;
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: -40px;
+        }
+
+        .editor-shell {
+            position: relative;
+        }
+
+        .rich-editor {
+            width: 100%;
+            min-height: 95px;
+            padding: 52px 18px 18px 18px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            font-size: 20px;
+            line-height: 1.6;
+            box-sizing: border-box;
+            background: white;
+            text-align: center;
+        }
+
+        .rich-editor:focus {
+            border-color: #2563eb;
+        }
+
+        .rich-editor img {
+            max-width: 220px;
+            max-height: 180px;
+            display: block;
+            margin: 12px auto;
+            border-radius: 12px;
+        }
+
+        .field-toolbar {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+
+            z-index: 10;
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-menu-button {
+            flex-shrink: 0;
+
+            border: none;
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .toolbar-menu-button:hover {
+            background: #d1d5db;
+        }
+
+        .toolbar-dropdown {
+            display: none;
+
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .field-toolbar.open .toolbar-dropdown {
+            display: flex;
+        }
+
+        .toolbar-dropdown select,
+        .toolbar-dropdown input,
+        .toolbar-dropdown button {
+            height: 34px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .image-insert-button {
+            background: #e5e7eb !important;
+            cursor: pointer;
+        }
+
+        .image-insert-button:hover {
+            background: #d1d5db !important;
+        }
+
+        .reverse-label {
+            display: block;
+            text-align: center;
+            margin: 10px auto 0 auto;
             font-weight: bold;
-            margin: 50px auto 10px auto;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin: 30px auto 60px auto;
         }
 
         .add-card-button {
             display: block;
-            margin: 10px 0px auto;
             padding: 12px 22px;
             font-size: 16px;
             border-radius: 14px;
-            border: #2563eb;
+            border: none;
             background: #2563eb;
             color: white;
             font-weight: bold;
             transition: background 0.15s ease;
             cursor: pointer;
-            text-decoration: none;}
+            text-decoration: none;
+            margin-top: -20px;
+        }
 
-            .reverse-label {
-                display: block;
-                text-align: center;
-                margin: 28px auto 0 auto;
-                font-weight: bold;
-            }
+        .add-card-button:hover {
+            background: #1d4ed8;
+        }
 
-            .page-title {
-                font-size: 14px;
-                color: #666;
-                margin-top: 2px;
-                font-weight: bold;
-            }
+        .cloze-highlight {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 2px 5px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
 
-            .deck-selector-top-right {
-                position: absolute;
+        .occlusion-editor {
+            position: relative;
+            min-height: 260px;
+        }
 
-                top: 100px;
-                right: 40px;
+        .occlusion-editor img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
 
-                display: flex;
-                align-items: center;
+        .occlusion-box {
+            position: absolute;
+            background: white;
+            border: 2px solid #2563eb;
+            cursor: pointer;
+        }
 
-                gap: 10px;
-            }
+        #cloze-options,
+        #image-occlusion-options {
+            display: none;
+        }
 
-            .deck-selector-label {
-                font-weight: bold;
-            }
+        .cloze-button {
+            margin: 18px auto -20px auto;
+        }
 
-            .deck-selector {
-                padding: 10px 14px;
+        .occlusion-button {
+            margin: 18px auto 0 auto;
+        }
 
-                border-radius: 12px;
-
-                border: 1px solid #ddd;
-
-                font-size: 15px;
-            }
-
-            .button-row {
-                display: flex;
-                justify-content: center;
-                gap: 16px;
-                margin-top: 30px;
-            }
-
-            .smart-add-button {
-                display: block;
-                padding: 12px 22px;
-                font-size: 16px;
-                border-radius: 14px;
-                border: none;
-                background: #7c3aed;
-                color: white;
-                font-weight: bold;
-                cursor: pointer;
-                transition: background 0.15s ease;
-            }
-
-            .smart-add-button:hover {
-                background: #6d28d9;
-            }
-
-            .banner-actions {
-                display: flex;
-                gap: 12px;
-                align-items: center;
-            }
-
-            .banner-button.secondary {
-                background: #e5e7eb;
-                color: black;
-            }
-
-            .banner-button.secondary:hover {
-                background: #d1d5db;
-            }
-
-            .cloze-editor {
-                width: 70%;
-                min-height: 120px;
-                margin: 0 auto;
-                padding: 16px;
-
-                border: 1px solid #ddd;
-                border-radius: 14px;
-
-                font-size: 18px;
-                line-height: 1.6;
-
-                background: white;
-            }
-
-            .cloze-highlight {
-                background: #dbeafe;
-                color: #1d4ed8;
-                padding: 2px 5px;
-                border-radius: 6px;
-                font-weight: bold;
-            }
-
-            .editor-row {
-                width: 70%;
-                margin: 0 auto;
-                display: flex;
-                gap: 12px;
-                align-items: flex-start;
-            }
-
-            .rich-editor {
-                flex: 1;
-                min-height: 90px;
-                padding: 14px;
-                border: 1px solid #ddd;
-                border-radius: 14px;
-                font-size: 18px;
-                line-height: 1.6;
-                background: white;
-                text-align: center;
-            }
-
-            .rich-editor img {
-                max-width: 220px;
-                max-height: 180px;
-                display: block;
-                margin: 12px auto;
-                border-radius: 12px;
-            }
-
-            .image-insert-button {
-                padding: 10px 14px;
-                border-radius: 12px;
-                border: none;
-                background: #e5e7eb;
-                font-weight: bold;
-                cursor: pointer;
-            }
-
-            .image-insert-button:hover {
-                background: #d1d5db;
-            }
-
-            .occlusion-editor {
-                position: relative;
-                min-height: 260px;
-            }
-
-            .occlusion-editor img {
-                max-width: 100%;
-                display: block;
-                margin: 0 auto;
-            }
-
-            .occlusion-box {
-                position: absolute;
-                background: white;
-                border: 2px solid #2563eb;
-                cursor: pointer;
-            }
-
-            @media (max-width: 800px) {
+        @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
                 align-items: flex-start;
@@ -303,14 +317,22 @@
                 flex-wrap: wrap;
             }
 
-            .deck-selector-top-right {
-                position: static;
-                margin: 20px auto;
-                justify-content: center;
+            .top-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                padding: 20px;
+                min-height: auto;
             }
 
-            .add-card {
+            .deck-selector-top-left,
+            .deck-selector-top-right {
+                position: static;
+            }
+
+            .card-field {
                 width: 92%;
+                margin: 50px auto;
             }
 
             .button-row {
@@ -322,75 +344,34 @@
                 width: 80%;
                 text-align: center;
             }
-
-            .editor-toolbar {
-                display: flex;
-                justify-content: center;
-                gap: 10px;
-                flex-wrap: wrap;
-                margin: 30px auto 20px auto;
-            }
-
-            .editor-toolbar select,
-            .editor-toolbar input,
-            .editor-toolbar button {
-                padding: 8px 12px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                font-weight: bold;
-            }
         }
     </style>
 </head>
+
 <body>
     <header class="site-banner">
         <div class="banner-content">
             <div class="brand-section">
-
-                <div class="logo-placeholder">
-                    L
-                </div>
+                <div class="logo-placeholder">L</div>
 
                 <div>
-
-                    <div class="brand-name">
-                        LanguageApp
-                    </div>
-
-                    <div class="page-title">
-                        Add Card
-                    </div>
-
+                    <div class="brand-name">LanguageApp</div>
+                    <div class="page-title">Add Card</div>
                 </div>
-
             </div>
 
-            <div class="banner-right">
+            <div class="banner-actions">
+                <a href="#" class="banner-button secondary" onclick="goToSelectedDeck(event)">
+                    View Deck
+                </a>
 
-                <div class="banner-actions">
+                <a href="#" class="banner-button secondary" onclick="goToSelectedReview(event)">
+                    Review Deck
+                </a>
 
-                    <a
-                        href="#"
-                        class="banner-button secondary"
-                        onclick="goToSelectedDeck(event)"
-                    >
-                        View Deck
-                    </a>
-
-                    <a
-                        href="#"
-                        class="banner-button secondary"
-                        onclick="goToSelectedReview(event)"
-                    >
-                        Review Deck
-                    </a>
-
-                    <a href="/" class="banner-button">
-                        ← Back to Decks
-                    </a>
-
-                </div>
-
+                <a href="/" class="banner-button">
+                    ← Back to Decks
+                </a>
             </div>
         </div>
     </header>
@@ -401,76 +382,186 @@
         method="post"
         enctype="multipart/form-data"
     >
-        <div class="deck-selector-top-right">
+        <div class="top-controls">
+            <div class="deck-selector-top-left">
+                <label class="add-label" for="card-type-select">Card Type</label>
 
-            <label class="deck-selector-label">
-                Deck
-            </label>
+                <select name="card_type" id="card-type-select" class="deck-selector">
+                    <option value="basic">Basic</option>
+                    <option value="cloze">Cloze</option>
+                    <option value="image_occlusion">Image Occlusion</option>
+                </select>
+            </div>
 
-            <select name="deck_id" required class="deck-selector">
-                {% for deck in decks %}
-                    <option
-                        value="{{ deck[0] }}"
-                        {% if selected_deck_id and deck[0] == selected_deck_id %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ deck[1] }}
-                    </option>
-                {% endfor %}
-            </select>
+            <div class="deck-selector-top-right">
+                <label class="deck-selector-label" for="deck-select">Deck</label>
 
+                <select name="deck_id" id="deck-select" required class="deck-selector">
+                    {% for deck in decks %}
+                        <option
+                            value="{{ deck[0] }}"
+                            {% if selected_deck_id and deck[0]|int == selected_deck_id|int %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ deck[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
-        <label class="add-label">Card Type</label>
-
-        <select name="card_type" id="card-type-select" class="deck-selector">
-            <option value="basic">Basic</option>
-            <option value="cloze">Cloze</option>
-            <option value="image_occlusion">Image Occlusion</option>
-        </select>
-
         <input type="hidden" name="front" id="front-hidden">
+        <input type="hidden" name="back" id="back-hidden">
 
         <div id="basic-options">
+            <div class="card-field">
+                <label class="field-label" for="front-basic-editor">
+                    Front
+                </label>
 
-            <label class="add-label">Front</label>
-            <div class="editor-row">
-                <div
-                    id="front-basic-editor"
-                    class="rich-editor"
-                    contenteditable="true"
-                ></div>
+                <div class="editor-shell">
+                    <div class="field-toolbar">
+                        <button
+                            type="button"
+                            class="toolbar-menu-button"
+                            onclick="toggleToolbar(this)"
+                        >
+                            Options ▾
+                        </button>
 
-                <button
-                    type="button"
-                    class="image-insert-button"
-                    onclick="chooseImageFor('front')"
-                >
-                    Insert Image
-                </button>
+                        <div class="toolbar-dropdown">
+                            <select class="font-family-select">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Tahoma">Tahoma</option>
+                                <option value="Trebuchet MS">Trebuchet MS</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Garamond">Garamond</option>
+                                <option value="Palatino Linotype">Palatino</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Consolas">Consolas</option>
+                                <option value="Lucida Console">Lucida Console</option>
+                                <option value="Comic Sans MS">Comic Sans</option>
+                                <option value="Impact">Impact</option>
+                            </select>
+
+                            <select class="font-size-select">
+                                <option value="8pt">8 pt</option>
+                                <option value="10pt">10 pt</option>
+                                <option value="12pt">12 pt</option>
+                                <option value="14pt">14 pt</option>
+                                <option value="16pt">16 pt</option>
+                                <option value="18pt">18 pt</option>
+                                <option value="20pt">20 pt</option>
+                                <option value="24pt" selected>24 pt</option>
+                                <option value="28pt">28 pt</option>
+                                <option value="32pt">32 pt</option>
+                                <option value="36pt">36 pt</option>
+                                <option value="42pt">42 pt</option>
+                                <option value="48pt">48 pt</option>
+                                <option value="60pt">60 pt</option>
+                                <option value="72pt">72 pt</option>
+                            </select>
+
+                            <input type="color" class="text-color-select" value="#000000">
+
+                            <button type="button" onclick="formatSelection('bold')">B</button>
+                            <button type="button" onclick="formatSelection('italic')">I</button>
+                            <button type="button" onclick="insertLatex()">LaTeX</button>
+
+                            <button
+                                type="button"
+                                class="image-insert-button"
+                                onclick="chooseImageFor('front')"
+                            >
+                                Insert Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        id="front-basic-editor"
+                        class="rich-editor"
+                        contenteditable="true"
+                        tabindex="0"
+                    ></div>
+                </div>
             </div>
 
-            <input type="hidden" id="front-basic-field">
+            <div class="card-field">
+                <label class="field-label" for="back-editor">
+                    Back
+                </label>
 
-            <label class="add-label">Back</label>
-            <div class="editor-row">
-                <div
-                    id="back-editor"
-                    class="rich-editor"
-                    contenteditable="true"
-                ></div>
+                <div class="editor-shell">
+                    <div class="field-toolbar">
+                        <button type="button" class="toolbar-menu-button">
+                            Options ▾
+                        </button>
 
-                <button
-                    type="button"
-                    class="image-insert-button"
-                    onclick="chooseImageFor('back')"
-                >
-                    Insert Image
-                </button>
+                        <div class="toolbar-dropdown">
+                            <select class="font-family-select">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Tahoma">Tahoma</option>
+                                <option value="Trebuchet MS">Trebuchet MS</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Garamond">Garamond</option>
+                                <option value="Palatino Linotype">Palatino</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Consolas">Consolas</option>
+                                <option value="Lucida Console">Lucida Console</option>
+                                <option value="Comic Sans MS">Comic Sans</option>
+                                <option value="Impact">Impact</option>
+                            </select>
+
+                            <select class="font-size-select">
+                                <option value="8pt">8 pt</option>
+                                <option value="10pt">10 pt</option>
+                                <option value="12pt">12 pt</option>
+                                <option value="14pt">14 pt</option>
+                                <option value="16pt">16 pt</option>
+                                <option value="18pt">18 pt</option>
+                                <option value="20pt">20 pt</option>
+                                <option value="24pt" selected>24 pt</option>
+                                <option value="28pt">28 pt</option>
+                                <option value="32pt">32 pt</option>
+                                <option value="36pt">36 pt</option>
+                                <option value="42pt">42 pt</option>
+                                <option value="48pt">48 pt</option>
+                                <option value="60pt">60 pt</option>
+                                <option value="72pt">72 pt</option>
+                            </select>
+
+                            <input type="color" class="text-color-select" value="#000000">
+
+                            <button type="button" onclick="formatSelection('bold')">B</button>
+                            <button type="button" onclick="formatSelection('italic')">I</button>
+                            <button type="button" onclick="insertLatex()">LaTeX</button>
+
+                            <button
+                                type="button"
+                                class="image-insert-button"
+                                onclick="chooseImageFor('back')"
+                            >
+                                Insert Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        id="back-editor"
+                        class="rich-editor"
+                        contenteditable="true"
+                        tabindex="0"
+                    ></div>
+                </div>
             </div>
-
-            <input type="hidden" name="back" id="back-field">
 
             <label class="reverse-label">
                 <input
@@ -483,121 +574,182 @@
                 >
                 Add reverse card
             </label>
-
         </div>
 
         <div id="cloze-options">
 
-            <label class="add-label">Cloze Text</label>
+            <div class="card-field">
 
-            <div class="editor-row">
+                <label class="field-label">
+                    Cloze Text
+                </label>
 
-                <div
-                    id="cloze-editor"
-                    class="rich-editor"
-                    contenteditable="true"
-                ></div>
+                <div class="editor-shell">
+
+                    <div class="field-toolbar">
+                        <button
+                            type="button"
+                            class="toolbar-menu-button"
+                            onclick="toggleToolbar(this)"
+                        >
+                            Options ▾
+                        </button>
+
+                        <div class="toolbar-dropdown">
+                            <select class="font-family-select">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                            </select>
+
+                            <select class="font-size-select">
+                                <option value="12pt">12 pt</option>
+                                <option value="16pt">16 pt</option>
+                                <option value="20pt">20 pt</option>
+                                <option value="24pt" selected>24 pt</option>
+                                <option value="32pt">32 pt</option>
+                                <option value="48pt">48 pt</option>
+                            </select>
+
+                            <input
+                                type="color"
+                                class="text-color-select"
+                                value="#000000"
+                            >
+
+                            <button type="button" onclick="formatSelection('bold')">
+                                B
+                            </button>
+
+                            <button type="button" onclick="formatSelection('italic')">
+                                I
+                            </button>
+
+                            <button type="button" onclick="insertLatex()">
+                                LaTeX
+                            </button>
+
+                            <button
+                                type="button"
+                                class="image-insert-button"
+                                onclick="chooseImageFor('cloze')"
+                            >
+                                Insert Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        id="cloze-editor"
+                        class="rich-editor"
+                        contenteditable="true"
+                    ></div>
+
+                </div>
 
                 <button
                     type="button"
-                    class="image-insert-button"
-                    onclick="chooseImageFor('cloze')"
+                    class="add-card-button cloze-button"
+                    onclick="makeCloze()"
                 >
-                    Insert Image
+                    Make Cloze
                 </button>
 
             </div>
-
-            <button
-                type="button"
-                class="add-card-button"
-                onclick="makeCloze()"
-            >
-                Make Cloze
-            </button>
 
         </div>
 
         <div id="image-occlusion-options">
 
-            <label class="add-label">Image Occlusion</label>
+            <div class="card-field">
 
-            <div class="editor-row">
+                <label class="field-label">
+                    Image Occlusion
+                </label>
 
-                <div
-                    id="occlusion-editor"
-                    class="rich-editor occlusion-editor"
-                    contenteditable="true"
-                    tabindex="0"
-                ></div>
+                <div class="editor-shell">
+
+                    <div class="field-toolbar">
+                        <button
+                            type="button"
+                            class="toolbar-menu-button"
+                            onclick="toggleToolbar(this)"
+                        >
+                            Options ▾
+                        </button>
+
+                        <div class="toolbar-dropdown">
+                            <select class="font-family-select">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                            </select>
+
+                            <select class="font-size-select">
+                                <option value="12pt">12 pt</option>
+                                <option value="16pt">16 pt</option>
+                                <option value="20pt">20 pt</option>
+                                <option value="24pt" selected>24 pt</option>
+                                <option value="32pt">32 pt</option>
+                                <option value="48pt">48 pt</option>
+                            </select>
+
+                            <input
+                                type="color"
+                                class="text-color-select"
+                                value="#000000"
+                            >
+
+                            <button type="button" onclick="formatSelection('bold')">
+                                B
+                            </button>
+
+                            <button type="button" onclick="formatSelection('italic')">
+                                I
+                            </button>
+
+                            <button type="button" onclick="insertLatex()">
+                                LaTeX
+                            </button>
+
+                            <button
+                                type="button"
+                                class="image-insert-button"
+                                onclick="chooseImageFor('occlusion')"
+                            >
+                                Insert Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        id="occlusion-editor"
+                        class="rich-editor occlusion-editor"
+                        contenteditable="true"
+                        tabindex="0"
+                    ></div>
+
+                </div>
 
                 <button
                     type="button"
-                    class="image-insert-button"
-                    onclick="chooseImageFor('occlusion')"
+                    class="add-card-button occlusion-button"
+                    id="draw-occlusion-button"
                 >
-                    Insert Image
+                    Draw Occlusion Box
                 </button>
 
             </div>
 
-            <button
-                type="button"
-                class="add-card-button"
-                id="draw-occlusion-button"
-            >
-                Draw Occlusion Box
-            </button>
-
         </div>
 
-        <div class="editor-toolbar">
-            <select id="font-family">
-                <option value="Arial">Arial</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Tahoma">Tahoma</option>
-                <option value="Trebuchet MS">Trebuchet MS</option>
-
-                <option value="Georgia">Georgia</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Garamond">Garamond</option>
-                <option value="Palatino Linotype">Palatino</option>
-
-                <option value="Courier New">Courier New</option>
-                <option value="Consolas">Consolas</option>
-                <option value="Lucida Console">Lucida Console</option>
-
-                <option value="Comic Sans MS">Comic Sans</option>
-                <option value="Impact">Impact</option>
-            </select>
-
-            <select id="font-size">
-                <option value="8pt">8 pt</option>
-                <option value="10pt">10 pt</option>
-                <option value="12pt">12 pt</option>
-                <option value="14pt">14 pt</option>
-                <option value="16pt">16 pt</option>
-                <option value="18pt">18 pt</option>
-                <option value="20pt">20 pt</option>
-                <option value="24pt" selected>24 pt</option>
-                <option value="28pt">28 pt</option>
-                <option value="32pt">32 pt</option>
-                <option value="36pt">36 pt</option>
-                <option value="42pt">42 pt</option>
-                <option value="48pt">48 pt</option>
-                <option value="60pt">60 pt</option>
-                <option value="72pt">72 pt</option>
-            </select>
-
-            <input type="color" id="text-color" value="#000000">
-
-            <button type="button" onclick="formatSelection('bold')">B</button>
-            <button type="button" onclick="formatSelection('italic')">I</button>
-            <button type="button" onclick="insertLatex()">LaTeX</button>
-        </div>
-
-       <input
+        <input
             type="file"
             id="image-file"
             name="image"
@@ -612,17 +764,9 @@
         >
 
         <div class="button-row">
-
-            <button
-                type="submit"
-                class="add-card-button"
-                formaction="/add-card"
-            >
+            <button type="submit" class="add-card-button">
                 Add Card
             </button>
-
-            
-
         </div>
     </form>
 
@@ -632,114 +776,63 @@
 
         const basicOptions = document.getElementById("basic-options");
         const clozeOptions = document.getElementById("cloze-options");
-
-        const frontBasicField = document.getElementById("front-basic-field");
-        const backField = document.getElementById("back-field");
-        const frontHidden = document.getElementById("front-hidden");
-        const clozeEditor = document.getElementById("cloze-editor");
-
         const imageOcclusionOptions = document.getElementById("image-occlusion-options");
-        
 
-        form.addEventListener("keydown", function(event) {
-            if (event.ctrlKey && event.key === "Enter") {
-                event.preventDefault();
-                form.requestSubmit();
-            }
-        });
+        const frontHidden = document.getElementById("front-hidden");
+        const backHidden = document.getElementById("back-hidden");
 
-        document.querySelectorAll(".add-card").forEach(textarea => {
-            textarea.addEventListener("input", () => {
-                textarea.style.height = "auto";
-                textarea.style.height = textarea.scrollHeight + "px";
-            });
-        });
+        const frontBasicEditor = document.getElementById("front-basic-editor");
+        const backEditor = document.getElementById("back-editor");
+        const clozeEditor = document.getElementById("cloze-editor");
+        const occlusionEditor = document.getElementById("occlusion-editor");
 
         const imageFileInput = document.getElementById("image-file");
+
+        let activeEditor = frontBasicEditor;
+        let savedRange = null;
+        let activeImageTarget = null;
 
         function goToSelectedDeck(event) {
             event.preventDefault();
 
-            const deckId = document.querySelector(
-                "select[name='deck_id']"
-            ).value;
-
+            const deckId = document.getElementById("deck-select").value;
             window.location.href = "/deck/" + deckId + "/cards";
         }
 
         function goToSelectedReview(event) {
             event.preventDefault();
 
-            const deckId = document.querySelector(
-                "select[name='deck_id']"
-            ).value;
-
+            const deckId = document.getElementById("deck-select").value;
             window.location.href = "/review/" + deckId;
         }
 
-        function makeCloze() {
-            const selection = window.getSelection();
-
-            if (!selection.rangeCount || selection.toString().trim() === "") {
-                return;
-            }
-
-            const range = selection.getRangeAt(0);
-
-            const span = document.createElement("span");
-            span.className = "cloze-highlight";
-            span.dataset.cloze = "true";
-
-            range.surroundContents(span);
-
-            selection.removeAllRanges();
-        }
-
         function updateCardTypeView() {
-            if (cardTypeSelect.value === "cloze") {
-                basicOptions.style.display = "none";
-                clozeOptions.style.display = "block";
-                imageOcclusionOptions.style.display = "none";
+            const cardType = cardTypeSelect.value;
 
-                frontBasicField.required = false;
-                backField.required = false;
-
-            } else if (cardTypeSelect.value === "image_occlusion") {
-                basicOptions.style.display = "none";
-                clozeOptions.style.display = "none";
-                imageOcclusionOptions.style.display = "block";
-
-                frontBasicField.required = false;
-                backField.required = false;
-
-            } else {
-                basicOptions.style.display = "block";
-                clozeOptions.style.display = "none";
-                imageOcclusionOptions.style.display = "none";
-
-                frontBasicField.required = true;
-                backField.required = true;
-            }
+            basicOptions.style.display = cardType === "basic" ? "block" : "none";
+            clozeOptions.style.display = cardType === "cloze" ? "block" : "none";
+            imageOcclusionOptions.style.display = cardType === "image_occlusion" ? "block" : "none";
         }
 
         cardTypeSelect.addEventListener("change", function () {
-
-            localStorage.setItem(
-                "selected_card_type",
-                cardTypeSelect.value
-            );
-
+            localStorage.setItem("selected_card_type", cardTypeSelect.value);
             updateCardTypeView();
         });
 
-        const savedCardType =
-            localStorage.getItem("selected_card_type");
+        const savedCardType = localStorage.getItem("selected_card_type");
 
         if (savedCardType) {
             cardTypeSelect.value = savedCardType;
         }
 
         updateCardTypeView();
+
+        form.addEventListener("keydown", function (event) {
+            if (event.ctrlKey && event.key === "Enter") {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
 
         form.addEventListener("submit", function () {
             if (cardTypeSelect.value === "cloze") {
@@ -750,58 +843,169 @@
                     "{% raw %}{{c1::$1}}{% endraw %}"
                 );
 
-                html = html.replace(/<[^>]+>/g, "");
-
-                frontHidden.value = html;
-                backField.value = "cloze";
-            } 
-
-            else if (cardTypeSelect.value === "image_occlusion") {
-                const editor = document.getElementById("occlusion-editor");
-
-                frontHidden.value = editor.innerHTML;
-                backField.value = "image_occlusion";
+                frontHidden.value = html.replace(/<[^>]+>/g, "");
+                backHidden.value = "cloze";
+                return;
             }
-            
-            else {
-                frontHidden.value =
-                    document.getElementById("front-basic-editor").innerHTML;
 
-                backField.value =
-                    document.getElementById("back-editor").innerHTML;
+            if (cardTypeSelect.value === "image_occlusion") {
+                frontHidden.value = occlusionEditor.innerHTML;
+                backHidden.value = "image_occlusion";
+                return;
             }
+
+            frontHidden.value = frontBasicEditor.innerHTML;
+            backHidden.value = backEditor.innerHTML;
         });
 
-        let activeImageTarget = null;
+        function saveSelection() {
+            const selection = window.getSelection();
+
+            if (!selection.rangeCount) {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+
+            const editor = container.nodeType === Node.ELEMENT_NODE
+                ? container.closest(".rich-editor")
+                : container.parentElement.closest(".rich-editor");
+
+            if (!editor) {
+                return;
+            }
+
+            activeEditor = editor;
+            savedRange = range.cloneRange();
+        }
+
+        function restoreSelection() {
+            if (!savedRange) {
+                activeEditor.focus();
+                return;
+            }
+
+            const selection = window.getSelection();
+
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
+        }
+
+        document.querySelectorAll(".rich-editor").forEach(function (editor) {
+            editor.addEventListener("focus", function () {
+                activeEditor = editor;
+            });
+
+            editor.addEventListener("mouseup", saveSelection);
+            editor.addEventListener("keyup", saveSelection);
+            editor.addEventListener("input", saveSelection);
+        });
+
+        function formatSelection(command) {
+            restoreSelection();
+            document.execCommand(command, false, null);
+            saveSelection();
+        }
+
+        document.querySelectorAll(".font-family-select").forEach(function (select) {
+            select.addEventListener("change", function () {
+                restoreSelection();
+                document.execCommand("fontName", false, this.value);
+                saveSelection();
+            });
+        });
+
+        document.querySelectorAll(".font-size-select").forEach(function (select) {
+            select.addEventListener("change", function () {
+                restoreSelection();
+
+                const selection = window.getSelection();
+
+                if (!selection.rangeCount || selection.toString().trim() === "") {
+                    activeEditor.style.fontSize = this.value;
+                    return;
+                }
+
+                const range = selection.getRangeAt(0);
+                const span = document.createElement("span");
+
+                span.style.fontSize = this.value;
+                span.appendChild(range.extractContents());
+                range.insertNode(span);
+
+                saveSelection();
+            });
+        });
+
+        document.querySelectorAll(".text-color-select").forEach(function (input) {
+            input.addEventListener("change", function () {
+                restoreSelection();
+                document.execCommand("foreColor", false, this.value);
+                saveSelection();
+            });
+        });
+
+        function insertLatex() {
+            const latex = prompt("Enter LaTeX, e.g. x^2 + y^2 = z^2");
+
+            if (!latex) {
+                return;
+            }
+
+            restoreSelection();
+
+            document.execCommand(
+                "insertHTML",
+                false,
+                `<span class="latex">\\(${latex}\\)</span>`
+            );
+
+            saveSelection();
+        }
+
+        function makeCloze() {
+            restoreSelection();
+
+            const selection = window.getSelection();
+
+            if (!selection.rangeCount || selection.toString().trim() === "") {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            const span = document.createElement("span");
+
+            span.className = "cloze-highlight";
+            span.dataset.cloze = "true";
+
+            span.appendChild(range.extractContents());
+            range.insertNode(span);
+
+            selection.removeAllRanges();
+            saveSelection();
+        }
 
         function chooseImageFor(target) {
             activeImageTarget = target;
-            document.getElementById("image-file").click();
+            imageFileInput.click();
         }
 
         function getEditorForTarget(target) {
+            if (target === "front") return frontBasicEditor;
+            if (target === "back") return backEditor;
+            if (target === "cloze") return clozeEditor;
+            if (target === "occlusion") return occlusionEditor;
 
-            if (target === "front") {
-                return document.getElementById("front-basic-editor");
-            }
-
-            if (target === "back") {
-                return document.getElementById("back-editor");
-            }
-
-            if (target === "cloze") {
-                return document.getElementById("cloze-editor");
-            }
-
-            if (target === "occlusion") {
-                return document.getElementById("occlusion-editor");
-            }
+            return null;
         }
 
         function insertImageIntoEditor(src, target) {
             const editor = getEditorForTarget(target);
 
-            if (!editor) return;
+            if (!editor) {
+                return;
+            }
 
             const img = document.createElement("img");
             img.src = src;
@@ -809,52 +1013,49 @@
             editor.appendChild(img);
         }
 
-        document.getElementById("image-file").addEventListener("change", function () {
+        imageFileInput.addEventListener("change", function () {
             const file = this.files[0];
 
-            if (!file || !activeImageTarget) return;
+            if (!file || !activeImageTarget) {
+                return;
+            }
 
             const reader = new FileReader();
 
             reader.onload = function (event) {
                 insertImageIntoEditor(event.target.result, activeImageTarget);
+                imageFileInput.value = "";
             };
 
             reader.readAsDataURL(file);
         });
 
         document.addEventListener("paste", function (event) {
-            const activeEditor = document.activeElement;
+            const activeElement = document.activeElement;
 
-            if (
-                !activeEditor.classList.contains("rich-editor") &&
-                !activeEditor.classList.contains("occlusion-editor")
-            ) {
+            if (!activeElement.classList.contains("rich-editor")) {
                 return;
             }
 
             for (const item of event.clipboardData.items) {
-                if (item.type.startsWith("image/")) {
-                    event.preventDefault();
-
-                    const file = item.getAsFile();
-                    const reader = new FileReader();
-
-                    reader.onload = function (e) {
-                        const img = document.createElement("img");
-                        img.src = e.target.result;
-
-                        img.style.maxWidth = "100%";
-                        img.style.display = "block";
-                        img.style.margin = "0 auto";
-
-                        activeEditor.innerHTML = "";
-                        activeEditor.appendChild(img);
-                    };
-
-                    reader.readAsDataURL(file);
-                    break;
+                if (!item.type.startsWith("image/")) {
+                    continue;
                 }
+
+                event.preventDefault();
+
+                const file = item.getAsFile();
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+
+                    activeElement.appendChild(img);
+                };
+
+                reader.readAsDataURL(file);
+                break;
             }
         });
 
@@ -869,93 +1070,60 @@
                 drawingOcclusion = true;
             });
 
-        document
-            .getElementById("occlusion-editor")
-            .addEventListener("mousedown", function (event) {
-                if (!drawingOcclusion) return;
+        occlusionEditor.addEventListener("mousedown", function (event) {
+            if (!drawingOcclusion) {
+                return;
+            }
 
-                const editor = document.getElementById("occlusion-editor");
-                const rect = editor.getBoundingClientRect();
+            const rect = occlusionEditor.getBoundingClientRect();
 
-                startX = event.clientX - rect.left;
-                startY = event.clientY - rect.top;
+            startX = event.clientX - rect.left;
+            startY = event.clientY - rect.top;
 
-                currentBox = document.createElement("div");
-                currentBox.className = "occlusion-box";
+            currentBox = document.createElement("div");
+            currentBox.className = "occlusion-box";
 
-                currentBox.style.left = startX + "px";
-                currentBox.style.top = startY + "px";
-                currentBox.style.width = "0px";
-                currentBox.style.height = "0px";
+            currentBox.style.left = startX + "px";
+            currentBox.style.top = startY + "px";
+            currentBox.style.width = "0px";
+            currentBox.style.height = "0px";
 
-                editor.appendChild(currentBox);
-            });
+            occlusionEditor.appendChild(currentBox);
+        });
 
-        document
-            .getElementById("occlusion-editor")
-            .addEventListener("mousemove", function (event) {
-                if (!drawingOcclusion || !currentBox) return;
+        occlusionEditor.addEventListener("mousemove", function (event) {
+            if (!drawingOcclusion || !currentBox) {
+                return;
+            }
 
-                const editor = document.getElementById("occlusion-editor");
-                const rect = editor.getBoundingClientRect();
+            const rect = occlusionEditor.getBoundingClientRect();
 
-                const currentX = event.clientX - rect.left;
-                const currentY = event.clientY - rect.top;
+            const currentX = event.clientX - rect.left;
+            const currentY = event.clientY - rect.top;
 
-                const left = Math.min(startX, currentX);
-                const top = Math.min(startY, currentY);
-                const width = Math.abs(currentX - startX);
-                const height = Math.abs(currentY - startY);
+            const left = Math.min(startX, currentX);
+            const top = Math.min(startY, currentY);
+            const width = Math.abs(currentX - startX);
+            const height = Math.abs(currentY - startY);
 
-                currentBox.style.left = left + "px";
-                currentBox.style.top = top + "px";
-                currentBox.style.width = width + "px";
-                currentBox.style.height = height + "px";
-            });
+            currentBox.style.left = left + "px";
+            currentBox.style.top = top + "px";
+            currentBox.style.width = width + "px";
+            currentBox.style.height = height + "px";
+        });
 
         document.addEventListener("mouseup", function () {
-            if (!drawingOcclusion || !currentBox) return;
+            if (!drawingOcclusion || !currentBox) {
+                return;
+            }
 
             drawingOcclusion = false;
             currentBox = null;
         });
 
-        function formatSelection(command) {
-            document.execCommand(command, false, null);
-        }
-
-        document.getElementById("font-family").addEventListener("change", function () {
-            document.execCommand("fontName", false, this.value);
-        });
-
-        document.getElementById("font-size").addEventListener("change", function () {
-            const size = this.value;
-            const selection = window.getSelection();
-
-            if (!selection.rangeCount) return;
-
-            const range = selection.getRangeAt(0);
-            const span = document.createElement("span");
-
-            span.style.fontSize = size;
-            span.appendChild(range.extractContents());
-            range.insertNode(span);
-        });
-
-        document.getElementById("text-color").addEventListener("change", function () {
-            document.execCommand("foreColor", false, this.value);
-        });
-
-        function insertLatex() {
-            const latex = prompt("Enter LaTeX, e.g. x^2 + y^2 = z^2");
-
-            if (!latex) return;
-
-            document.execCommand(
-                "insertHTML",
-                false,
-                `<span class="latex">\\(${latex}\\)</span>`
-            );
+        function toggleToolbar(button) {
+            const toolbar = button.closest(".field-toolbar");
+            toolbar.classList.toggle("open");
         }
     </script>
 </body>
