@@ -61,11 +61,29 @@ def insert_card(
     back: str,
     card_type: str = "basic",
     image_path: str | None = None
-) -> None:
-    cursor.execute("""
-        INSERT INTO flashcards (deck_id, front, back, card_type, image_path)
-        VALUES (%s, %s, %s, %s, %s);
-    """, (deck_id, front, back, card_type, image_path))
+) -> int:
+    cursor.execute(
+        """
+        INSERT INTO flashcards (
+            deck_id,
+            front,
+            back,
+            card_type,
+            image_path
+        )
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING id
+        """,
+        (
+            deck_id,
+            front,
+            back,
+            card_type,
+            image_path
+        )
+    )
+
+    return cursor.fetchone()[0]
 
 
 def create_manual_card(
@@ -76,13 +94,13 @@ def create_manual_card(
     add_reverse: str | None = None,
     image: UploadFile | None = None,
     pasted_image_data: str | None = None
-) -> None:
+) -> int:
     image_path = save_card_image(image, pasted_image_data)
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    insert_card(
+    new_card_id = insert_card(
         cursor=cursor,
         deck_id=deck_id,
         front=front,
@@ -104,6 +122,8 @@ def create_manual_card(
     conn.commit()
     cursor.close()
     conn.close()
+
+    return new_card_id
 
 def get_deck_cards_page_data(deck_id: int) -> dict:
     conn = get_connection()
@@ -133,12 +153,16 @@ def get_deck_cards_page_data(deck_id: int) -> dict:
     """, (deck_id,))
     cards = cursor.fetchall()
 
+    card_ids = [card[0] for card in cards]
+    tags_by_card_id = get_tags_for_cards(cursor, card_ids)
+
     cursor.close()
     conn.close()
 
     return {
         "deck": deck,
         "cards": cards,
+        "tags_by_card_id": tags_by_card_id,
     }
 
 def add_reverse_cards_for_selected(
@@ -333,3 +357,33 @@ def set_card_tags(card_id: int, tag_string: str):
     conn.commit()
     cursor.close()
     conn.close()
+
+def get_tags_for_cards(cursor, card_ids: list[int]) -> dict[int, list[str]]:
+    if not card_ids:
+        return {}
+
+    cursor.execute(
+        """
+        SELECT
+            card_tags.card_id,
+            tags.name
+        FROM card_tags
+        JOIN tags
+            ON card_tags.tag_id = tags.id
+        WHERE card_tags.card_id = ANY(%s)
+        ORDER BY tags.name
+        """,
+        (card_ids,)
+    )
+
+    rows = cursor.fetchall()
+
+    tags_by_card_id = {}
+
+    for card_id, tag_name in rows:
+        if card_id not in tags_by_card_id:
+            tags_by_card_id[card_id] = []
+
+        tags_by_card_id[card_id].append(tag_name)
+
+    return tags_by_card_id

@@ -189,6 +189,66 @@
             user-select: none;
         }
 
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 5px 9px;
+
+            border-radius: 999px;
+
+            background: #e5e7eb;
+            color: #374151;
+
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .no-tags {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .card-filter-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+
+            margin: 20px auto;
+        }
+
+        .card-filter-row .card-search {
+            margin: 0;
+        }
+
+        .tag-search {
+            max-width: 260px;
+        }
+
+        .date-order-select {
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+
+            font-size: 16px;
+            font-weight: 600;
+
+            background: white;
+            color: #374151;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -308,19 +368,44 @@
                         </label>
                     </div>
 
-                    <input
-                        type="text"
-                        id="card-search"
-                        placeholder="Search cards..."
-                        class="card-search"
-                        oninput="filterCards()"
-                    >
+                    <div class="card-filter-row">
+
+                        <input
+                            type="text"
+                            id="card-search"
+                            placeholder="Search cards..."
+                            class="card-search"
+                            oninput="filterCards()"
+                        >
+
+                        <input
+                            type="text"
+                            id="tag-search"
+                            placeholder="Filter by tag..."
+                            class="card-search tag-search"
+                            oninput="filterCards()"
+                        >
+
+                        <select
+                            id="date-order"
+                            class="date-order-select"
+                            onchange="orderCardsByDate()"
+                        >
+                            <option value="">Order by date</option>
+                            <option value="last_reviewed_newest">Last reviewed: newest first</option>
+                            <option value="last_reviewed_oldest">Last reviewed: oldest first</option>
+                            <option value="next_review_soonest">Next review: soonest first</option>
+                            <option value="next_review_latest">Next review: latest first</option>
+                        </select>
+
+                    </div>
 
                     <table>
                         <tr>
                             <th>Select</th>
                             <th>Front</th>
                             <th>Back</th>
+                            <th>Tags</th>
                             <th>Seen</th>
                             <th>Correct</th>
                             <th>Wrong</th>
@@ -331,7 +416,12 @@
                         </tr>
 
                         {% for card in cards %}
-                            <tr class="card-row" data-card-row>
+                            <tr
+                                class="card-row"
+                                data-card-row
+                                data-last-reviewed="{{ card[6] }}"
+                                data-next-review="{{ card[7] }}"
+                            >
                                 <td>
                                     <input type="checkbox" class="card-checkbox" name="card_ids" value="{{ card[0] }}">
                                 </td>
@@ -360,6 +450,30 @@
                                         {{ card[2] }}
                                     {% endif %}
                                 </td>
+
+                                <td>
+                                    {% set card_tags = tags_by_card_id.get(card[0], []) %}
+
+                                    <div
+                                        class="card-tags"
+                                        data-card-tags="{{ card_tags | join(' ') }}"
+                                    >
+
+                                        {% if card_tags %}
+                                            {% for tag in card_tags %}
+                                                <span class="tag-pill">
+                                                    {{ tag }}
+                                                </span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="no-tags">
+                                                No tags
+                                            </span>
+                                        {% endif %}
+
+                                    </div>
+                                </td>
+
                                 <td>{{ card[3] }}</td>
                                 <td>{{ card[4] }}</td>
                                 <td>{{ card[5] }}</td>
@@ -441,18 +555,101 @@
         const searchTerm = document
             .getElementById("card-search")
             .value
-            .toLowerCase();
+            .toLowerCase()
+            .trim();
+
+        const tagTerm = document
+            .getElementById("tag-search")
+            .value
+            .toLowerCase()
+            .trim();
 
         const rows = document.querySelectorAll(".card-row");
 
         rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
+            const rowText = row.innerText.toLowerCase();
 
-            if (text.includes(searchTerm)) {
+            const tagElement = row.querySelector(".card-tags");
+
+            const tagText = tagElement
+                ? tagElement.dataset.cardTags.toLowerCase()
+                : "";
+
+            const matchesCardSearch =
+                !searchTerm || rowText.includes(searchTerm);
+
+            const matchesTagSearch =
+                !tagTerm || tagText.includes(tagTerm);
+
+            if (matchesCardSearch && matchesTagSearch) {
                 row.style.display = "";
             } else {
                 row.style.display = "none";
             }
+        });
+    }
+
+    function parseDateValue(value) {
+        if (!value || value === "None" || value === "null") {
+            return null;
+        }
+
+        const parsed = new Date(value);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return null;
+        }
+
+        return parsed;
+    }
+
+    function orderCardsByDate() {
+        const orderValue =
+            document.getElementById("date-order").value;
+
+        if (!orderValue) {
+            return;
+        }
+
+        const table = document.querySelector("table");
+        const rows = [...document.querySelectorAll(".card-row")];
+
+        rows.sort((a, b) => {
+            let dateA;
+            let dateB;
+
+            if (
+                orderValue === "last_reviewed_newest" ||
+                orderValue === "last_reviewed_oldest"
+            ) {
+                dateA = parseDateValue(a.dataset.lastReviewed);
+                dateB = parseDateValue(b.dataset.lastReviewed);
+            }
+
+            if (
+                orderValue === "next_review_soonest" ||
+                orderValue === "next_review_latest"
+            ) {
+                dateA = parseDateValue(a.dataset.nextReview);
+                dateB = parseDateValue(b.dataset.nextReview);
+            }
+
+            if (!dateA && !dateB) return 0;
+            if (!dateA) return 1;
+            if (!dateB) return -1;
+
+            if (
+                orderValue === "last_reviewed_newest" ||
+                orderValue === "next_review_latest"
+            ) {
+                return dateB - dateA;
+            }
+
+            return dateA - dateB;
+        });
+
+        rows.forEach(row => {
+            table.appendChild(row);
         });
     }
 
