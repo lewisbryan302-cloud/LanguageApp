@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
+from fastapi.responses import JSONResponse
 
 from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
@@ -497,3 +498,12 @@ def add_language(
     create_language_deck(language_name, target_language)
 
     return RedirectResponse("/", status_code=303)
+
+@app.post("/rename-deck-inline/{deck_id}")
+def rename_deck_inline(deck_id: int, name: str = Form(...)):
+    rename_deck_by_id(deck_id, name)
+
+    return JSONResponse({
+        "status": "success",
+        "name": name
+    })

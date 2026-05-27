@@ -617,6 +617,30 @@
             color: #999;
         }
 
+        .deck-rename-input {
+            width: 80%;
+            max-width: 360px;
+
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+
+            padding: 10px 14px;
+
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+
+            background: #f9fafb;
+            color: black;
+
+            box-sizing: border-box;
+        }
+
+        .deck-rename-input:focus {
+            outline: 3px solid #dbeafe;
+            border-color: #2563eb;
+        }
+
         @media (max-width: 800px) {
             .deck-grid {
                 display: flex;
@@ -846,9 +870,12 @@
                                                 View Cards
                                             </a>
 
-                                            <a href="/rename-deck/{{ deck[0] }}">
+                                            <button
+                                                type="button"
+                                                onclick="startInlineRename(event, '{{ deck[0] }}')"
+                                            >
                                                 Rename
-                                            </a>
+                                            </button>
 
                                             <form
                                                 action="/delete-deck/{{ deck[0] }}"
@@ -897,12 +924,25 @@
                                     </div>
 
                                     <div class="deck-title-section">
+
                                         <a
                                             href="/review/{{ deck[0] }}"
                                             class="deck-title"
+                                            id="deck-title-{{ deck[0] }}"
                                         >
                                             {{ deck[1] }}
                                         </a>
+
+                                        <input
+                                            type="text"
+                                            class="deck-rename-input"
+                                            id="deck-rename-input-{{ deck[0] }}"
+                                            value="{{ deck[1] }}"
+                                            style="display: none;"
+                                            onkeydown="handleRenameKey(event, '{{ deck[0] }}')"
+                                            onblur="submitInlineRename('{{ deck[0] }}')"
+                                        >
+
                                     </div>
 
                                     <div class="deck-stats">
@@ -995,7 +1035,12 @@
                                         <div id="menu-{{ deck[0] }}" class="menu">
 
                                             <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
-                                            <a href="/rename-deck/{{ deck[0] }}">Rename</a>
+                                            <button
+                                                type="button"
+                                                onclick="startInlineRename(event, '{{ deck[0] }}')"
+                                            >
+                                                Rename
+                                            </button>
 
                                             <form action="/delete-deck/{{ deck[0] }}" method="post">
                                                 <button
@@ -1027,12 +1072,25 @@
                                     </div>
 
                                     <div class="deck-title-section">
+
                                         <a
                                             href="/review/{{ deck[0] }}"
                                             class="deck-title"
+                                            id="deck-title-{{ deck[0] }}"
                                         >
                                             {{ deck[1] }}
                                         </a>
+
+                                        <input
+                                            type="text"
+                                            class="deck-rename-input"
+                                            id="deck-rename-input-{{ deck[0] }}"
+                                            value="{{ deck[1] }}"
+                                            style="display: none;"
+                                            onkeydown="handleRenameKey(event, '{{ deck[0] }}')"
+                                            onblur="submitInlineRename('{{ deck[0] }}')"
+                                        >
+
                                     </div>
 
                                     <div class="deck-stats">
@@ -1531,6 +1589,98 @@
             } else {
                 searchInput.value = "";
                 filterDecks();
+            }
+        }
+
+        function startInlineRename(event, deckId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            document.querySelectorAll(".menu").forEach(menu => {
+                menu.style.display = "none";
+            });
+
+            const title =
+                document.getElementById("deck-title-" + deckId);
+
+            const input =
+                document.getElementById("deck-rename-input-" + deckId);
+
+            if (!title || !input) {
+                return;
+            }
+
+            title.style.display = "none";
+            input.style.display = "inline-block";
+
+            input.value = title.textContent.trim();
+            input.focus();
+            input.select();
+        }
+
+        function handleRenameKey(event, deckId) {
+            event.stopPropagation();
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                submitInlineRename(deckId);
+            }
+
+            if (event.key === "Escape") {
+                event.preventDefault();
+                cancelInlineRename(deckId);
+            }
+        }
+
+        function cancelInlineRename(deckId) {
+            const title =
+                document.getElementById("deck-title-" + deckId);
+
+            const input =
+                document.getElementById("deck-rename-input-" + deckId);
+
+            if (!title || !input) {
+                return;
+            }
+
+            input.style.display = "none";
+            title.style.display = "inline";
+        }
+
+        async function submitInlineRename(deckId) {
+            const title =
+                document.getElementById("deck-title-" + deckId);
+
+            const input =
+                document.getElementById("deck-rename-input-" + deckId);
+
+            if (!title || !input || input.style.display === "none") {
+                return;
+            }
+
+            const newName = input.value.trim();
+
+            if (!newName) {
+                cancelInlineRename(deckId);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("name", newName);
+
+            const response = await fetch("/rename-deck-inline/" + deckId, {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                title.textContent = newName;
+                input.value = newName;
+
+                input.style.display = "none";
+                title.style.display = "inline";
+            } else {
+                alert("Could not rename deck.");
             }
         }
 
