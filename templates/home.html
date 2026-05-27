@@ -49,6 +49,9 @@
         }
 
         .banner-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             color: #666;
         }
 
@@ -71,10 +74,102 @@
             background: #1d4ed8;
         }
 
+        .home-banner-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .home-menu-button {
+            border: none;
+            background: #e5e7eb;
+            color: black;
+
+            padding: 10px 18px;
+            border-radius: 12px;
+
+            font-weight: bold;
+            font-size: 15px;
+
+            cursor: pointer;
+        }
+
+        .home-menu-button:hover {
+            background: #d1d5db;
+        }
+
+        .home-menu-dropdown {
+            display: none;
+
+            position: absolute;
+            top: 46px;
+            right: 0;
+
+            min-width: 210px;
+
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+
+            padding: 8px;
+            z-index: 1000;
+        }
+
+        .home-menu-dropdown.open {
+            display: block;
+        }
+
+        .home-menu-dropdown a {
+            display: block;
+
+            padding: 10px 12px;
+
+            color: #111827;
+            text-decoration: none;
+
+            border-radius: 10px;
+
+            font-weight: 600;
+        }
+
+        .home-menu-dropdown a:hover {
+            background: #f3f4f6;
+        }
+
+        .import-media-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            text-decoration: none;
+
+            background: #e5e7eb;
+            color: black;
+
+            padding: 10px 18px;
+            border-radius: 12px;
+
+            font-weight: bold;
+            font-size: 15px;
+
+            transition: background 0.15s ease;
+        }
+
+        .import-media-button:hover {
+            background: #d1d5db;
+        }
+
+        .import-icon {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
         .page {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 60px auto;
-            padding: 0 10px;
+            padding: 0 30px;
         }
 
         h1 {
@@ -98,6 +193,7 @@
             padding: 30px 30px 30px 55px;
             border-radius: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            cursor: pointer;
 
             position: relative;
 
@@ -105,7 +201,7 @@
             flex-direction: column;
             justify-content: center;
 
-            width: 80%;
+            width: 100%;
             min-height: 150px;
             box-sizing: border-box;
 
@@ -118,6 +214,11 @@
             transition: none;
             cursor: grabbing;
             box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+        }
+
+        .deck a,
+        .deck button {
+            cursor: pointer;
         }
 
         .deck-title-section {
@@ -159,12 +260,18 @@
 
         .deck-action-button {
             text-decoration: none;
-            background: #f3f4f6;
-            color: black;
-            padding: 8px 12px;
+            background: transparent;
+            color: #374151;
+
+            padding: 7px 10px;
             border-radius: 10px;
+
             font-size: 14px;
             font-weight: bold;
+
+            border: 1px solid #e5e7eb;
+
+            cursor: pointer;
         }
 
         .deck-action-button.primary {
@@ -173,7 +280,8 @@
         }
 
         .deck-action-button:hover {
-            background: #e5e7eb;
+            background: #f3f4f6;
+            border-color: #d1d5db;
         }
 
         .deck-action-button.primary:hover {
@@ -248,14 +356,15 @@
             border-radius: 10px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             padding: 8px;
-            min-width: 100px;
+            min-width: 170px;
             z-index: 10;
         }
 
         .menu a,
         .menu button {
             display: block;
-            width: 80%;
+            width: 100%;
+            box-sizing: border-box;
             background: none;
             border: none;
             padding: 8px 12px;
@@ -305,7 +414,7 @@
         }
 
         .deck-placeholder {
-            width: 80%;
+            width: 100%;
             min-height: 150px;
             border-radius: 20px;
             border: 2px dashed #ddd;
@@ -378,6 +487,75 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
 
+        .home-dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .home-main-column {
+            min-width: 0;
+        }
+
+        .home-widget-column {
+            position: sticky;
+            top: 30px;
+        }
+
+        .home-widget {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        .widget-header h2 {
+            margin: 0 0 18px 0;
+            font-size: 22px;
+        }
+
+        .widget-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .widget-select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .widget-stats-grid {
+            display: grid;
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .widget-stat {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .widget-stat-label {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .widget-stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
         @media (max-width: 800px) {
             .deck-grid {
                 display: flex;
@@ -387,6 +565,14 @@
 
             .deck {
                 width: 90%;
+            }
+
+            .home-dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .home-widget-column {
+                position: static;
             }
         }
 
@@ -463,12 +649,51 @@
             <div class="banner-right">
 
                 <a
-                    id="addButton"
-                    href="/add-deck"
-                    class="banner-button"
+                    href="/import-media"
+                    class="import-media-button"
                 >
-                    + Add Deck
+                    <span class="import-icon">↑</span>
+                    Import Media
                 </a>
+
+                <div class="home-banner-menu">
+
+                    <button
+                        type="button"
+                        class="home-menu-button"
+                        onclick="toggleHomeMenu(event)"
+                    >
+                        Menu ▾
+                    </button>
+
+                    <div id="home-menu-dropdown" class="home-menu-dropdown">
+
+                        <a
+                            id="addButton"
+                            href="/add-deck"
+                        >
+                            + Add Deck
+                        </a>
+
+                        <a href="/profile">
+                            Profile
+                        </a>
+
+                        <a href="/stats">
+                            Stats
+                        </a>
+
+                        <a href="/edit-home">
+                            Edit Home Page
+                        </a>
+
+                        <a href="/logout">
+                            Log Out
+                        </a>
+
+                    </div>
+
+                </div>
 
             </div>
         </div>
@@ -500,300 +725,316 @@
 
         </div>
 
-        <!-- DECKS PAGE -->
-        <section id="decks-view" class="home-view active-view">
+        <div class="home-dashboard-layout">
 
-            <div class="deck-grid">
+            <div class="home-main-column">
 
-                {% for deck in decks %}
-                    {% if deck[6] == "Decks" %}
+                <!-- DECKS PAGE -->
+                <section id="decks-view" class="home-view active-view">
 
-                        <div class="deck" data-deck-id="{{ deck[0] }}">
+                    <div class="deck-grid">
 
-                            <div class="drag-handle">
-                                <div class="drag-dot"></div>
-                                <div class="drag-dot"></div>
-                                <div class="drag-dot"></div>
-                            </div>
+                        {% for deck in decks %}
+                            {% if deck[6] == "Decks" %}
 
-                            <div class="menu-container">
+                                <div class="deck" data-deck-id="{{ deck[0] }}">
 
-                                <button
-                                    class="menu-button"
-                                    onclick="toggleMenu('{{ deck[0] }}')"
-                                >
-                                    ⋮
-                                </button>
+                                    <div class="drag-handle">
+                                        <div class="drag-dot"></div>
+                                        <div class="drag-dot"></div>
+                                        <div class="drag-dot"></div>
+                                    </div>
 
-                                <div id="menu-{{ deck[0] }}" class="menu">
+                                    <div class="menu-container">
 
-                                    <a href="/deck/{{ deck[0] }}/cards">
-                                        View Cards
-                                    </a>
-
-                                    <a href="/rename-deck/{{ deck[0] }}">
-                                        Rename
-                                    </a>
-
-                                    <form
-                                        action="/delete-deck/{{ deck[0] }}"
-                                        method="post"
-                                    >
                                         <button
-                                            type="submit"
-                                            onclick="return confirm('Delete this deck and all its cards?');"
+                                            class="menu-button"
+                                            onclick="toggleMenu('{{ deck[0] }}')"
                                         >
-                                            Delete
+                                            ⋮
                                         </button>
-                                    </form>
 
-                                    <form
-                                        action="/deck/{{ deck[0] }}/set-profile"
-                                        method="post"
-                                    >
-                                        <input
-                                            type="hidden"
-                                            name="profile"
-                                            value="Decks"
+                                        <div id="menu-{{ deck[0] }}" class="menu">
+
+                                            <a href="/deck/{{ deck[0] }}/cards">
+                                                View Cards
+                                            </a>
+
+                                            <a href="/rename-deck/{{ deck[0] }}">
+                                                Rename
+                                            </a>
+
+                                            <form
+                                                action="/delete-deck/{{ deck[0] }}"
+                                                method="post"
+                                            >
+                                                <button
+                                                    type="submit"
+                                                    onclick="return confirm('Delete this deck and all its cards?');"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                action="/deck/{{ deck[0] }}/set-profile"
+                                                method="post"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="profile"
+                                                    value="Decks"
+                                                >
+
+                                                <button type="submit">
+                                                    Move to Decks
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                action="/deck/{{ deck[0] }}/set-profile"
+                                                method="post"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="profile"
+                                                    value="Languages"
+                                                >
+
+                                                <button type="submit">
+                                                    Move to Languages
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="deck-title-section">
+                                        <a
+                                            href="/review/{{ deck[0] }}"
+                                            class="deck-title"
                                         >
+                                            {{ deck[1] }}
+                                        </a>
+                                    </div>
 
-                                        <button type="submit">
-                                            Move to Decks
-                                        </button>
-                                    </form>
+                                    <div class="deck-stats">
 
-                                    <form
-                                        action="/deck/{{ deck[0] }}/set-profile"
-                                        method="post"
-                                    >
-                                        <input
-                                            type="hidden"
-                                            name="profile"
-                                            value="Languages"
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                Words Learnt
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[3] }}
+                                            </div>
+                                        </div>
+
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                New Cards
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[4] }}
+                                            </div>
+                                        </div>
+
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                To Review
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[5] }}
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="deck-actions">
+
+                                        <a
+                                            href="/add-card?deck_id={{ deck[0] }}"
+                                            class="deck-action-button"
                                         >
+                                            Add Card
+                                        </a>
 
-                                        <button type="submit">
-                                            Move to Languages
+                                        <a
+                                            href="/deck/{{ deck[0] }}/cards"
+                                            class="deck-action-button"
+                                        >
+                                            View Cards
+                                        </a>
+
+                                        <a
+                                            href="/review/{{ deck[0] }}"
+                                            class="deck-action-button primary"
+                                        >
+                                            Review
+                                        </a>
+
+                                    </div>
+
+                                </div>
+
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+
+                </section>
+
+                <!-- LANGUAGES PAGE -->
+                <section id="languages-view" class="home-view">
+
+                    <div class="deck-grid">
+
+                        {% for deck in decks %}
+                            {% if deck[6] == "Languages" %}
+
+                                <div class="deck" data-deck-id="{{ deck[0] }}">
+
+                                    <div class="menu-container">
+
+                                        <button
+                                            class="menu-button"
+                                            onclick="toggleMenu('{{ deck[0] }}')"
+                                        >
+                                            ⋮
                                         </button>
-                                    </form>
+
+                                        <div id="menu-{{ deck[0] }}" class="menu">
+
+                                            <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
+                                            <a href="/rename-deck/{{ deck[0] }}">Rename</a>
+
+                                            <form action="/delete-deck/{{ deck[0] }}" method="post">
+                                                <button
+                                                    type="submit"
+                                                    onclick="return confirm('Delete this deck and all its cards?');"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </form>
+
+                                            <form action="/deck/{{ deck[0] }}/set-profile" method="post">
+                                                <input type="hidden" name="profile" value="Decks">
+                                                <button type="submit">Move to Decks</button>
+                                            </form>
+
+                                            <form action="/deck/{{ deck[0] }}/set-profile" method="post">
+                                                <input type="hidden" name="profile" value="Languages">
+                                                <button type="submit">Move to Languages</button>
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="drag-handle">
+                                        <div class="drag-dot"></div>
+                                        <div class="drag-dot"></div>
+                                        <div class="drag-dot"></div>
+                                    </div>
+
+                                    <div class="deck-title-section">
+                                        <a
+                                            href="/review/{{ deck[0] }}"
+                                            class="deck-title"
+                                        >
+                                            {{ deck[1] }}
+                                        </a>
+                                    </div>
+
+                                    <div class="deck-stats">
+
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                Words Learnt
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[3] }}
+                                            </div>
+                                        </div>
+
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                New Cards
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[4] }}
+                                            </div>
+                                        </div>
+
+                                        <div class="stat-block">
+                                            <div class="stat-label">
+                                                To Review
+                                            </div>
+
+                                            <div class="stat-value">
+                                                {{ deck[5] }}
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="deck-actions">
+
+                                        <a
+                                            href="/add-card?deck_id={{ deck[0] }}"
+                                            class="deck-action-button"
+                                        >
+                                            Add Card
+                                        </a>
+
+                                        <a
+                                            href="/smart-add-card?deck_id={{ deck[0] }}"
+                                            class="deck-action-button"
+                                        >
+                                            Smart Add
+                                        </a>
+
+                                        <a
+                                            href="/deck/{{ deck[0] }}/cards"
+                                            class="deck-action-button"
+                                        >
+                                            View Cards
+                                        </a>
+
+                                        <a
+                                            href="/review/{{ deck[0] }}"
+                                            class="deck-action-button primary"
+                                        >
+                                            Review
+                                        </a>
+
+                                    </div>
 
                                 </div>
 
-                            </div>
+                            {% endif %}
+                        {% endfor %}
 
-                            <div class="deck-title-section">
-                                <a
-                                    href="/review/{{ deck[0] }}"
-                                    class="deck-title"
-                                >
-                                    {{ deck[1] }}
-                                </a>
-                            </div>
+                    </div>
 
-                            <div class="deck-stats">
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        Words Learnt
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[3] }}
-                                    </div>
-                                </div>
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        New Cards
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[4] }}
-                                    </div>
-                                </div>
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        To Review
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[5] }}
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div class="deck-actions">
-
-                                <a
-                                    href="/add-card?deck_id={{ deck[0] }}"
-                                    class="deck-action-button"
-                                >
-                                    Add Card
-                                </a>
-
-                                <a
-                                    href="/deck/{{ deck[0] }}/cards"
-                                    class="deck-action-button"
-                                >
-                                    View Cards
-                                </a>
-
-                                <a
-                                    href="/review/{{ deck[0] }}"
-                                    class="deck-action-button primary"
-                                >
-                                    Review
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-                {% endfor %}
+                </section>
 
             </div>
 
-        </section>
+            <aside class="home-widget-column">
 
-        <!-- LANGUAGES PAGE -->
-        <section id="languages-view" class="home-view">
+                <div class="home-widget stats-widget">
+                    Stats widget goes here
+                </div>
 
-            <div class="deck-grid">
+            </aside>
 
-                {% for deck in decks %}
-                    {% if deck[6] == "Languages" %}
-
-                        <div class="deck" data-deck-id="{{ deck[0] }}">
-
-                            <div class="menu-container">
-
-                                <button
-                                    class="menu-button"
-                                    onclick="toggleMenu('{{ deck[0] }}')"
-                                >
-                                    ⋮
-                                </button>
-
-                                <div id="menu-{{ deck[0] }}" class="menu">
-
-                                    <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
-                                    <a href="/rename-deck/{{ deck[0] }}">Rename</a>
-
-                                    <form action="/delete-deck/{{ deck[0] }}" method="post">
-                                        <button
-                                            type="submit"
-                                            onclick="return confirm('Delete this deck and all its cards?');"
-                                        >
-                                            Delete
-                                        </button>
-                                    </form>
-
-                                    <form action="/deck/{{ deck[0] }}/set-profile" method="post">
-                                        <input type="hidden" name="profile" value="Decks">
-                                        <button type="submit">Move to Decks</button>
-                                    </form>
-
-                                    <form action="/deck/{{ deck[0] }}/set-profile" method="post">
-                                        <input type="hidden" name="profile" value="Languages">
-                                        <button type="submit">Move to Languages</button>
-                                    </form>
-
-                                </div>
-
-                            </div>
-
-                            <div class="drag-handle">
-                                <div class="drag-dot"></div>
-                                <div class="drag-dot"></div>
-                                <div class="drag-dot"></div>
-                            </div>
-
-                            <div class="deck-title-section">
-                                <a
-                                    href="/review/{{ deck[0] }}"
-                                    class="deck-title"
-                                >
-                                    {{ deck[1] }}
-                                </a>
-                            </div>
-
-                            <div class="deck-stats">
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        Words Learnt
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[3] }}
-                                    </div>
-                                </div>
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        New Cards
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[4] }}
-                                    </div>
-                                </div>
-
-                                <div class="stat-block">
-                                    <div class="stat-label">
-                                        To Review
-                                    </div>
-
-                                    <div class="stat-value">
-                                        {{ deck[5] }}
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div class="deck-actions">
-
-                                <a
-                                    href="/add-card?deck_id={{ deck[0] }}"
-                                    class="deck-action-button"
-                                >
-                                    Add Card
-                                </a>
-
-                                <a
-                                    href="/smart-add-card?deck_id={{ deck[0] }}"
-                                    class="deck-action-button"
-                                >
-                                    Smart Add
-                                </a>
-
-                                <a
-                                    href="/deck/{{ deck[0] }}/cards"
-                                    class="deck-action-button"
-                                >
-                                    View Cards
-                                </a>
-
-                                <a
-                                    href="/review/{{ deck[0] }}"
-                                    class="deck-action-button primary"
-                                >
-                                    Review
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-                {% endfor %}
-
-            </div>
-
-        </section>
+        </div>
 
     </main>
 
@@ -812,10 +1053,19 @@
             }
         }
 
+        document.querySelectorAll(
+            ".deck a, .deck button, .deck form, .menu-container, .drag-handle"
+        ).forEach(element => {
+            element.addEventListener("click", function(event) {
+                event.stopPropagation();
+            });
+        });
+
         let draggedDeck = null;
         let placeholder = null;
         let startY = 0;
         let startTop = 0;
+        let hasDragged = false;
 
         document.querySelectorAll(".drag-handle").forEach(handle => {
             handle.addEventListener("pointerdown", startDrag);
@@ -835,25 +1085,52 @@
                 draggedDeck.nextSibling
             );
 
+            hasDragged = false;
             draggedDeck.classList.add("dragging");
 
+            const originalWidth = draggedDeck.offsetWidth;
+            const dragWidth = originalWidth * 0.94;
+
             draggedDeck.style.position = "absolute";
-            draggedDeck.style.width = draggedDeck.offsetWidth + "px";
-            draggedDeck.style.left = draggedDeck.offsetLeft + "px";
+            draggedDeck.style.width = dragWidth + "px";
+            draggedDeck.style.left =
+                draggedDeck.offsetLeft + (originalWidth - dragWidth) / 2 + "px";
             draggedDeck.style.top = startTop + "px";
 
             document.addEventListener("pointermove", dragMove);
             document.addEventListener("pointerup", endDrag);
         }
 
+        function autoScrollWhileDragging(event) {
+            const edgeSize = 90;
+            const scrollSpeed = 14;
+
+            const distanceFromTop = event.clientY;
+            const distanceFromBottom = window.innerHeight - event.clientY;
+
+            if (distanceFromTop < edgeSize) {
+                window.scrollBy(0, -scrollSpeed);
+                startTop -= scrollSpeed;
+            }
+
+            if (distanceFromBottom < edgeSize) {
+                window.scrollBy(0, scrollSpeed);
+                startTop += scrollSpeed;
+            }
+        }
+
         function dragMove(event) {
             if (!draggedDeck) return;
+
+            hasDragged = true;
+
+            autoScrollWhileDragging(event);
 
             const movement = event.clientY - startY;
 
             draggedDeck.style.top = startTop + movement + "px";
 
-            const deckGrid = document.querySelector(".deck-grid");
+            const deckGrid = draggedDeck.closest(".deck-grid");
 
             const decks = [
                 ...deckGrid.querySelectorAll(".deck:not(.dragging)")
@@ -889,22 +1166,24 @@
             document.removeEventListener("pointermove", dragMove);
             document.removeEventListener("pointerup", endDrag);
 
-            saveDeckOrder();
+            saveDeckOrder(placeholder.closest(".deck-grid"));
 
             draggedDeck = null;
             placeholder = null;
         }
 
-        function saveDeckOrder() {
+        function saveDeckOrder(deckGrid) {
+            if (!deckGrid) {
+                return;
+            }
 
             const deckIds = [
-                ...document.querySelectorAll(".deck")
+                ...deckGrid.querySelectorAll(".deck")
             ].map(deck =>
                 Number(deck.dataset.deckId)
             );
 
             fetch("/save-deck-order", {
-
                 method: "POST",
 
                 headers: {
@@ -1044,6 +1323,86 @@
 
             updateHomeView();
         }
+
+        function toggleHomeMenu(event) {
+            event.stopPropagation();
+
+            const dropdown =
+                document.getElementById("home-menu-dropdown");
+
+            dropdown.classList.toggle("open");
+        }
+
+        document.addEventListener("click", function(event) {
+            const menu =
+                document.querySelector(".home-banner-menu");
+
+            const dropdown =
+                document.getElementById("home-menu-dropdown");
+
+            if (!menu || !dropdown) {
+                return;
+            }
+
+            if (!menu.contains(event.target)) {
+                dropdown.classList.remove("open");
+            }
+        });
+
+        const statsDeckSelect =
+            document.getElementById("statsDeckSelect");
+
+        function updateStatsWidget() {
+            if (!statsDeckSelect) {
+                return;
+            }
+
+            const selectedOption =
+                statsDeckSelect.options[statsDeckSelect.selectedIndex];
+
+            if (!selectedOption) {
+                return;
+            }
+
+            document.getElementById("statsWordsLearnt").textContent =
+                selectedOption.dataset.wordsLearnt || "0";
+
+            document.getElementById("statsNewCards").textContent =
+                selectedOption.dataset.newCards || "0";
+
+            document.getElementById("statsToReview").textContent =
+                selectedOption.dataset.toReview || "0";
+        }
+
+        statsDeckSelect?.addEventListener("change", updateStatsWidget);
+
+        updateStatsWidget();
+
+        document.querySelectorAll(".deck").forEach(deck => {
+            deck.addEventListener("click", function(event) {
+
+                if (hasDragged) {
+                    hasDragged = false;
+                    return;
+                }
+
+                const clickedInteractiveElement = event.target.closest(
+                    "a, button, form, input, .menu-container, .drag-handle"
+                );
+
+                if (clickedInteractiveElement) {
+                    return;
+                }
+
+                const deckId = deck.dataset.deckId;
+
+                if (!deckId) {
+                    return;
+                }
+
+                window.location.href = "/review/" + deckId;
+            });
+        });
 
         updateHomeView();
     </script>
