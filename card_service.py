@@ -282,3 +282,54 @@ def reset_srs_for_selected_cards(
     conn.commit()
     cursor.close()
     conn.close()
+
+def get_or_create_tag(cursor, tag_name: str) -> int:
+    tag_name = tag_name.strip().lower()
+
+    cursor.execute(
+        """
+        INSERT INTO tags (name)
+        VALUES (%s)
+        ON CONFLICT (name)
+        DO UPDATE SET name = EXCLUDED.name
+        RETURNING id
+        """,
+        (tag_name,)
+    )
+
+    return cursor.fetchone()[0]
+
+
+def set_card_tags(card_id: int, tag_string: str):
+    tags = [
+        tag.strip().lower()
+        for tag in tag_string.split(",")
+        if tag.strip()
+    ]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM card_tags
+        WHERE card_id = %s
+        """,
+        (card_id,)
+    )
+
+    for tag in tags:
+        tag_id = get_or_create_tag(cursor, tag)
+
+        cursor.execute(
+            """
+            INSERT INTO card_tags (card_id, tag_id)
+            VALUES (%s, %s)
+            ON CONFLICT DO NOTHING
+            """,
+            (card_id, tag_id)
+        )
+
+    conn.commit()
+    cursor.close()
+    conn.close()

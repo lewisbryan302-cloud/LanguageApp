@@ -28,6 +28,7 @@ from card_service import (
     delete_selected_cards_by_id,
     get_card_for_edit,
     reset_srs_for_selected_cards,
+    set_card_tags,
 )
 from deck_service import (
     get_home_decks,
@@ -130,9 +131,10 @@ def add_card(
     card_type: str = Form("basic"),
     add_reverse: str | None = Form(None),
     image: UploadFile | None = File(None),
-    pasted_image_data: str | None = Form(None)
+    pasted_image_data: str | None = Form(None),
+    tags: str = Form("")
 ):
-    create_manual_card(
+    new_card_id = create_manual_card(
         deck_id=deck_id,
         front=front,
         back=back,
@@ -141,6 +143,9 @@ def add_card(
         image=image,
         pasted_image_data=pasted_image_data,
     )
+
+    if tags.strip():
+        set_card_tags(new_card_id, tags)
 
     return RedirectResponse(
         f"/add-card?deck_id={deck_id}&add_reverse={add_reverse or ''}",
