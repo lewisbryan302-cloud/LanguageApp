@@ -305,6 +305,111 @@
             margin-bottom: 20px;
         }
 
+        .typed-answer-area {
+            width: 100%;
+            max-width: 520px;
+            margin: 12px auto 0 auto;
+        }
+
+        .typed-answer-input {
+            width: 100%;
+            padding: 14px 16px;
+
+            border: 1px solid #ddd;
+            border-radius: 14px;
+
+            font-size: 20px;
+            text-align: center;
+
+            box-sizing: border-box;
+        }
+
+        .typed-answer-input:focus {
+            outline: 3px solid #dbeafe;
+            border-color: #2563eb;
+        }
+
+        .answer-comparison {
+            margin-top: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1.8;
+            word-break: break-word;
+        }
+
+        .correct-char {
+            color: #16a34a;
+            background: #dcfce7;
+            padding: 2px 4px;
+            border-radius: 5px;
+        }
+
+        .wrong-char {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 2px 4px;
+            border-radius: 5px;
+        }
+
+        .missing-char {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 2px 4px;
+            border-radius: 5px;
+            border-bottom: 2px solid #dc2626;
+        }
+
+        .review-title-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+        .review-deck-title {
+            grid-column: 2;
+
+            text-align: center;
+
+            font-size: 26px;
+            font-weight: bold;
+
+            color: #444;
+
+            margin-bottom: 0;
+        }
+
+        .type-answer-toggle {
+            grid-column: 3;
+            justify-self: start;
+
+            margin-left: 100px;
+
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+
+            padding: 8px 14px;
+            border-radius: 999px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .type-answer-toggle:hover {
+            background: #f3f4f6;
+        }
+
+        .type-answer-toggle.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
         @media (max-width: 800px) {
             .banner-content {
                 flex-direction: column;
@@ -362,9 +467,24 @@
 
         {% if card %}
 
+            <div class="review-title-row">
+
             <div class="review-deck-title">
                 {{ deck_name }}
             </div>
+
+            {% if card[3] != "cloze" and card[3] != "image_occlusion" %}
+                <button
+                    type="button"
+                    id="typeAnswerToggle"
+                    class="type-answer-toggle"
+                    onclick="toggleTypedAnswer()"
+                >
+                    Type Answer
+                </button>
+            {% endif %}
+
+        </div>
 
             <div class="review-card">
 
@@ -398,6 +518,16 @@
                                 {{ card[1] | safe }}
                             </div>
 
+                            <div id="typedAnswerArea" class="typed-answer-area" style="display: none;">
+                                <input
+                                    type="text"
+                                    id="typedAnswerInput"
+                                    class="typed-answer-input"
+                                    placeholder="Type your answer..."
+                                    autocomplete="off"
+                                >
+                            </div>
+
                         {% endif %}
 
                         {% if card[4] %}
@@ -426,7 +556,11 @@
                                 style="display: none;"
                                 ondblclick="enterEditMode()"
                             >
-                                {{ card[2] | safe }}
+                                <div id="correctAnswerText">
+                                    {{ card[2] | safe }}
+                                </div>
+
+                                <div id="answerComparison" class="answer-comparison"></div>
                             </div>
 
                         {% endif %}
@@ -524,6 +658,11 @@
             const answer = document.getElementById("answer");
             const ratings = document.getElementById("ratings");
             const revealButton = document.getElementById("revealButton");
+            const typedAnswerArea = document.getElementById("typedAnswerArea");
+
+            if (typedAnswerMode) {
+                compareTypedAnswer();
+            }
 
             if (answer) {
                 answer.style.display = "block";
@@ -537,20 +676,41 @@
                 revealButton.style.display = "none";
             }
 
+            if (typedAnswerArea) {
+                typedAnswerArea.style.display = "none";
+            }
+
             document.querySelectorAll(".occlusion-box").forEach(box => {
                 box.style.display = "none";
             });
         }
 
         document.addEventListener("keydown", function(event) {
-            if (event.code === "Space") {
+            const revealButton = document.getElementById("revealButton");
+
+            if (!revealButton || revealButton.style.display === "none") {
+                return;
+            }
+
+            const activeElement = document.activeElement;
+
+            const isTyping =
+                activeElement &&
+                (
+                    activeElement.tagName === "INPUT" ||
+                    activeElement.tagName === "TEXTAREA" ||
+                    activeElement.isContentEditable
+                );
+
+            if (event.key === "Enter") {
                 event.preventDefault();
+                revealAnswer();
+                return;
+            }
 
-                const revealButton = document.getElementById("revealButton");
-
-                if (revealButton && revealButton.style.display !== "none") {
-                    revealAnswer();
-                }
+            if (event.code === "Space" && !isTyping) {
+                event.preventDefault();
+                revealAnswer();
             }
         });
 
@@ -743,6 +903,109 @@
                 MathJax.typesetPromise();
             }
         }
+
+        function escapeHtml(text) {
+            return text
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function compareTypedAnswer() {
+            const typedInput =
+                document.getElementById("typedAnswerInput");
+
+            const correctAnswerElement =
+                document.getElementById("correctAnswerText");
+
+            const comparisonElement =
+                document.getElementById("answerComparison");
+
+            if (!typedInput || !correctAnswerElement || !comparisonElement) {
+                return;
+            }
+
+            const typedAnswer =
+                typedInput.value.trim();
+
+            const correctAnswer =
+                correctAnswerElement.textContent.trim();
+
+            let comparisonHtml = "";
+
+            const maxLength =
+                Math.max(typedAnswer.length, correctAnswer.length);
+
+            for (let i = 0; i < maxLength; i++) {
+                const typedChar = typedAnswer[i] || "";
+                const correctChar = correctAnswer[i] || "";
+
+                if (typedChar === correctChar) {
+                    comparisonHtml +=
+                        `<span class="correct-char">${escapeHtml(correctChar)}</span>`;
+                } else if (typedChar && correctChar) {
+                    comparisonHtml +=
+                        `<span class="wrong-char">${escapeHtml(typedChar)}</span>`;
+                } else if (!typedChar && correctChar) {
+                    comparisonHtml +=
+                        `<span class="missing-char">${escapeHtml(correctChar)}</span>`;
+                } else if (typedChar && !correctChar) {
+                    comparisonHtml +=
+                        `<span class="wrong-char">${escapeHtml(typedChar)}</span>`;
+                }
+            }
+
+            comparisonElement.innerHTML = comparisonHtml;
+        }
+
+        let typedAnswerMode =
+            localStorage.getItem("typed_answer_mode") === "true";
+
+        function toggleTypedAnswer() {
+            typedAnswerMode = !typedAnswerMode;
+
+            localStorage.setItem(
+                "typed_answer_mode",
+                typedAnswerMode ? "true" : "false"
+            );
+
+            updateTypedAnswerUI();
+        }
+
+        function updateTypedAnswerUI() {
+            const typedAnswerArea =
+                document.getElementById("typedAnswerArea");
+
+            const typedAnswerInput =
+                document.getElementById("typedAnswerInput");
+
+            const toggleButton =
+                document.getElementById("typeAnswerToggle");
+
+            if (!typedAnswerArea || !toggleButton) {
+                return;
+            }
+
+            if (typedAnswerMode) {
+                typedAnswerArea.style.display = "block";
+                toggleButton.classList.add("active");
+
+                if (typedAnswerInput) {
+                    typedAnswerInput.focus();
+                }
+            } else {
+                typedAnswerArea.style.display = "none";
+                toggleButton.classList.remove("active");
+
+                if (typedAnswerInput) {
+                    typedAnswerInput.value = "";
+                }
+            }
+        }
+
+        updateTypedAnswerUI();
     </script>
 
 </body>
