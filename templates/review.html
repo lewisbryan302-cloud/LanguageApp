@@ -99,27 +99,94 @@
 
         .page {
             max-width: 700px;
-            margin: 70px auto;
+            margin: 40px auto;
             padding: 0 20px;
         }
 
         .review-card {
             background: white;
             border-radius: 24px;
-            padding: 50px;
+            padding: 28px 42px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+            height: min(440px, 65vh);
+            box-sizing: border-box;
+
+            display: flex;
+            flex-direction: column;
         }
 
-        .front {
-            font-size: 40px;
-            margin-bottom: 30px;
+        .remaining-counter {
+            flex: 0 0 auto;
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 10px;
             font-weight: bold;
         }
 
+        .review-content-area {
+            flex: 1;
+            min-height: 0;
+
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+
+            overflow: hidden;
+        }
+
+        .review-front-area {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .review-answer-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .review-controls {
+            flex: 0 0 64px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .front {
+            font-size: 34px;
+            margin: 0;
+            font-weight: bold;
+            max-width: 100%;
+        }
+
         .back {
-            font-size: 28px;
-            margin: 30px;
+            font-size: 24px;
+            margin: 0;
             color: #444;
+            max-width: 100%;
+        }
+
+        .review-image {
+            max-width: 100%;
+            max-height: 160px;
+            margin: 14px auto 0 auto;
+            display: block;
+            border-radius: 18px;
+        }
+
+        #ratings {
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         button,
@@ -176,14 +243,6 @@
             padding: 2px 6px;
             border-radius: 6px;
             font-weight: bold;
-        }
-
-        .review-image {
-            max-width: 100%;
-            max-height: 320px;
-            margin: 24px auto;
-            display: block;
-            border-radius: 18px;
         }
 
         .image-occlusion-review {
@@ -313,60 +372,68 @@
                     {{ remaining_reviews }} cards remaining
                 </div>
 
-                {% if card[3] == "cloze" %}
+                <div class="review-content-area">
 
-                    <div class="front">
-                        {{ card[1] | cloze_hidden }}
+                    <div class="review-front-area">
+
+                        {% if card[3] == "cloze" %}
+
+                            <div class="front">
+                                {{ card[1] | cloze_hidden }}
+                            </div>
+
+                        {% elif card[3] == "image_occlusion" %}
+
+                            <div class="front image-occlusion-review">
+                                {{ card[1] | safe }}
+                            </div>
+
+                        {% else %}
+
+                            <div
+                                id="editable-front"
+                                class="front editable-card-part"
+                                ondblclick="enterEditMode()"
+                            >
+                                {{ card[1] | safe }}
+                            </div>
+
+                        {% endif %}
+
+                        {% if card[4] %}
+                            <img src="{{ card[4] }}" class="review-image">
+                        {% endif %}
+
                     </div>
 
-                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
-                        Reveal Answer
-                    </button>
+                    <div class="review-answer-area">
 
-                    <div id="answer" class="back" style="display: none;">
-                        {{ card[1] | cloze_revealed }}
+                        {% if card[3] == "cloze" %}
+
+                            <div id="answer" class="back" style="display: none;">
+                                {{ card[1] | cloze_revealed }}
+                            </div>
+
+                        {% elif card[3] == "image_occlusion" %}
+
+                            <div id="answer" style="display: none;"></div>
+
+                        {% else %}
+
+                            <div
+                                id="answer"
+                                class="back editable-card-part"
+                                style="display: none;"
+                                ondblclick="enterEditMode()"
+                            >
+                                {{ card[2] | safe }}
+                            </div>
+
+                        {% endif %}
+
                     </div>
 
-                {% elif card[3] == "image_occlusion" %}
-
-                    <div class="front image-occlusion-review">
-                        {{ card[1] | safe }}
-                    </div>
-
-                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
-                        Reveal Answer
-                    </button>
-
-                    <div id="answer" style="display: none;"></div>
-
-                {% else %}
-
-                    <div
-                        id="editable-front"
-                        class="front editable-card-part"
-                        ondblclick="enterEditMode()"
-                    >
-                        {{ card[1] | safe }}
-                    </div>
-
-                    <button id="revealButton" class="reveal-button" onclick="revealAnswer()">
-                        Reveal Answer
-                    </button>
-
-                    <div
-                        id="answer"
-                        class="back editable-card-part"
-                        style="display: none;"
-                        ondblclick="enterEditMode()"
-                    >
-                        {{ card[2] | safe }}
-                    </div>
-
-                {% endif %}
-
-                {% if card[4] %}
-                    <img src="{{ card[4] }}" class="review-image">
-                {% endif %}
+                </div>
 
                 <div id="reviewEditToolbar" class="editor-toolbar" style="display: none;">
                     <select id="font-family">
@@ -394,35 +461,47 @@
                     <button type="button" onclick="insertLatex()">LaTeX</button>
                 </div>
 
-                <button
-                    id="saveEditButton"
-                    class="reveal-button"
-                    style="display: none;"
-                    onclick="saveQuickEdit()"
-                >
-                    Enter
-                </button>
+                <div class="review-controls">
 
-                <form id="ratings" action="/answer" method="post" style="display: none;">
-                    <input type="hidden" name="card_id" value="{{ card[0] }}">
-                    <input type="hidden" name="deck_id" value="{{ deck_id }}">
-
-                    <button type="submit" name="rating" value="1" class="rating-again">
-                        Again
+                    <button
+                        id="revealButton"
+                        class="reveal-button"
+                        onclick="revealAnswer()"
+                    >
+                        Reveal Answer
                     </button>
 
-                    <button type="submit" name="rating" value="2" class="rating-hard">
-                        Hard
+                    <button
+                        id="saveEditButton"
+                        class="reveal-button"
+                        style="display: none;"
+                        onclick="saveQuickEdit()"
+                    >
+                        Enter
                     </button>
 
-                    <button type="submit" name="rating" value="3" class="rating-good">
-                        Good
-                    </button>
+                    <form id="ratings" action="/answer" method="post" style="display: none;">
+                        <input type="hidden" name="card_id" value="{{ card[0] }}">
+                        <input type="hidden" name="deck_id" value="{{ deck_id }}">
 
-                    <button type="submit" name="rating" value="4" class="rating-easy">
-                        Easy
-                    </button>
-                </form>
+                        <button type="submit" name="rating" value="1" class="rating-again">
+                            Again
+                        </button>
+
+                        <button type="submit" name="rating" value="2" class="rating-hard">
+                            Hard
+                        </button>
+
+                        <button type="submit" name="rating" value="3" class="rating-good">
+                            Good
+                        </button>
+
+                        <button type="submit" name="rating" value="4" class="rating-easy">
+                            Easy
+                        </button>
+                    </form>
+
+                </div>
 
             </div>
 
@@ -451,7 +530,7 @@
             }
 
             if (ratings) {
-                ratings.style.display = "block";
+                ratings.style.display = "flex";
             }
 
             if (revealButton) {
