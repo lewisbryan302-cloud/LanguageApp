@@ -168,7 +168,7 @@
 
         .page {
             max-width: 1200px;
-            margin: 60px auto;
+            margin: 30px auto 60px auto;
             padding: 0 30px;
         }
 
@@ -556,6 +556,67 @@
             font-weight: bold;
         }
 
+        .deck-search-area {
+            max-width: 1200px;
+            margin: 18px auto 0 auto;
+            padding: 0 30px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .deck-search-toggle {
+            width: 42px;
+            height: 42px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .deck-search-toggle:hover {
+            background: #f3f4f6;
+        }
+
+        .deck-search-box {
+            width: 260px;
+
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+
+            padding: 9px 12px;
+
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        .deck-search-box.hidden {
+            display: none;
+        }
+
+        .deck-search-input {
+            width: 100%;
+
+            border: none;
+            outline: none;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            background: transparent;
+            box-sizing: border-box;
+        }
+
+        .deck-search-input::placeholder {
+            color: #999;
+        }
+
         @media (max-width: 800px) {
             .deck-grid {
                 display: flex;
@@ -698,6 +759,31 @@
             </div>
         </div>
     </header>
+
+    <div class="deck-search-area">
+
+        <button
+            type="button"
+            class="deck-search-toggle"
+            onclick="toggleDeckSearch()"
+            aria-label="Search decks"
+        >
+            🔍
+        </button>
+
+        <div id="deckSearchBox" class="deck-search-box hidden">
+
+            <input
+                type="text"
+                id="deckSearchInput"
+                class="deck-search-input"
+                placeholder="Search decks..."
+                oninput="filterDecks()"
+            >
+
+        </div>
+
+    </div>
 
     <main class="page">
 
@@ -1403,6 +1489,51 @@
                 window.location.href = "/review/" + deckId;
             });
         });
+
+        function filterDecks() {
+            const searchInput =
+                document.getElementById("deckSearchInput");
+
+            if (!searchInput) {
+                return;
+            }
+
+            const query =
+                searchInput.value.trim().toLowerCase();
+
+            document.querySelectorAll(".deck").forEach(deck => {
+                const titleElement =
+                    deck.querySelector(".deck-title");
+
+                if (!titleElement) {
+                    return;
+                }
+
+                const deckName =
+                    titleElement.textContent.trim().toLowerCase();
+
+                if (deckName.includes(query)) {
+                    deck.style.display = "";
+                } else {
+                    deck.style.display = "none";
+                }
+            });
+        }
+
+        function toggleDeckSearch() {
+            const searchBox = document.getElementById("deckSearchBox");
+            const searchInput = document.getElementById("deckSearchInput");
+
+            searchBox.classList.toggle("hidden");
+
+            if (!searchBox.classList.contains("hidden")) {
+                searchInput.focus();
+            } else {
+                searchInput.value = "";
+                filterDecks();
+            }
+        }
+
 
         updateHomeView();
     </script>
