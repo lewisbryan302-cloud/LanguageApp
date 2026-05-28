@@ -42,6 +42,8 @@ from deck_service import (
     create_deck_and_return_id,
 )
 
+from stats_service import get_home_stats_widget_data
+
 from import_service import import_cards_from_file
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
@@ -87,14 +89,20 @@ def db_test():
     }
 
 @app.get("/")
-def home(request: Request):
+def home(
+    request: Request,
+    stats_deck_id: int | None = None
+):
     decks = get_home_decks()
+    stats_widget = get_home_stats_widget_data(stats_deck_id)
 
     return templates.TemplateResponse(
         request,
         "home.html",
         {
-            "decks": decks
+            "decks": decks,
+            "stats_widget": stats_widget,
+            "selected_stats_deck_id": stats_deck_id
         }
     )
 

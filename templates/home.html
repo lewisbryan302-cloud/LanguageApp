@@ -641,6 +641,103 @@
             border-color: #2563eb;
         }
 
+        .widget-top-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .widget-filter-form {
+            margin: 0;
+        }
+
+        .widget-select.compact {
+            width: 190px;
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        .widget-panel {
+            display: none;
+        }
+
+        .widget-panel.active-widget-panel {
+            display: block;
+        }
+
+        .widget-tab-row {
+            display: flex;
+            gap: 10px;
+
+            margin-top: 26px;
+            padding-top: 18px;
+
+            border-top: 1px solid #eee;
+        }
+
+        .widget-tab-button {
+            flex: 1;
+
+            border: none;
+            border-radius: 12px;
+
+            padding: 10px 12px;
+
+            background: #e5e7eb;
+            color: #111827;
+
+            font-weight: bold;
+            cursor: pointer;
+
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .widget-tab-button:hover {
+            background: #d1d5db;
+        }
+
+        .widget-tab-button.active-widget-tab {
+            background: #2563eb;
+            color: white;
+        }
+
+        .due-forecast {
+            margin-top: 22px;
+        }
+
+        .due-day-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+
+            font-size: 15px;
+        }
+
+        .due-day-row:last-child {
+            border-bottom: none;
+        }
+
+        .empty-widget-text {
+            color: #777;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 800px) {
+            .widget-top-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .widget-select.compact {
+                width: 100%;
+            }
+        }
+
         @media (max-width: 800px) {
             .deck-grid {
                 display: flex;
@@ -659,7 +756,6 @@
             .home-widget-column {
                 position: static;
             }
-        }
 
             .deck-carousel {
                 display: flex;
@@ -718,6 +814,8 @@
             .carousel-dot.active {
                 background: #2563eb;
             }
+        
+        }
         
     </style>
 </head>
@@ -1190,7 +1288,178 @@
             <aside class="home-widget-column">
 
                 <div class="home-widget stats-widget">
-                    Stats widget goes here
+
+                    <div class="widget-top-row">
+
+                        <form
+                            method="get"
+                            action="/"
+                            class="widget-filter-form"
+                        >
+                            <select
+                                name="stats_deck_id"
+                                class="widget-select compact"
+                                onchange="this.form.submit()"
+                            >
+                                <option value="">
+                                    All Decks
+                                </option>
+
+                                {% for deck in decks %}
+
+                                    <option
+                                        value="{{ deck[0] }}"
+                                        {% if selected_stats_deck_id == deck[0] %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        {{ deck[1] }}
+                                    </option>
+
+                                {% endfor %}
+                            </select>
+                        </form>
+
+                    </div>
+
+                    <div
+                        id="deckStatsPanel"
+                        class="widget-panel active-widget-panel"
+                    >
+
+                        <div class="widget-header">
+                            <h2>Deck Stats</h2>
+                        </div>
+
+                        <div class="widget-stats-grid">
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Total Cards
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.total_cards }}
+                                </div>
+                            </div>
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Added Today
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.cards_added_today }}
+                                </div>
+                            </div>
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Added This Week
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.cards_added_this_week }}
+                                </div>
+                            </div>
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Due Now
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.cards_due_now }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="upcomingReviewsPanel"
+                        class="widget-panel"
+                    >
+
+                        <div class="widget-header">
+                            <h2>Upcoming Reviews</h2>
+                        </div>
+
+                        <div class="widget-stats-grid">
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Due Tomorrow
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.cards_due_tomorrow }}
+                                </div>
+                            </div>
+
+                            <div class="widget-stat">
+                                <div class="widget-stat-label">
+                                    Due Next 7 Days
+                                </div>
+
+                                <div class="widget-stat-value">
+                                    {{ stats_widget.cards_due_next_7_days }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="due-forecast">
+
+                            {% if stats_widget.future_due_by_day %}
+
+                                {% for day in stats_widget.future_due_by_day %}
+
+                                    <div class="due-day-row">
+                                        <span>
+                                            {{ day.date }}
+                                        </span>
+
+                                        <strong>
+                                            {{ day.count }}
+                                        </strong>
+                                    </div>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <p class="empty-widget-text">
+                                    No upcoming reviews in the next 7 days.
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="widget-tab-row">
+
+                        <button
+                            type="button"
+                            class="widget-tab-button active-widget-tab"
+                            onclick="showStatsWidgetPanel('deckStatsPanel', this)"
+                        >
+                            Deck Stats
+                        </button>
+
+                        <button
+                            type="button"
+                            class="widget-tab-button"
+                            onclick="showStatsWidgetPanel('upcomingReviewsPanel', this)"
+                        >
+                            Upcoming Reviews
+                        </button>
+
+                    </div>
+
                 </div>
 
             </aside>
@@ -1715,6 +1984,57 @@
             placeholder = null;
         }
 
+        
+        function showStatsWidgetPanel(panelId, clickedButton) {
+            document.querySelectorAll(".widget-panel").forEach(panel => {
+                panel.classList.remove("active-widget-panel");
+            });
+
+            document.querySelectorAll(".widget-tab-button").forEach(button => {
+                button.classList.remove("active-widget-tab");
+            });
+
+            const selectedPanel =
+                document.getElementById(panelId);
+
+            if (selectedPanel) {
+                selectedPanel.classList.add("active-widget-panel");
+            }
+
+            clickedButton.classList.add("active-widget-tab");
+
+            localStorage.setItem("active_stats_widget_panel", panelId);
+        }
+
+        function restoreStatsWidgetPanel() {
+            const savedPanelId =
+                localStorage.getItem("active_stats_widget_panel");
+
+            if (!savedPanelId) {
+                return;
+            }
+
+            const savedPanel =
+                document.getElementById(savedPanelId);
+
+            if (!savedPanel) {
+                return;
+            }
+
+            const matchingButton =
+                [...document.querySelectorAll(".widget-tab-button")]
+                    .find(button =>
+                        button.getAttribute("onclick")?.includes(savedPanelId)
+                    );
+
+            if (!matchingButton) {
+                return;
+            }
+
+            showStatsWidgetPanel(savedPanelId, matchingButton);
+        }
+
+        restoreStatsWidgetPanel();
 
         updateHomeView();
     </script>
