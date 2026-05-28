@@ -2,6 +2,14 @@ import csv
 import io
 from fastapi import UploadFile
 
+import json
+import os
+import shutil
+import sqlite3
+import tempfile
+import zipfile
+from datetime import datetime, timedelta
+
 from database import get_connection
 from card_service import insert_card, set_card_tags_with_cursor
 
@@ -236,7 +244,10 @@ def import_cards_from_file(
         )
 
     if import_format == "anki_apkg":
-        raise ValueError("Anki .apkg import is not implemented yet.")
+        return import_cards_from_anki_apkg(
+            deck_id=deck_id,
+            file=file
+        )
 
     raise ValueError("Unknown import format.")
 
@@ -343,3 +354,501 @@ def import_cards_from_csv_or_tsv(
     print("SKIPPED ROWS:", skipped_count)
 
     return imported_count
+
+def import_cards_from_anki_apkg(deck_id: int, file: UploadFile) -> int:
+    raw_bytes = file.file.read()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        apkg_path = os.path.join(temp_dir, "deck.apkg")
+
+        with open(apkg_path, "wb") as f:
+            f.write(raw_bytes)
+
+        extract_dir = os.path.join(temp_dir, "extracted")
+        os.makedirs(extract_dir, exist_ok=True)
+
+        with zipfile.ZipFile(apkg_path, "r") as zip_ref:
+            zip_ref.extractall(extract_dir)
+
+        collection_path = find_anki_collection_file(extract_dir)
+
+        if not collection_path:
+            raise ValueError("Could not find an Anki collection file inside the .apkg file.")
+
+        collection_path = prepare_anki_collection_for_sqlite(
+            collection_path=collection_path,
+            temp_dir=temp_dir
+        )
+
+        if is_dummy_anki_update_collection(collection_path):
+            raise ValueError(
+                "This .apkg contains Anki's dummy update-message collection, "
+                "not the real deck data. Export again from Anki with "
+                "'Support older Anki versions' enabled."
+            )
+
+        media_map = load_anki_media_map(extract_dir)
+        copied_media = copy_anki_media_files(extract_dir, media_map)
+
+        anki_rows = read_anki_cards(collection_path)
+
+        print("ANKI ROWS FOUND:", len(anki_rows))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    imported_count = 0
+
+    try:
+        for row in anki_rows:
+            front = replace_anki_media_references(
+                row["front"],
+                copied_media
+            )
+
+            back = replace_anki_media_references(
+                row["back"],
+                copied_media
+            )
+
+            card_type = detect_anki_card_type(
+                row["model_name"],
+                front,
+                back
+            )
+
+            tags = row["tags"]
+
+            card_id = insert_card(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=front,
+                back=back,
+                card_type=card_type,
+                image_path=None
+            )
+
+            cursor.execute(
+                """
+                UPDATE flashcards
+                SET
+                    times_seen = %s,
+                    times_correct = %s,
+                    times_wrong = %s,
+                    last_reviewed = %s,
+                    next_review = COALESCE(%s, next_review)
+                WHERE id = %s
+                """,
+                (
+                    row["times_seen"],
+                    row["times_correct"],
+                    row["times_wrong"],
+                    row["last_reviewed"],
+                    row["next_review"],
+                    card_id
+                )
+            )
+
+            if tags.strip():
+                set_card_tags_with_cursor(cursor, card_id, tags)
+
+            imported_count += 1
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    print("IMPORTED ANKI CARDS:", imported_count)
+
+    return imported_count
+
+def find_anki_collection_file(extract_dir: str) -> str | None:
+    print("ANKI PACKAGE FILES:")
+    for filename in os.listdir(extract_dir):
+        print(" -", filename)
+
+    possible_names = [
+        "collection.anki21",
+        "collection.anki2"
+    ]
+
+    for name in possible_names:
+        path = os.path.join(extract_dir, name)
+
+        if os.path.exists(path):
+            print("ANKI COLLECTION FILE FOUND:", name)
+            return path
+
+    return None
+
+def prepare_anki_collection_for_sqlite(
+    collection_path: str,
+    temp_dir: str
+) -> str:
+    with open(collection_path, "rb") as f:
+        header = f.read(16)
+
+    if header == b"SQLite format 3\x00":
+        print("ANKI COLLECTION IS NORMAL SQLITE")
+        return collection_path
+
+    try:
+        import zstandard as zstd
+    except ImportError:
+        raise ValueError(
+            "This Anki package uses a compressed collection format. "
+            "Run: pip install zstandard"
+        )
+
+    print("ANKI COLLECTION APPEARS COMPRESSED. TRYING ZSTD DECOMPRESSION.")
+
+    with open(collection_path, "rb") as f:
+        compressed_data = f.read()
+
+    decompressed_data = zstd.ZstdDecompressor().decompress(compressed_data)
+
+    sqlite_path = os.path.join(temp_dir, "collection_decompressed.sqlite")
+
+    with open(sqlite_path, "wb") as f:
+        f.write(decompressed_data)
+
+    with open(sqlite_path, "rb") as f:
+        decompressed_header = f.read(16)
+
+    if decompressed_header != b"SQLite format 3\x00":
+        raise ValueError(
+            "Could not convert the Anki collection into a readable SQLite database."
+        )
+
+    print("ANKI COLLECTION DECOMPRESSED SUCCESSFULLY")
+
+    return sqlite_path
+
+
+def load_anki_media_map(extract_dir: str) -> dict[str, str]:
+    media_path = os.path.join(extract_dir, "media")
+
+    if not os.path.exists(media_path):
+        print("No Anki media file found.")
+        return {}
+
+    try:
+        with open(media_path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+
+        if not content:
+            print("Anki media file is empty.")
+            return {}
+
+        return json.loads(content)
+
+    except json.JSONDecodeError as error:
+        print("Could not parse Anki media file as JSON.")
+        print("Media parse error:", error)
+        return {}
+
+    except UnicodeDecodeError as error:
+        print("Could not decode Anki media file.")
+        print("Media decode error:", error)
+        return {}
+
+
+def copy_anki_media_files(
+    extract_dir: str,
+    media_map: dict[str, str]
+) -> dict[str, str]:
+    upload_dir = "static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    copied_media = {}
+
+    for anki_file_number, original_filename in media_map.items():
+        source_path = os.path.join(extract_dir, anki_file_number)
+
+        if not os.path.exists(source_path):
+            continue
+
+        safe_filename = os.path.basename(original_filename)
+        unique_filename = f"anki_{datetime.now().timestamp()}_{safe_filename}"
+
+        destination_path = os.path.join(upload_dir, unique_filename)
+
+        shutil.copyfile(source_path, destination_path)
+
+        copied_media[original_filename] = f"/static/uploads/{unique_filename}"
+
+    return copied_media
+
+
+def replace_anki_media_references(
+    html: str,
+    copied_media: dict[str, str]
+) -> str:
+    if not html:
+        return ""
+
+    for original_filename, new_path in copied_media.items():
+        html = html.replace(
+            f'src="{original_filename}"',
+            f'src="{new_path}"'
+        )
+
+        html = html.replace(
+            f"src='{original_filename}'",
+            f"src='{new_path}'"
+        )
+
+        html = html.replace(
+            original_filename,
+            new_path
+        )
+
+    return html
+
+def read_anki_cards(collection_path: str) -> list[dict]:
+    conn = sqlite3.connect(collection_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    models = load_anki_models(cursor)
+    collection_created = load_anki_collection_created_date(cursor)
+
+    cursor.execute(
+        """
+        SELECT
+            cards.id AS card_id,
+            cards.nid AS note_id,
+            cards.ord AS card_ord,
+            cards.due AS due,
+            cards.ivl AS interval_days,
+            cards.reps AS reps,
+            cards.lapses AS lapses,
+            cards.queue AS queue,
+            cards.type AS anki_type,
+            notes.mid AS model_id,
+            notes.flds AS fields,
+            notes.tags AS tags
+        FROM cards
+        JOIN notes
+            ON cards.nid = notes.id
+        ORDER BY cards.id
+        """
+    )
+
+    rows = cursor.fetchall()
+
+    anki_cards = []
+
+    for row in rows:
+        model = models.get(str(row["model_id"]), {})
+        model_name = model.get("name", "")
+
+        fields = split_anki_fields(row["fields"])
+        front, back = choose_front_back_from_anki_fields(
+            fields=fields,
+            card_ord=row["card_ord"],
+            model=model
+        )
+
+        last_reviewed = get_last_reviewed_for_card(
+            cursor,
+            row["card_id"]
+        )
+
+        next_review = estimate_next_review(
+            collection_created=collection_created,
+            due=row["due"],
+            interval_days=row["interval_days"],
+            queue=row["queue"]
+        )
+
+        reps = row["reps"] or 0
+        lapses = row["lapses"] or 0
+
+        anki_cards.append(
+            {
+                "front": front,
+                "back": back,
+                "model_name": model_name,
+                "tags": clean_anki_tags(row["tags"]),
+                "times_seen": reps,
+                "times_wrong": lapses,
+                "times_correct": max(reps - lapses, 0),
+                "last_reviewed": last_reviewed,
+                "next_review": next_review,
+            }
+        )
+
+    cursor.close()
+    conn.close()
+
+    return anki_cards
+
+def load_anki_models(cursor) -> dict:
+    cursor.execute(
+        """
+        SELECT models
+        FROM col
+        LIMIT 1
+        """
+    )
+
+    row = cursor.fetchone()
+
+    if not row:
+        return {}
+
+    return json.loads(row["models"])
+
+
+def load_anki_collection_created_date(cursor) -> datetime:
+    cursor.execute(
+        """
+        SELECT crt
+        FROM col
+        LIMIT 1
+        """
+    )
+
+    row = cursor.fetchone()
+
+    if not row:
+        return datetime.now()
+
+    return datetime.fromtimestamp(row["crt"])
+
+
+def split_anki_fields(fields_text: str) -> list[str]:
+    return fields_text.split("\x1f")
+
+
+def choose_front_back_from_anki_fields(
+    fields: list[str],
+    card_ord: int,
+    model: dict
+) -> tuple[str, str]:
+    model_name = model.get("name", "").lower()
+
+    if "cloze" in model_name:
+        text = fields[0] if len(fields) > 0 else ""
+        extra = fields[1] if len(fields) > 1 else ""
+
+        return text, extra
+
+    if len(fields) == 0:
+        return "", ""
+
+    if len(fields) == 1:
+        return fields[0], ""
+
+    return fields[0], fields[1]
+
+
+def clean_anki_tags(tags: str) -> str:
+    if not tags:
+        return ""
+
+    return ";".join(
+        tag.strip()
+        for tag in tags.split()
+        if tag.strip()
+    )
+
+
+def detect_anki_card_type(
+    model_name: str,
+    front: str,
+    back: str
+) -> str:
+    model_name = model_name.lower()
+
+    if "image occlusion" in model_name:
+        return "image_occlusion"
+
+    if "cloze" in model_name:
+        return "cloze"
+
+    if "{{c" in front or "{{c" in back:
+        return "cloze"
+
+    return "basic"
+
+
+def get_last_reviewed_for_card(cursor, card_id: int):
+    cursor.execute(
+        """
+        SELECT MAX(id) AS last_review_id
+        FROM revlog
+        WHERE cid = ?
+        """,
+        (card_id,)
+    )
+
+    row = cursor.fetchone()
+
+    if not row or row["last_review_id"] is None:
+        return None
+
+    timestamp = row["last_review_id"]
+
+    # Anki revlog IDs are commonly millisecond timestamps.
+    if timestamp > 10_000_000_000:
+        timestamp = timestamp / 1000
+
+    return datetime.fromtimestamp(timestamp)
+
+
+def estimate_next_review(
+    collection_created: datetime,
+    due: int,
+    interval_days: int,
+    queue: int
+):
+    if due is None:
+        return None
+
+    # Review cards usually have due as a day offset from collection creation.
+    if queue == 2:
+        return collection_created + timedelta(days=due)
+
+    # New or learning cards: make them available now in your app.
+    if queue in [0, 1, 3]:
+        return datetime.now()
+
+    return datetime.now() + timedelta(days=max(interval_days or 0, 0))
+
+def is_dummy_anki_update_collection(collection_path: str) -> bool:
+    try:
+        conn = sqlite3.connect(collection_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT flds
+            FROM notes
+            LIMIT 5
+            """
+        )
+
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        for row in rows:
+            fields = row["flds"]
+
+            if "Please update to the latest Anki version" in fields:
+                return True
+
+        return False
+
+    except Exception:
+        return False

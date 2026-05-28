@@ -1303,53 +1303,6 @@
             deckGrid.appendChild(placeholder);
         }
 
-        function endDrag() {
-            if (!draggedDeck) return;
-
-            placeholder.parentNode.insertBefore(draggedDeck, placeholder);
-            placeholder.remove();
-
-            draggedDeck.classList.remove("dragging");
-
-            draggedDeck.style.position = "";
-            draggedDeck.style.width = "";
-            draggedDeck.style.left = "";
-            draggedDeck.style.top = "";
-            draggedDeck.style.transform = "";
-
-            document.removeEventListener("pointermove", dragMove);
-            document.removeEventListener("pointerup", endDrag);
-
-            saveDeckOrder(placeholder.closest(".deck-grid"));
-
-            draggedDeck = null;
-            placeholder = null;
-        }
-
-        function saveDeckOrder(deckGrid) {
-            if (!deckGrid) {
-                return;
-            }
-
-            const deckIds = [
-                ...deckGrid.querySelectorAll(".deck")
-            ].map(deck =>
-                Number(deck.dataset.deckId)
-            );
-
-            fetch("/save-deck-order", {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    deck_ids: deckIds
-                })
-            });
-        }
-
         let currentDeckIndex = 0;
 
         const track = document.getElementById("deckTrack");
@@ -1692,6 +1645,56 @@
             } else {
                 alert("Could not rename deck.");
             }
+        }
+
+        async function saveDeckOrder(deckGrid) {
+            if (!deckGrid) {
+                return;
+            }
+
+            const deckIds = [...deckGrid.querySelectorAll(".deck")]
+                .map(deck => deck.dataset.deckId)
+                .filter(deckId => deckId);
+
+            const formData = new FormData();
+
+            deckIds.forEach(deckId => {
+                formData.append("deck_ids", deckId);
+            });
+
+            const response = await fetch("/save-deck-order", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                console.error("Could not save deck order.");
+            }
+        }
+
+        function endDrag() {
+            if (!draggedDeck) return;
+
+            const deckGrid = placeholder.closest(".deck-grid");
+
+            placeholder.parentNode.insertBefore(draggedDeck, placeholder);
+            placeholder.remove();
+
+            draggedDeck.classList.remove("dragging");
+
+            draggedDeck.style.position = "";
+            draggedDeck.style.width = "";
+            draggedDeck.style.left = "";
+            draggedDeck.style.top = "";
+            draggedDeck.style.transform = "";
+
+            document.removeEventListener("pointermove", dragMove);
+            document.removeEventListener("pointerup", endDrag);
+
+            saveDeckOrder(deckGrid);
+
+            draggedDeck = null;
+            placeholder = null;
         }
 
 

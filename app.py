@@ -10,7 +10,6 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from database import test_connection
 from typing import Optional
-from pydantic import BaseModel
 
 from cloze import render_cloze_hidden, render_cloze_revealed
 from review_service import (
@@ -435,15 +434,6 @@ def smart_add_card_create(
         page_data
     )
 
-class DeckOrderRequest(BaseModel):
-    deck_ids: list[int]
-
-@app.post("/save-deck-order")
-def save_deck_order(data: DeckOrderRequest):
-    save_deck_order_by_ids(data.deck_ids)
-
-    return {"status": "success"}
-
 @app.post("/cards/delete-front-back-duplicates")
 def delete_front_back_duplicates(deck_id: int = Form(...)):
     delete_duplicate_front_back_cards(deck_id)
@@ -535,6 +525,9 @@ def import_deck(
     import_format: str = Form(...),
     file: UploadFile = File(...)
 ):
+    # For now, we will build CSV/TSV first.
+    # Anki and Memrise can be routed later by import_format.
+
     imported_count = import_cards_from_file(
         deck_id=deck_id,
         import_format=import_format,
@@ -545,3 +538,11 @@ def import_deck(
         f"/deck/{deck_id}/cards",
         status_code=303
     )
+
+@app.post("/save-deck-order")
+def save_deck_order(deck_ids: list[int] = Form(...)):
+    save_deck_order_by_ids(deck_ids)
+
+    return JSONResponse({
+        "status": "success"
+    })
