@@ -39,6 +39,7 @@ from deck_service import (
     create_language_deck,
     save_deck_order_by_ids,
     update_deck_profile,
+    create_deck_and_return_id,
 )
 
 from import_service import import_cards_from_file
@@ -47,6 +48,24 @@ from suggestion_service import get_smart_add_preview_data_from_query, create_sma
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
 from embedding_helper import translate_word
+
+import os
+
+
+def make_deck_name_from_upload(filename: str) -> str:
+    if not filename:
+        return "Imported Deck"
+
+    base_name = os.path.basename(filename)
+
+    deck_name, _ = os.path.splitext(base_name)
+
+    deck_name = deck_name.replace("_", " ").replace("-", " ").strip()
+
+    if not deck_name:
+        return "Imported Deck"
+
+    return deck_name    
 
 app = FastAPI()
 app.add_middleware(
@@ -546,3 +565,35 @@ def save_deck_order(deck_ids: list[int] = Form(...)):
     return JSONResponse({
         "status": "success"
     })
+
+@app.get("/import-new-deck")
+def import_new_deck_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "import_new_deck.html"
+    )
+
+
+@app.post("/import-new-deck")
+def import_new_deck(
+    request: Request,
+    import_format: str = Form(...),
+    file: UploadFile = File(...)
+):
+    deck_name = make_deck_name_from_upload(file.filename)
+
+    new_deck_id = create_deck_and_return_id(
+        name=deck_name,
+        target_language="unknown"
+    )
+
+    imported_count = import_cards_from_file(
+        deck_id=new_deck_id,
+        import_format=import_format,
+        file=file
+    )
+
+    return RedirectResponse(
+        f"/deck/{new_deck_id}/cards",
+        status_code=303
+    )

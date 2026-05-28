@@ -760,6 +760,13 @@
                             + Add Deck
                         </a>
 
+                        <a
+                            id="importNewDeckButton"
+                            href="/import-new-deck"
+                        >
+                            Import New Deck
+                        </a>
+
                         <a href="/profile">
                             Profile
                         </a>
@@ -1387,6 +1394,9 @@
             const addButton =
                 document.getElementById("addButton");
 
+            const importNewDeckButton =
+                document.getElementById("importNewDeckButton");
+
             if (currentView.title === "Languages") {
 
                 addButton.textContent =
@@ -1395,6 +1405,10 @@
                 addButton.href =
                     "/add-language";
 
+                if (importNewDeckButton) {
+                    importNewDeckButton.style.display = "none";
+                }
+
             } else {
 
                 addButton.textContent =
@@ -1402,6 +1416,10 @@
 
                 addButton.href =
                     "/add-deck";
+
+                if (importNewDeckButton) {
+                    importNewDeckButton.style.display = "block";
+                }
             }
         }
 

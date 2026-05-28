@@ -191,3 +191,38 @@ def update_deck_profile(deck_id: int, profile: str) -> None:
     conn.commit()
     cursor.close()
     conn.close()
+
+def create_deck_and_return_id(name: str, target_language: str = "unknown") -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO decks (
+            name,
+            target_language,
+            profile,
+            deck_order
+        )
+        VALUES (
+            %s,
+            %s,
+            %s,
+            COALESCE(
+                (SELECT MAX(deck_order) + 1 FROM decks),
+                0
+            )
+        )
+        RETURNING id;
+    """, (
+        name,
+        target_language,
+        "Decks"
+    ))
+
+    deck_id = cursor.fetchone()[0]
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return deck_id
