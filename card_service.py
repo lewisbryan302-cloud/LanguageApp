@@ -5,6 +5,15 @@ import base64
 from fastapi import UploadFile
 
 from database import get_connection
+import re
+
+
+def parse_tag_string(tag_string: str) -> list[str]:
+    return [
+        tag.strip().lower()
+        for tag in re.split(r"[,;|]", tag_string)
+        if tag.strip()
+    ]
 
 
 def quick_update_card(card_id: int, front: str, back: str) -> None:
@@ -323,16 +332,8 @@ def get_or_create_tag(cursor, tag_name: str) -> int:
 
     return cursor.fetchone()[0]
 
-
-def set_card_tags(card_id: int, tag_string: str):
-    tags = [
-        tag.strip().lower()
-        for tag in tag_string.split(",")
-        if tag.strip()
-    ]
-
-    conn = get_connection()
-    cursor = conn.cursor()
+def set_card_tags_with_cursor(cursor, card_id: int, tag_string: str):
+    tags = parse_tag_string(tag_string)
 
     cursor.execute(
         """
@@ -353,6 +354,12 @@ def set_card_tags(card_id: int, tag_string: str):
             """,
             (card_id, tag_id)
         )
+
+def set_card_tags(card_id: int, tag_string: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    set_card_tags_with_cursor(cursor, card_id, tag_string)
 
     conn.commit()
     cursor.close()

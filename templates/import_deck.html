@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Deck</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #ffffff;
+        }
+
+        .page {
+            max-width: 700px;
+            margin: 70px auto;
+            padding: 0 24px;
+        }
+
+        .import-card {
+            background: white;
+            border-radius: 24px;
+            padding: 34px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .button.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .button.secondary {
+            background: #e5e7eb;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="page">
+
+        <div class="import-card">
+
+            <h1>Import Cards</h1>
+
+            <p class="help-text">
+                Import cards into <strong>{{ deck[1] }}</strong>.
+                For the first version, CSV or TSV import is the safest format.
+            </p>
+
+            <form
+                action="/import-deck"
+                method="post"
+                enctype="multipart/form-data"
+            >
+
+                <input
+                    type="hidden"
+                    name="deck_id"
+                    value="{{ deck[0] }}"
+                >
+
+                <div class="form-group">
+                    <label for="import_format">
+                        Import format
+                    </label>
+
+                    <select
+                        id="import_format"
+                        name="import_format"
+                        required
+                    >
+                        <option value="csv">
+                            CSV
+                        </option>
+
+                        <option value="tsv">
+                            TSV
+                        </option>
+
+                        <option value="anki_apkg">
+                            Anki .apkg
+                        </option>
+
+                        <option value="memrise_csv">
+                            Memrise-style CSV
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="file">
+                        Upload file
+                    </label>
+
+                    <input
+                        type="file"
+                        id="file"
+                        name="file"
+                        required
+                    >
+                </div>
+
+                <p class="help-text">
+                    Recommended CSV columns for now:
+                    front, back, card_type, tags, times_seen, times_correct,
+                    times_wrong, last_reviewed, next_review.
+                </p>
+
+                <div class="button-row">
+                    <button type="submit" class="button primary">
+                        Import Cards
+                    </button>
+
+                    <a href="/" class="button secondary">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

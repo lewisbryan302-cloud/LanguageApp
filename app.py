@@ -41,6 +41,9 @@ from deck_service import (
     save_deck_order_by_ids,
     update_deck_profile,
 )
+
+from import_service import import_cards_from_file
+
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
@@ -512,3 +515,33 @@ def rename_deck_inline(deck_id: int, name: str = Form(...)):
         "status": "success",
         "name": name
     })
+
+@app.get("/import-deck")
+def import_deck_page(request: Request, deck_id: int):
+    deck = get_deck_by_id(deck_id)
+
+    return templates.TemplateResponse(
+        request,
+        "import_deck.html",
+        {
+            "deck": deck
+        }
+    )
+
+@app.post("/import-deck")
+def import_deck(
+    request: Request,
+    deck_id: int = Form(...),
+    import_format: str = Form(...),
+    file: UploadFile = File(...)
+):
+    imported_count = import_cards_from_file(
+        deck_id=deck_id,
+        import_format=import_format,
+        file=file
+    )
+
+    return RedirectResponse(
+        f"/deck/{deck_id}/cards",
+        status_code=303
+    )

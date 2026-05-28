@@ -870,6 +870,10 @@
                                                 View Cards
                                             </a>
 
+                                            <a href="/import-deck?deck_id={{ deck[0] }}">
+                                                Import Cards
+                                            </a>
+
                                             <button
                                                 type="button"
                                                 onclick="startInlineRename(event, '{{ deck[0] }}')"
@@ -1034,7 +1038,13 @@
 
                                         <div id="menu-{{ deck[0] }}" class="menu">
 
-                                            <a href="/deck/{{ deck[0] }}/cards">View Cards</a>
+                                            <a href="/deck/{{ deck[0] }}/cards">
+                                                View Cards
+                                            </a>
+
+                                            <a href="/import-deck?deck_id={{ deck[0] }}">
+                                                Import Cards
+                                            </a>
                                             <button
                                                 type="button"
                                                 onclick="startInlineRename(event, '{{ deck[0] }}')"
