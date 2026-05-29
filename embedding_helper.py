@@ -3,16 +3,25 @@ from wordfreq import top_n_list
 from sentence_transformers import SentenceTransformer, util
 
 
-model = SentenceTransformer(
-    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-)
+MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+_model = None
+
+
+def get_model():
+    global _model
+
+    if _model is None:
+        _model = SentenceTransformer(MODEL_NAME)
+
+    return _model
 
 words = top_n_list("en", 5000)
-embeddings = model.encode(words, convert_to_tensor=True)
+embeddings = get_model().encode(words, convert_to_tensor=True)
 
 
 def get_similar_words(query: str, k: int = 20, threshold: float = 0.55):
-    query_embedding = model.encode(query, convert_to_tensor=True)
+    query_embedding = get_model().encode(query, convert_to_tensor=True)
 
     scores = util.cos_sim(query_embedding, embeddings)[0]
     top_results = scores.topk(k=k)

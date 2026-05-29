@@ -47,7 +47,7 @@ from stats_service import get_home_stats_widget_data
 
 from import_service import import_cards_from_file
 
-from network_service import build_deck_network_data
+from network_service import get_cached_network_suggestions_for_deck
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
@@ -96,7 +96,7 @@ def home(
     request: Request,
     stats_deck_id: int | None = None,
     network_deck_id: int | None = None,
-    network_threshold: float = 0.45,
+    network_threshold: float = 0.75,
     use_auto_threshold: str | None = None
 ):
     decks = get_home_decks()
@@ -108,14 +108,13 @@ def home(
     if network_deck_id is not None:
         network_language = get_deck_language_by_id(network_deck_id)
 
-        network_data = build_deck_network_data(
+        network_data = get_cached_network_suggestions_for_deck(
             deck_id=network_deck_id,
             language=network_language,
-            n_candidates=500,
-            threshold=network_threshold,
-            use_auto_threshold=(use_auto_threshold == "yes"),
+            n_words=10000,
             n_suggestions=20,
-            max_edges=250
+            top_k_known_words=5,
+            min_similarity_to_known=0.30
         )
 
     return templates.TemplateResponse(
@@ -667,6 +666,8 @@ def add_network_suggestion(
 
     if stats_deck_id is not None:
         redirect_url += f"&stats_deck_id={stats_deck_id}"
+
+    redirect_url += "#network-widget"
 
     return RedirectResponse(
         redirect_url,
