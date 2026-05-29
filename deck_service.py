@@ -131,6 +131,26 @@ def get_deck_by_id(deck_id: int):
 
     return deck
 
+def get_deck_language_by_id(deck_id: int) -> str:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT target_language
+        FROM decks
+        WHERE id = %s;
+    """, (deck_id,))
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not row or not row[0]:
+        return "en"
+
+    return row[0]
+
 def rename_deck_by_id(deck_id: int, name: str) -> None:
     conn = get_connection()
     cursor = conn.cursor()

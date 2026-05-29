@@ -727,6 +727,103 @@
             line-height: 1.5;
         }
 
+        .network-widget {
+            margin-top: 24px;
+        }
+
+        .network-control-form {
+            margin-top: 12px;
+        }
+
+        .network-suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            margin-top: 18px;
+        }
+
+        .network-suggestion-list h3 {
+            margin: 0 0 4px 0;
+            font-size: 18px;
+        }
+
+        .network-suggestion-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 12px 14px;
+
+            background: #f9fafb;
+            border-radius: 14px;
+        }
+
+        .network-word {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .network-explanation {
+            margin-top: 4px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .network-suggestion-main {
+            min-width: 0;
+        }
+
+        .network-translation-preview {
+            margin-top: 4px;
+
+            color: #111827;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .network-translation-preview.muted {
+            color: #999;
+            font-weight: normal;
+        }
+
+        .network-suggestion-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            margin-left: 14px;
+        }
+
+        .network-add-form {
+            margin: 0;
+        }
+
+        .network-add-button {
+            width: 32px;
+            height: 32px;
+
+            border: none;
+            border-radius: 25%;
+
+            background: #ffffff;
+            color: rgb(26, 88, 223);
+
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .network-add-button:hover {
+            background: #bebebe;
+        }
+
         @media (max-width: 800px) {
             .widget-top-row {
                 flex-direction: column;
@@ -1459,6 +1556,165 @@
                         </button>
 
                     </div>
+
+                </div>
+
+                <div class="home-widget network-widget">
+
+                    <div class="widget-header">
+                        <h2>Word Network</h2>
+                    </div>
+
+                    <form
+                        method="get"
+                        action="/"
+                        class="network-control-form"
+                    >
+                        {% if selected_stats_deck_id %}
+                            <input
+                                type="hidden"
+                                name="stats_deck_id"
+                                value="{{ selected_stats_deck_id }}"
+                            >
+                        {% endif %}
+
+                        <label class="widget-label">
+                            Deck
+                        </label>
+
+                        <select
+                            name="network_deck_id"
+                            class="widget-select"
+                            onchange="this.form.submit()"
+                        >
+                            <option value="">
+                                Choose a deck
+                            </option>
+
+                            {% for deck in decks %}
+                                <option
+                                    value="{{ deck[0] }}"
+                                    {% if selected_network_deck_id == deck[0] %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ deck[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                    </form>
+
+                    {% if network_data %}
+
+                        <div class="network-suggestion-list">
+
+                            <h3>Suggested Words</h3>
+
+                            {% if network_data.suggestions %}
+
+                                {% for item in network_data.suggestions %}
+
+                                    <div class="network-suggestion-row">
+
+                                        <div class="network-suggestion-main">
+
+                                            <div class="network-word">
+                                                {{ item.word }}
+                                            </div>
+
+                                            {% if item.translation %}
+                                                <div class="network-translation-preview">
+                                                    {{ item.translation }}
+                                                </div>
+                                            {% else %}
+                                                <div class="network-translation-preview muted">
+                                                    No translation preview
+                                                </div>
+                                            {% endif %}
+
+                                        </div>
+
+                                        <div class="network-suggestion-actions">
+
+                                            <form
+                                                action="/network/add-suggestion"
+                                                method="post"
+                                                class="network-add-form"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="deck_id"
+                                                    value="{{ selected_network_deck_id }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="front"
+                                                    value="{{ item.word }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="back"
+                                                    value="{{ item.translation }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="network_threshold"
+                                                    value="{{ network_threshold }}"
+                                                >
+
+                                                {% if use_auto_threshold == "yes" %}
+                                                    <input
+                                                        type="hidden"
+                                                        name="use_auto_threshold"
+                                                        value="yes"
+                                                    >
+                                                {% endif %}
+
+                                                {% if selected_stats_deck_id %}
+                                                    <input
+                                                        type="hidden"
+                                                        name="stats_deck_id"
+                                                        value="{{ selected_stats_deck_id }}"
+                                                    >
+                                                {% endif %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="network-add-button"
+                                                    title="Add this word to the deck"
+                                                >
+                                                    +
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <p class="empty-widget-text">
+                                    No suggestions found. Try lowering the threshold or choosing another deck.
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="empty-widget-text">
+                            Choose a deck to build its word network.
+                        </p>
+
+                    {% endif %}
 
                 </div>
 

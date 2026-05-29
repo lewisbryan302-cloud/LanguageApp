@@ -40,11 +40,14 @@ from deck_service import (
     save_deck_order_by_ids,
     update_deck_profile,
     create_deck_and_return_id,
+    get_deck_language_by_id,
 )
 
 from stats_service import get_home_stats_widget_data
 
 from import_service import import_cards_from_file
+
+from network_service import build_deck_network_data
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
@@ -91,10 +94,29 @@ def db_test():
 @app.get("/")
 def home(
     request: Request,
-    stats_deck_id: int | None = None
+    stats_deck_id: int | None = None,
+    network_deck_id: int | None = None,
+    network_threshold: float = 0.45,
+    use_auto_threshold: str | None = None
 ):
     decks = get_home_decks()
     stats_widget = get_home_stats_widget_data(stats_deck_id)
+
+    network_data = None
+    network_language = None
+
+    if network_deck_id is not None:
+        network_language = get_deck_language_by_id(network_deck_id)
+
+        network_data = build_deck_network_data(
+            deck_id=network_deck_id,
+            language=network_language,
+            n_candidates=500,
+            threshold=network_threshold,
+            use_auto_threshold=(use_auto_threshold == "yes"),
+            n_suggestions=20,
+            max_edges=250
+        )
 
     return templates.TemplateResponse(
         request,
@@ -102,7 +124,12 @@ def home(
         {
             "decks": decks,
             "stats_widget": stats_widget,
-            "selected_stats_deck_id": stats_deck_id
+            "selected_stats_deck_id": stats_deck_id,
+            "selected_network_deck_id": network_deck_id,
+            "network_language": network_language,
+            "network_data": network_data,
+            "network_threshold": network_threshold,
+            "use_auto_threshold": use_auto_threshold,
         }
     )
 
@@ -603,5 +630,45 @@ def import_new_deck(
 
     return RedirectResponse(
         f"/deck/{new_deck_id}/cards",
+        status_code=303
+    )
+
+@app.post("/network/add-suggestion")
+def add_network_suggestion(
+    deck_id: int = Form(...),
+    front: str = Form(...),
+    back: str = Form(""),
+    network_threshold: float = Form(0.45),
+    use_auto_threshold: str | None = Form(None),
+    stats_deck_id: int | None = Form(None)
+):
+    new_card_id = create_manual_card(
+        deck_id=deck_id,
+        front=front,
+        back=back or "",
+        card_type="basic",
+        add_reverse=None,
+        image=None,
+        pasted_image_data=None
+    )
+
+    set_card_tags(
+        new_card_id,
+        "network-suggestion"
+    )
+
+    redirect_url = (
+        f"/?network_deck_id={deck_id}"
+        f"&network_threshold={network_threshold}"
+    )
+
+    if use_auto_threshold == "yes":
+        redirect_url += "&use_auto_threshold=yes"
+
+    if stats_deck_id is not None:
+        redirect_url += f"&stats_deck_id={stats_deck_id}"
+
+    return RedirectResponse(
+        redirect_url,
         status_code=303
     )
