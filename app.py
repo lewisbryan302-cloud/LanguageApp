@@ -673,3 +673,56 @@ def add_network_suggestion(
         redirect_url,
         status_code=303
     )
+
+@app.post("/network/add-selected-suggestions")
+def add_selected_network_suggestions(
+    deck_id: int = Form(...),
+    selected_words: list[str] = Form(...),
+    selected_translations: list[str] = Form(...),
+    network_threshold: float = Form(0.45),
+    use_auto_threshold: str | None = Form(None),
+    stats_deck_id: int | None = Form(None)
+):
+    added_count = 0
+
+    for word, translation in zip(selected_words, selected_translations):
+        word = word.strip()
+        translation = translation.strip()
+
+        if not word:
+            continue
+
+        new_card_id = create_manual_card(
+            deck_id=deck_id,
+            front=word,
+            back=translation,
+            card_type="basic",
+            add_reverse=None,
+            image=None,
+            pasted_image_data=None
+        )
+
+        set_card_tags(
+            new_card_id,
+            "network-suggestion"
+        )
+
+        added_count += 1
+
+    redirect_url = (
+        f"/?network_deck_id={deck_id}"
+        f"&network_threshold={network_threshold}"
+    )
+
+    if use_auto_threshold == "yes":
+        redirect_url += "&use_auto_threshold=yes"
+
+    if stats_deck_id is not None:
+        redirect_url += f"&stats_deck_id={stats_deck_id}"
+
+    redirect_url += "#network-widget"
+
+    return RedirectResponse(
+        redirect_url,
+        status_code=303
+    )

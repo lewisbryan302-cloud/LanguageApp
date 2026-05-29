@@ -824,6 +824,45 @@
             background: #bebebe;
         }
 
+        .network-suggestion-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .network-add-selected-button {
+            border: none;
+            border-radius: 12px;
+
+            padding: 8px 12px;
+
+            background: #2563eb;
+            color: white;
+
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .network-add-selected-button:hover {
+            background: #1d4ed8;
+        }
+
+        .selectable-network-row {
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .selected-network-row {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .network-suggestion-checkbox {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
         @media (max-width: 800px) {
             .widget-top-row {
                 flex-direction: column;
@@ -1612,99 +1651,126 @@
 
                         <div class="network-suggestion-list">
 
-                            <h3>Suggested Words</h3>
+                            <div class="network-suggestion-header-row">
+
+                                <h3>Suggested Words</h3>
+
+                                {% if network_data.suggestions %}
+                                    <button
+                                        type="button"
+                                        class="network-add-selected-button"
+                                        onclick="submitSelectedNetworkSuggestions()"
+                                    >
+                                        Add Selected
+                                    </button>
+                                {% endif %}
+
+                            </div>
 
                             {% if network_data.suggestions %}
 
-                                {% for item in network_data.suggestions %}
+                                <form
+                                    id="networkSelectedSuggestionsForm"
+                                    action="/network/add-selected-suggestions"
+                                    method="post"
+                                >
 
-                                    <div class="network-suggestion-row">
+                                    <input
+                                        type="hidden"
+                                        name="deck_id"
+                                        value="{{ selected_network_deck_id }}"
+                                    >
 
-                                        <div class="network-suggestion-main">
+                                    <input
+                                        type="hidden"
+                                        name="network_threshold"
+                                        value="{{ network_threshold }}"
+                                    >
 
-                                            <div class="network-word">
-                                                {{ item.word }}
+                                    {% if use_auto_threshold == "yes" %}
+                                        <input
+                                            type="hidden"
+                                            name="use_auto_threshold"
+                                            value="yes"
+                                        >
+                                    {% endif %}
+
+                                    {% if selected_stats_deck_id %}
+                                        <input
+                                            type="hidden"
+                                            name="stats_deck_id"
+                                            value="{{ selected_stats_deck_id }}"
+                                        >
+                                    {% endif %}
+
+                                    {% for item in network_data.suggestions %}
+
+                                        <div
+                                            class="network-suggestion-row selectable-network-row"
+                                            onclick="toggleNetworkSuggestionSelection(this)"
+                                        >
+
+                                            <input
+                                                type="checkbox"
+                                                class="network-suggestion-checkbox"
+                                                onchange="syncNetworkRowSelection(this)"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                class="network-selected-word"
+                                                value="{{ item.word }}"
+                                                disabled
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                class="network-selected-translation"
+                                                value="{{ item.translation }}"
+                                                disabled
+                                            >
+
+                                            <div class="network-suggestion-main">
+
+                                                <div class="network-word">
+                                                    {{ item.word }}
+                                                </div>
+
+                                                {% if item.translation %}
+                                                    <div class="network-translation-preview">
+                                                        {{ item.translation }}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="network-translation-preview muted">
+                                                        No translation preview
+                                                    </div>
+                                                {% endif %}
+
                                             </div>
 
-                                            {% if item.translation %}
-                                                <div class="network-translation-preview">
-                                                    {{ item.translation }}
-                                                </div>
-                                            {% else %}
-                                                <div class="network-translation-preview muted">
-                                                    No translation preview
-                                                </div>
-                                            {% endif %}
-
-                                        </div>
-
-                                        <div class="network-suggestion-actions">
-
-                                            <form
-                                                action="/network/add-suggestion"
-                                                method="post"
-                                                class="network-add-form"
-                                            >
-                                                <input
-                                                    type="hidden"
-                                                    name="deck_id"
-                                                    value="{{ selected_network_deck_id }}"
-                                                >
-
-                                                <input
-                                                    type="hidden"
-                                                    name="front"
-                                                    value="{{ item.word }}"
-                                                >
-
-                                                <input
-                                                    type="hidden"
-                                                    name="back"
-                                                    value="{{ item.translation }}"
-                                                >
-
-                                                <input
-                                                    type="hidden"
-                                                    name="network_threshold"
-                                                    value="{{ network_threshold }}"
-                                                >
-
-                                                {% if use_auto_threshold == "yes" %}
-                                                    <input
-                                                        type="hidden"
-                                                        name="use_auto_threshold"
-                                                        value="yes"
-                                                    >
-                                                {% endif %}
-
-                                                {% if selected_stats_deck_id %}
-                                                    <input
-                                                        type="hidden"
-                                                        name="stats_deck_id"
-                                                        value="{{ selected_stats_deck_id }}"
-                                                    >
-                                                {% endif %}
+                                            <div class="network-suggestion-actions">
 
                                                 <button
-                                                    type="submit"
+                                                    type="button"
                                                     class="network-add-button"
                                                     title="Add this word to the deck"
+                                                    onclick="addSingleNetworkSuggestion(event, this)"
                                                 >
                                                     +
                                                 </button>
 
-                                            </form>
+                                            </div>
 
                                         </div>
 
-                                    </div>
+                                    {% endfor %}
 
-                                {% endfor %}
+                                </form>
 
                             {% else %}
 
                                 <p class="empty-widget-text">
-                                    No suggestions found. Try lowering the threshold or choosing another deck.
+                                    No suggestions found.
                                 </p>
 
                             {% endif %}
@@ -2294,6 +2360,96 @@
         }
 
         restoreStatsWidgetPanel();
+
+        function toggleNetworkSuggestionSelection(row) {
+            const checkbox = row.querySelector(".network-suggestion-checkbox");
+
+            if (!checkbox) {
+                return;
+            }
+
+            checkbox.checked = !checkbox.checked;
+
+            updateNetworkSuggestionRowState(row, checkbox.checked);
+        }
+
+        function syncNetworkRowSelection(checkbox) {
+            const row = checkbox.closest(".network-suggestion-row");
+
+            if (!row) {
+                return;
+            }
+
+            updateNetworkSuggestionRowState(row, checkbox.checked);
+        }
+
+        function updateNetworkSuggestionRowState(row, isSelected) {
+            const wordInput = row.querySelector(".network-selected-word");
+            const translationInput = row.querySelector(".network-selected-translation");
+
+            if (isSelected) {
+                row.classList.add("selected-network-row");
+
+                if (wordInput) {
+                    wordInput.name = "selected_words";
+                    wordInput.disabled = false;
+                }
+
+                if (translationInput) {
+                    translationInput.name = "selected_translations";
+                    translationInput.disabled = false;
+                }
+
+            } else {
+                row.classList.remove("selected-network-row");
+
+                if (wordInput) {
+                    wordInput.removeAttribute("name");
+                    wordInput.disabled = true;
+                }
+
+                if (translationInput) {
+                    translationInput.removeAttribute("name");
+                    translationInput.disabled = true;
+                }
+            }
+        }
+
+        function submitSelectedNetworkSuggestions() {
+            const form = document.getElementById("networkSelectedSuggestionsForm");
+
+            if (!form) {
+                return;
+            }
+
+            const selectedRows = form.querySelectorAll(".selected-network-row");
+
+            if (selectedRows.length === 0) {
+                alert("Select at least one recommendation first.");
+                return;
+            }
+
+            form.submit();
+        }
+
+        function addSingleNetworkSuggestion(event, button) {
+            event.stopPropagation();
+
+            const row = button.closest(".network-suggestion-row");
+
+            if (!row) {
+                return;
+            }
+
+            const checkbox = row.querySelector(".network-suggestion-checkbox");
+
+            if (checkbox) {
+                checkbox.checked = true;
+                updateNetworkSuggestionRowState(row, true);
+            }
+
+            submitSelectedNetworkSuggestions();
+        }
 
         updateHomeView();
     </script>
