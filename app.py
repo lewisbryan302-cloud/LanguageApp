@@ -49,6 +49,8 @@ from import_service import import_cards_from_file
 
 from network_service import get_cached_network_suggestions_for_deck
 
+from media_import_service import extract_unknown_1grams_for_deck
+
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
@@ -724,5 +726,100 @@ def add_selected_network_suggestions(
 
     return RedirectResponse(
         redirect_url,
+        status_code=303
+    )
+
+@app.get("/import-media")
+def import_media_page(
+    request: Request,
+    deck_id: int | None = None
+):
+    decks = get_deck_options()
+
+    return templates.TemplateResponse(
+        request,
+        "import_media.html",
+        {
+            "decks": decks,
+            "selected_deck_id": deck_id,
+            "source_type": "text",
+            "source_text": "",
+            "candidates": None,
+        }
+    )
+
+
+@app.post("/import-media/preview")
+def import_media_preview(
+    request: Request,
+    deck_id: int = Form(...),
+    source_type: str = Form("text"),
+    source_text: str = Form(""),
+    minimum_count: int = Form(1)
+):
+    decks = get_deck_options()
+
+    source_language = get_deck_language_by_id(deck_id)
+    user_language = "en"
+
+    candidates = extract_unknown_1grams_for_deck(
+        deck_id=deck_id,
+        text=source_text,
+        source_language=source_language,
+        user_language=user_language,
+        minimum_count=minimum_count,
+        max_results=150
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "import_media.html",
+        {
+            "decks": decks,
+            "selected_deck_id": deck_id,
+            "source_type": source_type,
+            "source_text": source_text,
+            "minimum_count": minimum_count,
+            "candidates": candidates,
+            "source_language": source_language,
+            "user_language": user_language,
+        }
+    )
+
+
+@app.post("/import-media/add-selected")
+def import_media_add_selected(
+    deck_id: int = Form(...),
+    selected_words: list[str] = Form(...),
+    selected_translations: list[str] = Form(...)
+):
+    added_count = 0
+
+    for word, translation in zip(selected_words, selected_translations):
+        word = word.strip().lower()
+        translation = translation.strip()
+
+        if not word:
+            continue
+
+        new_card_id = create_manual_card(
+            deck_id=deck_id,
+            front=word,
+            back=translation,
+            card_type="basic",
+            add_reverse=None,
+            image=None,
+            pasted_image_data=None
+        )
+
+        set_card_tags(
+            new_card_id,
+            "media-import"
+        )
+
+        added_count += 1
+
+    return RedirectResponse(
+        f"/import-media?deck_id={deck_id}",
         status_code=303
     )

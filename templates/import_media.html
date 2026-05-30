@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Media</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #ffffff;
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 0 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        select,
+        textarea,
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .button.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .button.secondary {
+            background: #e5e7eb;
+            color: black;
+        }
+
+        .candidate-section {
+            margin-top: 34px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .candidate-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+
+            padding: 12px 14px;
+            background: #f9fafb;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .candidate-card.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .candidate-word {
+            font-weight: bold;
+        }
+
+        .candidate-count {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .empty-message {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .candidate-translation {
+            margin-top: 4px;
+            color: #111827;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .candidate-translation.muted {
+            color: #999;
+            font-weight: normal;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <main class="page">
+
+        <div class="card">
+
+            <h1>Import Media</h1>
+
+            <form
+                action="/import-media/preview"
+                method="post"
+            >
+
+                <div class="form-group">
+                    <label>
+                        Choose deck
+                    </label>
+
+                    <select name="deck_id" required>
+                        {% for deck in decks %}
+                            <option
+                                value="{{ deck[0] }}"
+                                {% if selected_deck_id == deck[0] %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ deck[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Source type
+                    </label>
+
+                    <select name="source_type">
+                        <option
+                            value="text"
+                            {% if source_type == "text" %}
+                                selected
+                            {% endif %}
+                        >
+                            Text / Article Paste
+                        </option>
+
+                        <option value="youtube" disabled>
+                            YouTube Transcript - coming next
+                        </option>
+
+                        <option value="image" disabled>
+                            Notes Image OCR - coming later
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Minimum word count
+                    </label>
+
+                    <input
+                        type="number"
+                        name="minimum_count"
+                        min="1"
+                        value="{{ minimum_count or 1 }}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Paste text or article content
+                    </label>
+
+                    <textarea
+                        name="source_text"
+                        placeholder="Paste your notes, article text, or transcript here..."
+                    >{{ source_text }}</textarea>
+                </div>
+
+                <div class="button-row">
+                    <button type="submit" class="button primary">
+                        Extract Words
+                    </button>
+
+                    <a href="/" class="button secondary">
+                        Back Home
+                    </a>
+                </div>
+
+            </form>
+
+            {% if candidates is not none %}
+
+                <section class="candidate-section">
+
+                    <div class="candidate-header">
+                        <h2>
+                            Unknown 1-grams
+                        </h2>
+
+                        {% if candidates %}
+                            <button
+                                type="button"
+                                class="button primary"
+                                onclick="submitSelectedWords()"
+                            >
+                                Add Selected
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if candidates %}
+
+                        <form
+                            id="selectedWordsForm"
+                            action="/import-media/add-selected"
+                            method="post"
+                        >
+                            <input
+                                type="hidden"
+                                name="deck_id"
+                                value="{{ selected_deck_id }}"
+                            >
+
+                            <div class="candidate-grid">
+
+                                {% for item in candidates %}
+
+                                    <div
+                                        class="candidate-card"
+                                        onclick="toggleCandidate(this)"
+                                    >
+
+                                        <div>
+                                            <div class="candidate-word">
+                                                {{ item.word }}
+                                            </div>
+
+                                            {% if item.translation %}
+                                                <div class="candidate-translation">
+                                                    {{ item.translation }}
+                                                </div>
+                                            {% else %}
+                                                <div class="candidate-translation muted">
+                                                    No translation preview
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="candidate-count">
+                                                {{ item.count }} occurrence{% if item.count != 1 %}s{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <input
+                                            type="checkbox"
+                                            class="candidate-checkbox"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            class="candidate-hidden-word"
+                                            value="{{ item.word }}"
+                                            disabled
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            class="candidate-hidden-translation"
+                                            value="{{ item.translation }}"
+                                            disabled
+                                        >
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </form>
+
+                    {% else %}
+
+                        <p class="empty-message">
+                            No new words found. Either all extracted words are already in the deck,
+                            or the text did not contain useful 1-grams.
+                        </p>
+
+                    {% endif %}
+
+                </section>
+
+            {% endif %}
+
+        </div>
+
+    </main>
+
+    <script>
+        function toggleCandidate(card) {
+            const checkbox =
+                card.querySelector(".candidate-checkbox");
+
+            const hiddenWordInput =
+                card.querySelector(".candidate-hidden-word");
+
+            const hiddenTranslationInput =
+                card.querySelector(".candidate-hidden-translation");
+
+            checkbox.checked = !checkbox.checked;
+
+            if (checkbox.checked) {
+                card.classList.add("selected");
+
+                hiddenWordInput.name = "selected_words";
+                hiddenWordInput.disabled = false;
+
+                hiddenTranslationInput.name = "selected_translations";
+                hiddenTranslationInput.disabled = false;
+            } else {
+                card.classList.remove("selected");
+
+                hiddenWordInput.removeAttribute("name");
+                hiddenWordInput.disabled = true;
+
+                hiddenTranslationInput.removeAttribute("name");
+                hiddenTranslationInput.disabled = true;
+            }
+        }
+
+        function submitSelectedWords() {
+            const form =
+                document.getElementById("selectedWordsForm");
+
+            const selected =
+                form.querySelectorAll(".candidate-card.selected");
+
+            if (selected.length === 0) {
+                alert("Select at least one word first.");
+                return;
+            }
+
+            form.submit();
+        }
+    </script>
+
+</body>
+</html>
