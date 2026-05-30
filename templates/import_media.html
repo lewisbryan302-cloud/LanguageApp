@@ -40,7 +40,8 @@
 
         select,
         textarea,
-        input[type="number"] {
+        input[type="number"],
+        input[type="text"] {
             width: 100%;
             padding: 12px 14px;
             border-radius: 14px;
@@ -144,6 +145,17 @@
             font-weight: normal;
         }
 
+        .error-message {
+            margin-top: 18px;
+            padding: 12px 14px;
+
+            background: #fee2e2;
+            color: #991b1b;
+
+            border-radius: 14px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 
@@ -184,7 +196,11 @@
                         Source type
                     </label>
 
-                    <select name="source_type">
+                    <select
+                        name="source_type"
+                        id="sourceTypeSelect"
+                        onchange="updateImportMediaSourceType()"
+                    >
                         <option
                             value="text"
                             {% if source_type == "text" %}
@@ -194,14 +210,26 @@
                             Text / Article Paste
                         </option>
 
-                        <option value="youtube" disabled>
-                            YouTube Transcript - coming next
-                        </option>
-
                         <option value="image" disabled>
                             Notes Image OCR - coming later
                         </option>
                     </select>
+                </div>
+
+                <div
+                    id="youtubeUrlGroup"
+                    class="form-group"
+                >
+                    <label>
+                        YouTube URL
+                    </label>
+
+                    <input
+                        type="text"
+                        name="youtube_url"
+                        value="{{ youtube_url or '' }}"
+                        placeholder="Paste a YouTube video URL..."
+                    >
                 </div>
 
                 <div class="form-group">
@@ -217,7 +245,10 @@
                     >
                 </div>
 
-                <div class="form-group">
+                <div
+                    id="sourceTextGroup"
+                    class="form-group"
+                >
                     <label>
                         Paste text or article content
                     </label>
@@ -239,6 +270,12 @@
                 </div>
 
             </form>
+
+            {% if error_message %}
+                <p class="error-message">
+                    {{ error_message }}
+                </p>
+            {% endif %}
 
             {% if candidates is not none %}
 
@@ -305,6 +342,7 @@
                                         <input
                                             type="checkbox"
                                             class="candidate-checkbox"
+                                            onclick="event.stopPropagation(); syncCandidateCheckbox(this);"
                                         >
 
                                         <input
@@ -351,13 +389,20 @@
             const checkbox =
                 card.querySelector(".candidate-checkbox");
 
+            checkbox.checked = !checkbox.checked;
+
+            syncCandidateCheckbox(checkbox);
+        }
+
+        function syncCandidateCheckbox(checkbox) {
+            const card =
+                checkbox.closest(".candidate-card");
+
             const hiddenWordInput =
                 card.querySelector(".candidate-hidden-word");
 
             const hiddenTranslationInput =
                 card.querySelector(".candidate-hidden-translation");
-
-            checkbox.checked = !checkbox.checked;
 
             if (checkbox.checked) {
                 card.classList.add("selected");
@@ -392,6 +437,31 @@
 
             form.submit();
         }
+
+        function updateImportMediaSourceType() {
+            const sourceTypeSelect =
+                document.getElementById("sourceTypeSelect");
+
+            const sourceTextGroup =
+                document.getElementById("sourceTextGroup");
+
+            const youtubeUrlGroup =
+                document.getElementById("youtubeUrlGroup");
+
+            if (!sourceTypeSelect || !sourceTextGroup || !youtubeUrlGroup) {
+                return;
+            }
+
+            if (sourceTypeSelect.value === "youtube") {
+                sourceTextGroup.style.display = "none";
+                youtubeUrlGroup.style.display = "block";
+            } else {
+                sourceTextGroup.style.display = "block";
+                youtubeUrlGroup.style.display = "none";
+            }
+        }
+
+        updateImportMediaSourceType();
     </script>
 
 </body>

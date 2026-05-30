@@ -49,7 +49,11 @@ from import_service import import_cards_from_file
 
 from network_service import get_cached_network_suggestions_for_deck
 
-from media_import_service import extract_unknown_1grams_for_deck
+from media_import_service import (
+    extract_unknown_1grams_for_deck,
+    get_youtube_transcript_text,
+    debug_available_youtube_transcripts,
+)
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
 from constants import LANGUAGE_OPTIONS
@@ -755,6 +759,7 @@ def import_media_preview(
     deck_id: int = Form(...),
     source_type: str = Form("text"),
     source_text: str = Form(""),
+    youtube_url: str = Form(""),
     minimum_count: int = Form(1)
 ):
     decks = get_deck_options()
@@ -762,14 +767,31 @@ def import_media_preview(
     source_language = get_deck_language_by_id(deck_id)
     user_language = "en"
 
-    candidates = extract_unknown_1grams_for_deck(
-        deck_id=deck_id,
-        text=source_text,
-        source_language=source_language,
-        user_language=user_language,
-        minimum_count=minimum_count,
-        max_results=150
-    )
+    error_message = None
+    text_to_extract = source_text
+
+    if source_type == "youtube":
+        try:
+            text_to_extract = get_youtube_transcript_text(
+                youtube_url=youtube_url,
+                language=source_language
+            )
+
+        except Exception as error:
+            error_message = str(error)
+            text_to_extract = ""
+
+    candidates = []
+
+    if text_to_extract:
+        candidates = extract_unknown_1grams_for_deck(
+            deck_id=deck_id,
+            text=text_to_extract,
+            source_language=source_language,
+            user_language=user_language,
+            minimum_count=minimum_count,
+            max_results=150
+        )
 
     return templates.TemplateResponse(
         request,
@@ -779,10 +801,12 @@ def import_media_preview(
             "selected_deck_id": deck_id,
             "source_type": source_type,
             "source_text": source_text,
+            "youtube_url": youtube_url,
             "minimum_count": minimum_count,
             "candidates": candidates,
             "source_language": source_language,
             "user_language": user_language,
+            "error_message": error_message,
         }
     )
 
