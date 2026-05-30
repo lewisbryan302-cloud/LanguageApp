@@ -17,6 +17,12 @@ from youtube_transcript_api._errors import (
 )
 from urllib.parse import urlparse, parse_qs
 
+from PIL import Image
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = (
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+)
+
 def translate_media_word(
     word: str,
     source_language: str,
@@ -255,3 +261,41 @@ def debug_available_youtube_transcripts(youtube_url: str) -> str:
 
     except Exception as error:
         return f"Could not list transcripts: {error}"
+    
+def extract_text_from_image_file(file, language: str = "eng") -> str:
+    """
+    Extract text from an uploaded image using Tesseract OCR.
+
+    FastAPI UploadFile gives us a file-like object.
+    Pillow opens it.
+    Tesseract extracts text.
+    """
+
+    try:
+        image = Image.open(file.file)
+
+        text = pytesseract.image_to_string(
+            image,
+            lang=language
+        )
+
+        return text
+
+    except Exception as error:
+        print("IMAGE OCR ERROR:", error)
+        raise ValueError(
+            "Could not extract text from this image. "
+            "Try a clearer image or paste the text manually."
+        )
+    
+def get_tesseract_language_code(deck_language: str) -> str:
+    mapping = {
+        "en": "eng",
+        "es": "spa",
+        "fr": "fra",
+        "de": "deu",
+        "it": "ita",
+        "pt": "por",
+    }
+
+    return mapping.get(deck_language, "eng")

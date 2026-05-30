@@ -51,8 +51,8 @@ from network_service import get_cached_network_suggestions_for_deck
 
 from media_import_service import (
     extract_unknown_1grams_for_deck,
-    get_youtube_transcript_text,
-    debug_available_youtube_transcripts,
+    extract_text_from_image_file,
+    get_tesseract_language_code,
 )
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
@@ -759,8 +759,8 @@ def import_media_preview(
     deck_id: int = Form(...),
     source_type: str = Form("text"),
     source_text: str = Form(""),
-    youtube_url: str = Form(""),
-    minimum_count: int = Form(1)
+    minimum_count: int = Form(1),
+    image_file: UploadFile | None = File(None)
 ):
     decks = get_deck_options()
 
@@ -770,11 +770,16 @@ def import_media_preview(
     error_message = None
     text_to_extract = source_text
 
-    if source_type == "youtube":
+    if source_type == "image":
         try:
-            text_to_extract = get_youtube_transcript_text(
-                youtube_url=youtube_url,
-                language=source_language
+            if image_file is None or not image_file.filename:
+                raise ValueError("Please upload an image first.")
+
+            tesseract_language = get_tesseract_language_code(source_language)
+
+            text_to_extract = extract_text_from_image_file(
+                file=image_file,
+                language=tesseract_language
             )
 
         except Exception as error:
@@ -800,8 +805,7 @@ def import_media_preview(
             "decks": decks,
             "selected_deck_id": deck_id,
             "source_type": source_type,
-            "source_text": source_text,
-            "youtube_url": youtube_url,
+            "source_text": text_to_extract if source_type == "image" else source_text,
             "minimum_count": minimum_count,
             "candidates": candidates,
             "source_language": source_language,

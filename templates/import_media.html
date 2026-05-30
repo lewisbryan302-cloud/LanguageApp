@@ -41,7 +41,8 @@
         select,
         textarea,
         input[type="number"],
-        input[type="text"] {
+        input[type="text"],
+        input[type="file"] {
             width: 100%;
             padding: 12px 14px;
             border-radius: 14px;
@@ -170,6 +171,7 @@
             <form
                 action="/import-media/preview"
                 method="post"
+                enctype="multipart/form-data"
             >
 
                 <div class="form-group">
@@ -210,8 +212,13 @@
                             Text / Article Paste
                         </option>
 
-                        <option value="image" disabled>
-                            Notes Image OCR - coming later
+                        <option
+                            value="image"
+                            {% if source_type == "image" %}
+                                selected
+                            {% endif %}
+                        >
+                            Notes Image OCR
                         </option>
                     </select>
                 </div>
@@ -257,6 +264,21 @@
                         name="source_text"
                         placeholder="Paste your notes, article text, or transcript here..."
                     >{{ source_text }}</textarea>
+                </div>
+
+                <div
+                    id="imageUploadGroup"
+                    class="form-group"
+                >
+                    <label>
+                        Upload image of notes/text
+                    </label>
+
+                    <input
+                        type="file"
+                        name="image_file"
+                        accept="image/*"
+                    >
                 </div>
 
                 <div class="button-row">
@@ -448,16 +470,31 @@
             const youtubeUrlGroup =
                 document.getElementById("youtubeUrlGroup");
 
-            if (!sourceTypeSelect || !sourceTextGroup || !youtubeUrlGroup) {
+            const imageUploadGroup =
+                document.getElementById("imageUploadGroup");
+
+            if (!sourceTypeSelect || !sourceTextGroup || !imageUploadGroup) {
                 return;
             }
 
-            if (sourceTypeSelect.value === "youtube") {
-                sourceTextGroup.style.display = "none";
-                youtubeUrlGroup.style.display = "block";
-            } else {
-                sourceTextGroup.style.display = "block";
+            sourceTextGroup.style.display = "none";
+
+            if (youtubeUrlGroup) {
                 youtubeUrlGroup.style.display = "none";
+            }
+
+            imageUploadGroup.style.display = "none";
+
+            if (sourceTypeSelect.value === "text") {
+                sourceTextGroup.style.display = "block";
+            }
+
+            if (sourceTypeSelect.value === "youtube" && youtubeUrlGroup) {
+                youtubeUrlGroup.style.display = "block";
+            }
+
+            if (sourceTypeSelect.value === "image") {
+                imageUploadGroup.style.display = "block";
             }
         }
 
