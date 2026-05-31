@@ -56,6 +56,11 @@ from media_import_service import (
 )
 
 from suggestion_service import get_smart_add_preview_data_from_query, create_smart_add_cards_from_query
+from auth_service import (
+    create_user,
+    authenticate_user,
+    get_user_by_id
+)
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
 from embedding_helper import translate_word
@@ -81,12 +86,32 @@ def make_deck_name_from_upload(filename: str) -> str:
 app = FastAPI()
 app.add_middleware(
     SessionMiddleware,
-    secret_key="change-this-to-any-random-string"
+    secret_key="change-this-secret-key-later"
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 templates.env.filters["cloze_hidden"] = render_cloze_hidden
 templates.env.filters["cloze_revealed"] = render_cloze_revealed
+
+def get_current_user(request: Request):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return None
+
+    return get_user_by_id(user_id)
+
+
+def require_login(request: Request):
+    user = get_current_user(request)
+
+    if not user:
+        return RedirectResponse(
+            "/",
+            status_code=303
+        )
+
+    return user
 
 @app.get("/db-test")
 def db_test():
@@ -98,6 +123,24 @@ def db_test():
     }
 
 @app.get("/")
+def welcome_page(request: Request):
+    user = get_current_user(request)
+
+    if user:
+        return RedirectResponse(
+            "/home",
+            status_code=303
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "welcome.html",
+        {
+            "error_message": None
+        }
+    )
+
+@app.get("/home")
 def home(
     request: Request,
     stats_deck_id: int | None = None,
@@ -105,8 +148,16 @@ def home(
     network_threshold: float = 0.75,
     use_auto_threshold: str | None = None
 ):
-    decks = get_home_decks()
-    stats_widget = get_home_stats_widget_data(stats_deck_id)
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_home_decks(user_id=user[0])
+    stats_widget = get_home_stats_widget_data(
+        user_id=user[0],
+        deck_id=stats_deck_id
+    )
 
     network_data = None
     network_language = None
@@ -850,4 +901,136 @@ def import_media_add_selected(
     return RedirectResponse(
         f"/import-media?deck_id={deck_id}",
         status_code=303
+    )
+
+@app.post("/signup")
+def signup(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...)
+):
+    email = email.strip().lower()
+
+    if password != confirm_password:
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": "Passwords do not match."
+            }
+        )
+
+    if len(password) < 8:
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": "Password must be at least 8 characters."
+            }
+        )
+
+    try:
+        user_id = create_user(
+            email=email,
+            password=password
+        )
+
+    except Exception as error:
+        print("SIGNUP ERROR:", error)
+
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": f"Signup failed: {error}"
+            }
+        )
+
+    request.session["user_id"] = user_id
+
+    return RedirectResponse(
+        "/home",
+        status_code=303
+    )
+
+
+@app.post("/login")
+def login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    user = authenticate_user(
+        email=email,
+        password=password
+    )
+
+    if not user:
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": "Invalid email or password."
+            }
+        )
+
+    request.session["user_id"] = user["id"]
+
+    return RedirectResponse(
+        "/home",
+        status_code=303
+    )
+
+
+@app.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+
+    return RedirectResponse(
+        "/",
+        status_code=303
+    )
+
+
+@app.get("/forgot-password")
+def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "forgot_password.html",
+        {
+            "message": None
+        }
+    )
+
+
+@app.post("/forgot-password")
+def forgot_password_submit(
+    request: Request,
+    email: str = Form(...)
+):
+    return templates.TemplateResponse(
+        request,
+        "forgot_password.html",
+        {
+            "message": (
+                "If an account exists for that email, "
+                "a password reset link would be sent."
+            )
+        }
+    )
+
+@app.get("/profile")
+def profile_page(request: Request):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    return templates.TemplateResponse(
+        request,
+        "profile.html",
+        {
+            "user": user
+        }
     )

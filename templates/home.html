@@ -863,6 +863,29 @@
             cursor: pointer;
         }
 
+        .home-menu-logout-form {
+            margin: 0;
+        }
+
+        .home-menu-logout-button {
+            width: 100%;
+
+            border: none;
+            background: none;
+
+            padding: 10px 14px;
+
+            text-align: left;
+            font: inherit;
+            color: inherit;
+
+            cursor: pointer;
+        }
+
+        .home-menu-logout-button:hover {
+            background: #f3f4f6;
+        }
+
         @media (max-width: 800px) {
             .widget-top-row {
                 flex-direction: column;
@@ -1013,9 +1036,18 @@
                             Edit Home Page
                         </a>
 
-                        <a href="/logout">
-                            Log Out
-                        </a>
+                        <form
+                            action="/logout"
+                            method="post"
+                            class="home-menu-logout-form"
+                        >
+                            <button
+                                type="submit"
+                                class="home-menu-logout-button"
+                            >
+                                Log Out
+                            </button>
+                        </form>
 
                     </div>
 
@@ -1429,7 +1461,7 @@
 
                         <form
                             method="get"
-                            action="/"
+                            action="/home"
                             class="widget-filter-form"
                         >
                             <select
@@ -1609,7 +1641,7 @@
 
                     <form
                         method="get"
-                        action="/"
+                        action="/home"
                         class="network-control-form"
                     >
                         {% if selected_stats_deck_id %}

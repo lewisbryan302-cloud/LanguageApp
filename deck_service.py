@@ -3,7 +3,7 @@
 from database import get_connection
 
 
-def get_home_decks() -> list:
+def get_home_decks(user_id: int) -> list:
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -11,7 +11,6 @@ def get_home_decks() -> list:
         SELECT
             decks.id,
             decks.name,
-
             COUNT(flashcards.id) AS total_cards,
 
             COUNT(
@@ -33,14 +32,15 @@ def get_home_decks() -> list:
                     WHEN flashcards.next_review <= NOW()
                     THEN 1
                 END
-            ) AS cards_to_review,
+            ) AS to_review,
 
             decks.profile
 
         FROM decks
-
         LEFT JOIN flashcards
             ON flashcards.deck_id = decks.id
+
+        WHERE decks.user_id = %s
 
         GROUP BY
             decks.id,
@@ -51,7 +51,7 @@ def get_home_decks() -> list:
         ORDER BY
             decks.deck_order ASC,
             decks.id ASC;
-    """)
+    """, (user_id,))
 
     decks = cursor.fetchall()
 
@@ -59,6 +59,27 @@ def get_home_decks() -> list:
     conn.close()
 
     return decks
+
+def user_owns_deck(user_id: int, deck_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 1
+        FROM decks
+        WHERE id = %s
+        AND user_id = %s;
+    """, (
+        deck_id,
+        user_id
+    ))
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result is not None
 
 def get_deck_options() -> list:
     conn = get_connection()
@@ -101,14 +122,44 @@ def create_language_deck(
     cursor.close()
     conn.close()
     
-def create_deck(name: str, target_language: str) -> None:
+def create_deck(
+    name: str,
+    user_id: int,
+    target_language: str = "unknown",
+    profile: str = "Decks"
+):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO decks (name, target_language)
-        VALUES (%s, %s);
-    """, (name, target_language))
+        INSERT INTO decks (
+            name,
+            target_language,
+            profile,
+            user_id,
+            deck_order
+        )
+        VALUES (
+            %s,
+            %s,
+            %s,
+            %s,
+            COALESCE(
+                (
+                    SELECT MAX(deck_order) + 1
+                    FROM decks
+                    WHERE user_id = %s
+                ),
+                0
+            )
+        );
+    """, (
+        name,
+        target_language,
+        profile,
+        user_id,
+        user_id
+    ))
 
     conn.commit()
     cursor.close()

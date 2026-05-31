@@ -3,7 +3,13 @@
 from database import get_connection
 
 
-def get_home_stats_widget_data(deck_id: int | None = None) -> dict:
+from database import get_connection
+
+
+def get_home_stats_widget_data(
+    user_id: int,
+    deck_id: int | None = None
+) -> dict:
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -13,50 +19,55 @@ def get_home_stats_widget_data(deck_id: int | None = None) -> dict:
 
             COUNT(
                 CASE
-                    WHEN created_at::date = CURRENT_DATE
+                    WHEN flashcards.created_at::date = CURRENT_DATE
                     THEN 1
                 END
             ) AS cards_added_today,
 
             COUNT(
                 CASE
-                    WHEN created_at >= NOW() - INTERVAL '7 days'
+                    WHEN flashcards.created_at >= NOW() - INTERVAL '7 days'
                     THEN 1
                 END
             ) AS cards_added_this_week,
 
             COUNT(
                 CASE
-                    WHEN next_review <= NOW()
+                    WHEN flashcards.next_review <= NOW()
                     THEN 1
                 END
             ) AS cards_due_now,
 
             COUNT(
                 CASE
-                    WHEN next_review::date = CURRENT_DATE
+                    WHEN flashcards.next_review::date = CURRENT_DATE
                     THEN 1
                 END
             ) AS cards_due_today,
 
             COUNT(
                 CASE
-                    WHEN next_review::date = CURRENT_DATE + INTERVAL '1 day'
+                    WHEN flashcards.next_review::date = CURRENT_DATE + INTERVAL '1 day'
                     THEN 1
                 END
             ) AS cards_due_tomorrow,
 
             COUNT(
                 CASE
-                    WHEN next_review::date >= CURRENT_DATE
-                    AND next_review::date < CURRENT_DATE + INTERVAL '7 days'
+                    WHEN flashcards.next_review::date >= CURRENT_DATE
+                    AND flashcards.next_review::date < CURRENT_DATE + INTERVAL '7 days'
                     THEN 1
                 END
             ) AS cards_due_next_7_days
 
         FROM flashcards
-        WHERE (%s IS NULL OR deck_id = %s);
+        JOIN decks
+            ON decks.id = flashcards.deck_id
+
+        WHERE decks.user_id = %s
+        AND (%s IS NULL OR flashcards.deck_id = %s);
     """, (
+        user_id,
         deck_id,
         deck_id
     ))
@@ -65,15 +76,22 @@ def get_home_stats_widget_data(deck_id: int | None = None) -> dict:
 
     cursor.execute("""
         SELECT
-            next_review::date AS review_date,
+            flashcards.next_review::date AS review_date,
             COUNT(*) AS card_count
+
         FROM flashcards
-        WHERE (%s IS NULL OR deck_id = %s)
-        AND next_review::date >= CURRENT_DATE
-        AND next_review::date < CURRENT_DATE + INTERVAL '7 days'
-        GROUP BY next_review::date
+        JOIN decks
+            ON decks.id = flashcards.deck_id
+
+        WHERE decks.user_id = %s
+        AND (%s IS NULL OR flashcards.deck_id = %s)
+        AND flashcards.next_review::date >= CURRENT_DATE
+        AND flashcards.next_review::date < CURRENT_DATE + INTERVAL '7 days'
+
+        GROUP BY flashcards.next_review::date
         ORDER BY review_date ASC;
     """, (
+        user_id,
         deck_id,
         deck_id
     ))

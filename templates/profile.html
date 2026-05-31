@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f9fafb;
+        }
+
+        .page {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .profile-row {
+            margin-bottom: 16px;
+            padding: 14px;
+
+            background: #f9fafb;
+            border-radius: 14px;
+        }
+
+        .label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .button {
+            flex: 1;
+
+            border: none;
+            border-radius: 14px;
+
+            padding: 12px 16px;
+
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .button.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .button.secondary {
+            background: #e5e7eb;
+            color: black;
+        }
+
+        .button.danger {
+            background: #dc2626;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="page">
+
+        <div class="card">
+
+            <h1>Profile</h1>
+
+            <div class="profile-row">
+                <div class="label">
+                    User ID
+                </div>
+
+                <div class="value">
+                    {{ user[0] }}
+                </div>
+            </div>
+
+            <div class="profile-row">
+                <div class="label">
+                    Email
+                </div>
+
+                <div class="value">
+                    {{ user[1] }}
+                </div>
+            </div>
+
+            <div class="button-row">
+
+                <a
+                    href="/home"
+                    class="button secondary"
+                >
+                    Back Home
+                </a>
+
+                <form
+                    action="/logout"
+                    method="post"
+                    style="flex: 1; margin: 0;"
+                >
+                    <button
+                        type="submit"
+                        class="button danger"
+                        style="width: 100%;"
+                    >
+                        Log out
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
