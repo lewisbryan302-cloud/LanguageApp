@@ -269,6 +269,28 @@
 
 <body>
 
+    {% set words_learnt = stats_widget.total_cards | int %}
+
+    {% if words_learnt < 50 %}
+        {% set badge_image = "w.svg" %}
+        {% set accent_colour = "#FFFFFF" %}
+    {% elif words_learnt < 150 %}
+        {% set badge_image = "r.svg" %}
+        {% set accent_colour = "#C41E3A" %}
+    {% elif words_learnt < 300 %}
+        {% set badge_image = "black.svg" %}
+        {% set accent_colour = "#1A1A1A" %}
+    {% elif words_learnt < 600 %}
+        {% set badge_image = "b.svg" %}
+        {% set accent_colour = "#1E3A8A" %}
+    {% elif words_learnt < 1000 %}
+        {% set badge_image = "m.svg" %}
+        {% set accent_colour = "#1A1A1A" %}
+    {% else %}
+        {% set badge_image = "g.svg" %}
+        {% set accent_colour = "#D4A017" %}
+    {% endif %}
+
     <header class="site-banner">
         <div class="banner-content">
 
@@ -294,7 +316,7 @@
 
     <main
         class="page"
-        style="--language-accent: #2563eb;"
+        style="--language-accent: {{ accent_colour }};"
     >
 
         <section class="language-hero">
