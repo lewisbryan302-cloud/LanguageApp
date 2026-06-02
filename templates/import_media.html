@@ -168,6 +168,9 @@
 
             <h1>Import Media</h1>
 
+            {% set effective_language_deck_id = language_deck_id or back_language_deck_id %}
+            {% set effective_deck_id = selected_deck_id or deck_id or effective_language_deck_id %}
+
             <form
                 action="/import-media/preview"
                 method="post"
@@ -177,27 +180,14 @@
                 <input
                     type="hidden"
                     name="language_deck_id"
-                    value="{{ language_deck_id }}"
+                    value="{{ effective_language_deck_id }}"
                 >
 
-                <div class="form-group">
-                    <label>
-                        Choose deck
-                    </label>
-
-                    <select name="deck_id" required>
-                        {% for deck in decks %}
-                            <option
-                                value="{{ deck[0] }}"
-                                {% if selected_deck_id == deck[0] %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ deck[1] }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <input
+                    type="hidden"
+                    name="deck_id"
+                    value="{{ selected_deck_id }}"
+                >
 
                 <div class="form-group">
                     <label>
@@ -292,8 +282,8 @@
                         Extract Words
                     </button>
 
-                    {% if language_deck_id %}
-                        <a href="/language/{{ language_deck_id }}" class="button secondary">
+                    {% if effective_language_deck_id %}
+                        <a href="/language/{{ effective_language_deck_id }}" class="button secondary">
                             Back to Decks
                         </a>
                     {% else %}
@@ -341,13 +331,13 @@
                             <input
                                 type="hidden"
                                 name="language_deck_id"
-                                value="{{ language_deck_id }}"
+                                value="{{ effective_language_deck_id }}"
                             >
 
                             <input
                                 type="hidden"
                                 name="deck_id"
-                                value="{{ selected_deck_id }}"
+                                value="{{ effective_deck_id }}"
                             >
 
                             <div class="candidate-grid">

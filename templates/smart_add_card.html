@@ -62,7 +62,8 @@
             align-items: center;
         }
 
-        .banner-button {
+        .banner-button,
+        .back-button {
             text-decoration: none;
             background: #2563eb;
             color: white;
@@ -72,16 +73,19 @@
             transition: background 0.15s ease;
         }
 
-        .banner-button:hover {
+        .banner-button:hover,
+        .back-button:hover {
             background: #1d4ed8;
         }
 
-        .banner-button.secondary {
+        .banner-button.secondary,
+        .back-button.secondary {
             background: #e5e7eb;
             color: black;
         }
 
-        .banner-button.secondary:hover {
+        .banner-button.secondary:hover,
+        .back-button.secondary:hover {
             background: #d1d5db;
         }
 
@@ -96,6 +100,14 @@
             border-radius: 24px;
             padding: 40px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .language-context {
+            text-align: center;
+            color: #666;
+            font-weight: bold;
+            margin-top: -10px;
+            margin-bottom: 24px;
         }
 
         .form-label {
@@ -113,12 +125,7 @@
             border: 1px solid #ddd;
             font-size: 16px;
             box-sizing: border-box;
-        }
-
-        .checkbox-label {
-            display: block;
-            margin-top: 24px;
-            font-weight: bold;
+            background: white;
         }
 
         .button-row {
@@ -166,6 +173,7 @@
         .empty-message {
             margin-top: 20px;
             color: #666;
+            line-height: 1.5;
         }
 
         .success-message {
@@ -195,6 +203,15 @@
             margin-left: 6px;
         }
 
+        .example-sentences {
+            margin-top: 10px;
+            color: #444;
+            line-height: 1.4;
+        }
+
+        .example-sentences ul {
+            margin-top: 6px;
+        }
 
         @media (max-width: 800px) {
             .banner-content {
@@ -224,25 +241,49 @@
 
                 <div>
                     <div class="brand-name">LanguageApp</div>
-                    <div class="page-title">Smart Add Card</div>
+                    <div class="page-title">
+                        Smart Add Card
+                    </div>
                 </div>
             </div>
 
             <div class="banner-actions">
 
-                <a
-                    href="/add-card?deck_id={{ deck_id if deck_id is defined else '' }}"
-                    class="banner-button secondary"
-                >
-                    Normal Add
-                </a>
+                {% if deck_id %}
+                    <a
+                        href="/add-card?deck_id={{ deck_id }}"
+                        class="banner-button secondary"
+                    >
+                        Normal Add
+                    </a>
+                {% else %}
+                    <a
+                        href="/add-card"
+                        class="banner-button secondary"
+                    >
+                        Normal Add
+                    </a>
+                {% endif %}
 
-                {% if back_language_deck_id %}
-                    <a href="/language/{{ back_language_deck_id }}" class="back-button">
+                {% if language_deck_id %}
+                    <a
+                        href="/language/{{ language_deck_id }}"
+                        class="back-button secondary"
+                    >
+                        ← Back to Decks
+                    </a>
+                {% elif back_language_deck_id %}
+                    <a
+                        href="/language/{{ back_language_deck_id }}"
+                        class="back-button secondary"
+                    >
                         ← Back to Decks
                     </a>
                 {% else %}
-                    <a href="/hub" class="back-button">
+                    <a
+                        href="/hub"
+                        class="back-button secondary"
+                    >
                         ← Back to Decks
                     </a>
                 {% endif %}
@@ -256,6 +297,12 @@
 
         <div class="smart-card-box">
 
+            {% if language_deck %}
+                <div class="language-context">
+                    {{ language_deck[1] }}
+                </div>
+            {% endif %}
+
             {% if success_message %}
                 <div id="successMessage" class="success-message">
                     {{ success_message }}
@@ -263,230 +310,252 @@
             {% endif %}
 
             <form action="/smart-add-card/preview" method="post">
-                <input
-                    type="hidden"
-                    name="language_deck_id"
-                    value="{{ language_deck_id }}"
-                >
 
-                <label class="form-label">
-                    Deck
-                </label>
-
-                <select name="deck_id" required class="smart-select">
-                    {% for deck in decks %}
-                        <option
-                            value="{{ deck[0] }}"
-                            {% if deck_id is defined and deck_id == deck[0] %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ deck[1] }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <label class="form-label">
-                    Search in English
-                </label>
-
-                <input
-                    type="text"
-                    name="query_word"
-                    class="smart-input"
-                    value="{{ query_word if query_word is defined else '' }}"
-                    placeholder="e.g. house, cold, go, animal"
-                    required
-                >
-
-                <div class="button-row">
-                    <button
-                        type="submit"
-                        class="action-button preview-button"
+                    <input
+                        type="hidden"
+                        name="language_deck_id"
+                        value="{{ language_deck_id }}"
                     >
-                        Find Suggestions
-                    </button>
-                </div>
 
-            </form>
+                    <label class="form-label">
+                        Deck
+                    </label>
 
-            {% if suggestions is not none %}
+                    <select name="deck_id" required class="smart-select">
+                        {% for deck in decks %}
+                            <option
+                                value="{{ deck[0] }}"
+                                {% if deck_id and deck[0]|int == deck_id|int %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ deck[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
 
-                <div class="suggestion-section">
+                    <label class="form-label">
+                        Search in English
+                    </label>
 
-                    <form action="/smart-add-card/create" method="post">
-                        
-                        <input
-                            type="hidden"
-                            name="language_deck_id"
-                            value="{{ language_deck_id }}"
+                    <input
+                        type="text"
+                        name="query_word"
+                        class="smart-input"
+                        value="{{ query_word if query_word is defined else '' }}"
+                        placeholder="e.g. house, cold, go, animal"
+                        required
+                    >
+
+                    <div class="button-row">
+                        <button
+                            type="submit"
+                            class="action-button preview-button"
                         >
-                        <input type="hidden" name="deck_id" value="{{ deck_id }}">
-                        <input type="hidden" name="query_word" value="{{ query_word }}">
+                            Find Suggestions
+                        </button>
+                    </div>
 
-                        <h2>Similar Existing Cards</h2>
+                </form>
 
-                        {% if suggestions %}
+                {% if suggestions is not none %}
 
-                            {% for card in suggestions %}
-                                <div class="suggestion-card">
+                    <div class="suggestion-section">
 
-                                    <label>
+                        <form action="/smart-add-card/create" method="post">
 
-                                        <input
-                                            type="checkbox"
-                                            name="selected_card_ids"
-                                            value="{{ card[0] }}"
-                                        >
+                            <input
+                                type="hidden"
+                                name="language_deck_id"
+                                value="{{ language_deck_id }}"
+                            >
 
-                                        <div class="suggestion-title">
-                                            {{ card[1] }} → {{ card[2] }}
-                                        </div>
+                            <input
+                                type="hidden"
+                                name="deck_id"
+                                value="{{ deck_id }}"
+                            >
 
-                                        Similarity:
-                                        {{ "%.2f"|format(card[3]) }}
+                            <input
+                                type="hidden"
+                                name="query_word"
+                                value="{{ query_word }}"
+                            >
 
-                                    </label>
+                            <h2>Similar Existing Cards</h2>
 
-                                </div>
-                            {% endfor %}
+                            {% if suggestions %}
 
-                        {% else %}
-                            <div class="empty-message">
-                                No similar cards found.
-                            </div>
-                        {% endif %}
-
-                        {% if word_suggestions %}
-
-                            <div class="suggestion-section">
-
-                                <h2>Suggested New Cards</h2>
-
-                                {% for item in word_suggestions %}
+                                {% for card in suggestions %}
                                     <div class="suggestion-card">
 
                                         <label>
 
                                             <input
                                                 type="checkbox"
-                                                name="selected_suggestion_indices"
-                                                value="{{ loop.index0 }}"
+                                                name="selected_card_ids"
+                                                value="{{ card[0] }}"
                                             >
 
                                             <div class="suggestion-title">
-                                                {{ item.word }}
-                                                {% if item.pos_tag %}
-                                                    <span class="pos-tag">{{ item.pos_tag }}</span>
-                                                {% endif %}
-                                                →
-                                                {{ item.translation }}
+                                                {{ card[1] }} → {{ card[2] }}
                                             </div>
 
                                             Similarity:
-                                            {{ "%.2f"|format(item.score) }}
+                                            {{ "%.2f"|format(card[3]) }}
 
                                         </label>
-
-                                        <input
-                                            type="hidden"
-                                            name="suggested_words"
-                                            value="{{ item.word }}"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="suggested_translations"
-                                            value="{{ item.translation }}"
-                                        >
 
                                     </div>
                                 {% endfor %}
 
-                            </div>
+                            {% else %}
 
-                        {% endif %}
+                                <div class="empty-message">
+                                    No similar cards found.
+                                </div>
 
+                            {% endif %}
 
-                        {% if phrase_suggestions %}
+                            {% if word_suggestions %}
 
-                            <div class="suggestion-section">
+                                <div class="suggestion-section">
 
-                                <h2>
-                                    Suggested Phrases
-                                    {% if phrase_query %}
-                                        for "{{ phrase_query }}"
-                                    {% endif %}
-                                </h2>
+                                    <h2>Suggested New Cards</h2>
 
-                                {% for item in phrase_suggestions %}
-                                    <div class="suggestion-card">
+                                    {% for item in word_suggestions %}
+                                        <div class="suggestion-card">
 
-                                        <label>
+                                            <label>
+
+                                                <input
+                                                    type="checkbox"
+                                                    name="selected_suggestion_indices"
+                                                    value="{{ loop.index0 }}"
+                                                >
+
+                                                <div class="suggestion-title">
+                                                    {{ item.word }}
+
+                                                    {% if item.pos_tag %}
+                                                        <span class="pos-tag">
+                                                            {{ item.pos_tag }}
+                                                        </span>
+                                                    {% endif %}
+
+                                                    →
+                                                    {{ item.translation }}
+                                                </div>
+
+                                                Similarity:
+                                                {{ "%.2f"|format(item.score) }}
+
+                                            </label>
 
                                             <input
-                                                type="checkbox"
-                                                name="selected_phrase_indices"
-                                                value="{{ loop.index0 }}"
+                                                type="hidden"
+                                                name="suggested_words"
+                                                value="{{ item.word }}"
                                             >
 
-                                            <div class="suggestion-title">
-                                                {{ item.translation }}
-                                                →
-                                                {{ item.phrase }}
-                                            </div>
+                                            <input
+                                                type="hidden"
+                                                name="suggested_translations"
+                                                value="{{ item.translation }}"
+                                            >
 
-                                            Found {{ item.count }} time{% if item.count != 1 %}s{% endif %}
+                                        </div>
+                                    {% endfor %}
 
-                                        </label>
+                                </div>
 
-                                        {% if item.examples %}
-                                            <div class="example-sentences">
-                                                <p><strong>Examples:</strong></p>
+                            {% endif %}
 
-                                                <ul>
-                                                    {% for example in item.examples %}
-                                                        <li>{{ example }}</li>
-                                                    {% endfor %}
-                                                </ul>
-                                            </div>
+                            {% if phrase_suggestions %}
+
+                                <div class="suggestion-section">
+
+                                    <h2>
+                                        Suggested Phrases
+                                        {% if phrase_query %}
+                                            for "{{ phrase_query }}"
                                         {% endif %}
+                                    </h2>
 
-                                        <input
-                                            type="hidden"
-                                            name="suggested_phrases"
-                                            value="{{ item.phrase }}"
-                                        >
+                                    {% for item in phrase_suggestions %}
+                                        <div class="suggestion-card">
 
-                                        <input
-                                            type="hidden"
-                                            name="suggested_phrase_translations"
-                                            value="{{ item.translation }}"
-                                        >
+                                            <label>
 
-                                    </div>
-                                {% endfor %}
+                                                <input
+                                                    type="checkbox"
+                                                    name="selected_phrase_indices"
+                                                    value="{{ loop.index0 }}"
+                                                >
 
-                            </div>
+                                                <div class="suggestion-title">
+                                                    {{ item.translation }}
+                                                    →
+                                                    {{ item.phrase }}
+                                                </div>
 
-                        {% endif %}
+                                                Found {{ item.count }} time{% if item.count != 1 %}s{% endif %}
 
-                        <div class="button-row">
+                                            </label>
 
-                            <button
-                                type="submit"
-                                class="action-button create-button"
-                            >
-                                Create Cards
-                            </button>
+                                            {% if item.examples %}
+                                                <div class="example-sentences">
+                                                    <p>
+                                                        <strong>Examples:</strong>
+                                                    </p>
 
-                        </div>
+                                                    <ul>
+                                                        {% for example in item.examples %}
+                                                            <li>
+                                                                {{ example }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
 
-                    </form>
+                                            <input
+                                                type="hidden"
+                                                name="suggested_phrases"
+                                                value="{{ item.phrase }}"
+                                            >
 
-                </div>
+                                            <input
+                                                type="hidden"
+                                                name="suggested_phrase_translations"
+                                                value="{{ item.translation }}"
+                                            >
 
-            {% endif %}
+                                        </div>
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endif %}
+
+                            {% if suggestions or word_suggestions or phrase_suggestions %}
+                                <div class="button-row">
+
+                                    <button
+                                        type="submit"
+                                        class="action-button create-button"
+                                    >
+                                        Create Cards
+                                    </button>
+
+                                </div>
+                            {% endif %}
+
+                        </form>
+
+                    </div>
+
+                {% endif %}
 
         </div>
 
@@ -502,7 +571,7 @@
                 setTimeout(() => {
                     successMessage.remove();
                 }, 400);
-            }, 2500);
+            }, 400);
         }
     </script>
 

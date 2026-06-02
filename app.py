@@ -452,29 +452,59 @@ def choose_german_phrase_query(front: str, back: str) -> str | None:
     # The phrase helper will return [] if the word is not found.
     return front or back
 
+def get_language_context_decks(
+    language_deck_id: int,
+    user_id: int
+):
+    language_deck = get_language_deck_context(
+        language_deck_id=language_deck_id,
+        user_id=user_id
+    )
+
+    if not language_deck:
+        return None, []
+
+    decks = get_deck_options_for_language_deck(
+        language_deck_id=language_deck_id,
+        user_id=user_id
+    )
+
+    if not decks:
+        decks = [
+            (
+                language_deck[0],
+                language_deck[1]
+            )
+        ]
+
+    return language_deck, decks
+
 # --- Smart add card mechanism ---
 @app.get("/smart-add-card")
 def smart_add_card_page(
     request: Request,
-    language_deck_id: int | None = None,
-    deck_id: int | None = None
+    deck_id: int | None = None,
+    language_deck_id: int | None = None
 ):
     user = require_login(request)
 
     if isinstance(user, RedirectResponse):
         return user
 
+    if deck_id is None:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
     if language_deck_id is None:
-        if deck_id is not None:
-            language_deck_id = get_language_deck_id_for_deck(
-                deck_id=deck_id,
-                user_id=user[0]
-            )
-        else:
-            return RedirectResponse(
-                "/hub",
-                status_code=303
-            )
+        language_deck_id = get_language_deck_id_for_deck(
+            deck_id=deck_id,
+            user_id=user[0]
+        )
+
+    if language_deck_id is None:
+        language_deck_id = deck_id
 
     language_deck = get_language_deck_context(
         language_deck_id=language_deck_id,
@@ -487,19 +517,24 @@ def smart_add_card_page(
             status_code=303
         )
 
-    decks = get_deck_options_for_language_deck(
-        language_deck_id=language_deck_id,
-        user_id=user[0]
-    )
+    selected_deck = get_deck_by_id(deck_id)
 
-    if deck_id is None and decks:
-        deck_id = decks[0][0]
+    if not selected_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
 
     return templates.TemplateResponse(
         request,
         "smart_add_card.html",
         {
-            "decks": decks,
+            "decks": [
+                (
+                    selected_deck[0],
+                    selected_deck[1]
+                )
+            ],
             "deck_id": deck_id,
             "language_deck": language_deck,
             "language_deck_id": language_deck_id,
@@ -516,8 +551,8 @@ def smart_add_card_page(
 @app.post("/smart-add-card/preview")
 def smart_add_card_preview(
     request: Request,
-    language_deck_id: int = Form(...),
     deck_id: int = Form(...),
+    language_deck_id: int = Form(...),
     query_word: str = Form(...)
 ):
     user = require_login(request)
@@ -527,15 +562,24 @@ def smart_add_card_preview(
 
     query_word = query_word.strip()
 
-    decks = get_deck_options_for_language_deck(
-        language_deck_id=language_deck_id,
-        user_id=user[0]
-    )
-
     language_deck = get_language_deck_context(
         language_deck_id=language_deck_id,
         user_id=user[0]
     )
+
+    if not language_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
+    selected_deck = get_deck_by_id(deck_id)
+
+    if not selected_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
 
     page_data = get_smart_add_preview_data_from_query(
         deck_id=deck_id,
@@ -564,7 +608,13 @@ def smart_add_card_preview(
     page_data["phrase_suggestions"] = phrase_suggestions
     page_data["phrase_query"] = phrase_query
 
-    page_data["decks"] = decks
+    page_data["decks"] = [
+        (
+            selected_deck[0],
+            selected_deck[1]
+        )
+    ]
+    page_data["deck_id"] = deck_id
     page_data["language_deck"] = language_deck
     page_data["language_deck_id"] = language_deck_id
     page_data["back_language_deck_id"] = language_deck_id
@@ -574,7 +624,6 @@ def smart_add_card_preview(
         "smart_add_card.html",
         page_data
     )
-
 
 @app.post("/smart-add-card/create")
 def smart_add_card_create(
@@ -597,6 +646,25 @@ def smart_add_card_create(
 
     query_word = query_word.strip()
 
+    language_deck = get_language_deck_context(
+        language_deck_id=language_deck_id,
+        user_id=user[0]
+    )
+
+    if not language_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
+    selected_deck = get_deck_by_id(deck_id)
+
+    if not selected_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
     inserted_count = create_smart_add_cards_from_query(
         deck_id=deck_id,
         query_word=query_word,
@@ -609,31 +677,10 @@ def smart_add_card_create(
         suggested_phrase_translations=suggested_phrase_translations,
     )
 
-    # Re-run the same preview search after adding cards.
     page_data = get_smart_add_preview_data_from_query(
         deck_id=deck_id,
         query_word=query_word,
     )
-
-    page_data["back_language_deck_id"] = get_language_deck_id_for_deck(
-        deck_id=deck_id,
-        user_id=user[0]
-    )
-
-    decks = get_deck_options_for_language_deck(
-        language_deck_id=language_deck_id,
-        user_id=user[0]
-    )
-
-    language_deck = get_language_deck_context(
-        language_deck_id=language_deck_id,
-        user_id=user[0]
-    )
-
-    page_data["decks"] = decks
-    page_data["language_deck"] = language_deck
-    page_data["language_deck_id"] = language_deck_id
-    page_data["back_language_deck_id"] = language_deck_id
 
     phrase_query = page_data.get("target_query_word", query_word)
     target_language = page_data.get("target_language")
@@ -656,6 +703,18 @@ def smart_add_card_create(
 
     page_data["phrase_suggestions"] = phrase_suggestions
     page_data["phrase_query"] = phrase_query
+
+    page_data["decks"] = [
+        (
+            selected_deck[0],
+            selected_deck[1]
+        )
+    ]
+    page_data["deck_id"] = deck_id
+    page_data["language_deck"] = language_deck
+    page_data["language_deck_id"] = language_deck_id
+    page_data["back_language_deck_id"] = language_deck_id
+
     if inserted_count > 0:
         page_data["success_message"] = (
             f"{inserted_count} card{'s' if inserted_count != 1 else ''} successfully added"
@@ -952,7 +1011,7 @@ def import_media_page(
                 status_code=303
             )
 
-    language_deck = get_language_deck_context(
+    language_deck, decks = get_language_context_decks(
         language_deck_id=language_deck_id,
         user_id=user[0]
     )
@@ -963,12 +1022,7 @@ def import_media_page(
             status_code=303
         )
 
-    decks = get_deck_options_for_language_deck(
-        language_deck_id=language_deck_id,
-        user_id=user[0]
-    )
-
-    if deck_id is None and decks:
+    if deck_id is None:
         deck_id = decks[0][0]
 
     return templates.TemplateResponse(
@@ -983,7 +1037,9 @@ def import_media_page(
             "source_language": language_deck[2],
             "source_type": "text",
             "source_text": "",
+            "minimum_count": 1,
             "candidates": None,
+            "error_message": None,
         }
     )
 
@@ -1003,12 +1059,16 @@ def import_media_preview(
     if isinstance(user, RedirectResponse):
         return user
 
-    decks = get_deck_options(user_id=user[0])
-
-    language_deck = get_language_deck_context(
+    language_deck, decks = get_language_context_decks(
         language_deck_id=language_deck_id,
         user_id=user[0]
     )
+
+    if not language_deck:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
 
     source_language = language_deck[2]
     user_language = "en"
@@ -1050,6 +1110,9 @@ def import_media_preview(
         {
             "decks": decks,
             "selected_deck_id": deck_id,
+            "language_deck": language_deck,
+            "language_deck_id": language_deck_id,
+            "back_language_deck_id": language_deck_id,
             "source_type": source_type,
             "source_text": text_to_extract if source_type == "image" else source_text,
             "minimum_count": minimum_count,
