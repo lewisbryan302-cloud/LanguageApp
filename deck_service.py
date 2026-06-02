@@ -443,3 +443,29 @@ def get_deck_options_for_language_deck(
     conn.close()
 
     return decks
+
+def get_existing_language_codes_for_user(user_id: int) -> set[str]:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT target_language
+        FROM decks
+        WHERE user_id = %s
+          AND profile = 'Languages'
+          AND target_language IS NOT NULL;
+        """,
+        (user_id,)
+    )
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return {
+        row[0].strip().lower()
+        for row in rows
+        if row[0]
+    }

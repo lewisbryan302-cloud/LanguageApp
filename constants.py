@@ -23,5 +23,20 @@ LANGUAGE_OPTIONS = [
         "name": "Norwegian",
         "code": "no",
         "icon": "🇳🇴"
+    },
+    {
+        "name": "Japanese",
+        "code": "ja",
+        "icon": "🇯🇵"
+    },
+    {
+        "name": "Mandarin",
+        "code": "zh-cn",
+        "icon": "🇨🇳"
+    },
+    {
+        "name": "Korean",
+        "code": "ko",
+        "icon": "🇰🇷"
     }
 ]

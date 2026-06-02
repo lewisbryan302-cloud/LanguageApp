@@ -7,7 +7,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background: #f5f5f5;
+            background: #ffffff;
         }
 
         .page {
@@ -24,17 +24,18 @@
         }
 
         .language-layout {
-            display: flex;
-            align-items: flex-start;
-            gap: 40px;
             margin-top: 40px;
         }
 
         .language-sidebar {
             width: 100%;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 18px;
+        }
+
+        .language-left {
+            width: 100%;
         }
 
         .language-content {
@@ -74,15 +75,30 @@
         }
 
         .language-tile:hover {
-            transform: translateX(6px);
+            transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
         .language-icon {
-            font-size: 42px;
-            width: 56px;
+            font-size: 44px;
+            width: 62px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        }
+
+        .language-icon img.emoji {
+            width: 52px;
+            height: 52px;
+            display: block;
+        }
+
+        .language-name {
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
         }
 
         .back-link {
@@ -94,10 +110,6 @@
             padding: 10px 18px;
             border-radius: 12px;
             font-weight: bold;
-        }
-
-        .language-left {
-            width: 50%;
         }
 
         .language-search {
@@ -124,10 +136,15 @@
 
         .site-banner {
             width: 100%;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: #f97316;
+            border-bottom: 1px solid #ea580c;
             padding: 18px 40px;
             box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .banner-content {
@@ -135,7 +152,8 @@
             margin: 0 auto;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            position: relative;
         }
 
         .brand-section {
@@ -148,8 +166,8 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: #2563eb;
-            color: white;
+            background: white;
+            color: #f97316;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -157,18 +175,16 @@
         }
 
         .brand-name {
-            font-size: 24px;
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 32px;
             font-weight: bold;
-        }
-
-        .page-title {
-            font-size: 14px;
-            color: #666;
-            margin-top: 2px;
-            font-weight: bold;
+            color: white;
+            letter-spacing: 0.5px;
         }
 
         .banner-actions {
+            position: absolute;
+            right: 0;
             display: flex;
             gap: 12px;
             align-items: center;
@@ -176,8 +192,8 @@
 
         .banner-button {
             text-decoration: none;
-            background: #2563eb;
-            color: white;
+            background: white;
+            color: #f97316;
             padding: 10px 18px;
             border-radius: 12px;
             font-weight: bold;
@@ -185,80 +201,46 @@
         }
 
         .banner-button:hover {
-            background: #1d4ed8;
+            background: #ffedd5;
+        }
+
+        .language-section {
+            margin-top: 42px;
+        }
+
+        .language-section:first-child {
+            margin-top: 0;
+        }
+
+        .language-section-title {
+            font-size: 26px;
+            margin: 0 0 6px 0;
+        }
+
+        .language-section-subtitle {
+            margin: 0 0 18px 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .empty-language-message {
+            grid-column: 1 / -1;
+            color: #666;
+            font-weight: bold;
+            background: #f9fafb;
+            border-radius: 18px;
+            padding: 22px;
         }
 
         @media (max-width: 900px) {
-            .language-layout {
-                flex-direction: column;
-            }
-
-            .language-left {
-                width: 100%;
-            }
-
-            .language-carousel-mobile {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                width: 100%;
-            }
-
-            .language-carousel-window {
-                width: 75%;
-                overflow: hidden;
-            }
-
             .language-sidebar {
-                display: flex;
-                flex-direction: row;
-                gap: 0;
-                transition: transform 0.25s ease;
-                width: 100%;
-            }
-
-            .language-option {
-                min-width: 100%;
-                display: flex;
-                justify-content: center;
+                grid-template-columns: 1fr;
             }
 
             .language-tile {
                 width: 100%;
                 height: 120px;
-                justify-content: center;
-            }
-
-            .language-carousel-arrow {
-                border: none;
-                background: white;
-                border-radius: 50%;
-                width: 42px;
-                height: 42px;
-                font-size: 20px;
-                cursor: pointer;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-
-            .language-carousel-arrow {
-                display: flex;
-
-                align-items: center;
-                justify-content: center;
-
-                border: none;
-                background: white;
-
-                border-radius: 50%;
-
-                width: 42px;
-                height: 42px;
-
-                font-size: 20px;
-                cursor: pointer;
-
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                justify-content: flex-start;
             }
 
             @media (max-width: 800px) {
@@ -291,11 +273,7 @@
                 <div>
 
                     <div class="brand-name">
-                        LanguageApp
-                    </div>
-
-                    <div class="page-title">
-                        Add Language
+                        Lexikoi
                     </div>
 
                 </div>
@@ -319,7 +297,7 @@
 
     <main class="page">
 
-        <h1>Add Language</h1>
+        
 
         <input
             type="text"
@@ -333,142 +311,121 @@
 
             <div class="language-left">
 
-                <div class="language-carousel-mobile">
+                {% if existing_languages %}
 
-                    <button
-                        type="button"
-                        class="language-carousel-arrow"
-                        onclick="previousLanguage()"
-                    >
-                        ◀
-                    </button>
+                    <section class="language-section">
 
-                    <div class="language-carousel-window">
+                        <h2 class="language-section-title">
+                            Your Languages
+                        </h2>
 
-                        <div
-                            class="language-sidebar"
-                            id="languageSidebar"
-                        >
+                        <p class="language-section-subtitle">
+                            These are already in your hub.
+                        </p>
 
-                            {% for language in languages %}
+                        <div class="language-sidebar existing-language-grid">
 
-                                <form
-                                    action="/add-language"
-                                    method="post"
+                            {% for language in existing_languages %}
+
+                                <div
                                     class="language-option"
                                     data-language="{{ language.name | lower }}"
                                 >
 
-                                    <input
-                                        type="hidden"
-                                        name="language_name"
-                                        value="{{ language.name }}"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="target_language"
-                                        value="{{ language.code }}"
-                                    >
-
                                     <button
-                                        type="submit"
+                                        type="button"
                                         class="language-tile"
                                     >
                                         <div class="language-icon">
                                             {{ language.icon }}
                                         </div>
 
-                                        <span>
+                                        <span class="language-name">
                                             {{ language.name }}
                                         </span>
                                     </button>
 
-                                </form>
+                                </div>
 
                             {% endfor %}
 
                         </div>
 
+                    </section>
+
+                {% endif %}
+
+
+                <section class="language-section">
+
+                    <h2 class="language-section-title">
+                        Available Languages
+                    </h2>
+
+                    <p class="language-section-subtitle">
+                        Choose a language to add to your hub.
+                    </p>
+
+                    <div
+                        class="language-sidebar"
+                        id="languageSidebar"
+                    >
+
+                        {% for language in available_languages %}
+
+                            <form
+                                action="/add-language"
+                                method="post"
+                                class="language-option"
+                                data-language="{{ language.name | lower }}"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="language_name"
+                                    value="{{ language.name }}"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="target_language"
+                                    value="{{ language.code }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="language-tile"
+                                >
+                                    <div class="language-icon">
+                                        {{ language.icon }}
+                                    </div>
+
+                                    <span class="language-name">
+                                        {{ language.name }}
+                                    </span>
+                                </button>
+
+                            </form>
+
+                        {% endfor %}
+
+                        {% if not available_languages %}
+                            <p class="empty-language-message">
+                                You have added all currently available languages.
+                            </p>
+                        {% endif %}
+
                     </div>
 
-                    <button
-                        type="button"
-                        class="language-carousel-arrow"
-                        onclick="nextLanguage()"
-                    >
-                        ▶
-                    </button>
+                </section>
 
-                </div>
+            </div>
 
         </div>
 
     </main>
 
     <script>
-        let currentLanguageIndex = 0;
-
-        function getVisibleLanguageOptions() {
-            return [
-                ...document.querySelectorAll(".language-option")
-            ].filter(option => option.style.display !== "none");
-        }
-
-        function updateLanguageCarousel() {
-            const sidebar =
-                document.getElementById("languageSidebar");
-
-            const visibleOptions =
-                getVisibleLanguageOptions();
-
-            if (visibleOptions.length === 0) {
-                sidebar.style.transform = "translateX(0)";
-                return;
-            }
-
-            if (currentLanguageIndex >= visibleOptions.length) {
-                currentLanguageIndex = visibleOptions.length - 1;
-            }
-
-            if (currentLanguageIndex < 0) {
-                currentLanguageIndex = 0;
-            }
-
-            sidebar.style.transform =
-                `translateX(-${currentLanguageIndex * 100}%)`;
-        }
-
-        function nextLanguage() {
-            const visibleOptions =
-                getVisibleLanguageOptions();
-
-            if (visibleOptions.length === 0) return;
-
-            currentLanguageIndex++;
-
-            if (currentLanguageIndex >= visibleOptions.length) {
-                currentLanguageIndex = 0;
-            }
-
-            updateLanguageCarousel();
-        }
-
-        function previousLanguage() {
-            const visibleOptions =
-                getVisibleLanguageOptions();
-
-            if (visibleOptions.length === 0) return;
-
-            currentLanguageIndex--;
-
-            if (currentLanguageIndex < 0) {
-                currentLanguageIndex = visibleOptions.length - 1;
-            }
-
-            updateLanguageCarousel();
-        }
-
         function filterLanguages() {
             const searchTerm = document
                 .getElementById("language-search")
@@ -483,17 +440,21 @@
                     option.dataset.language.toLowerCase();
 
                 if (languageName.includes(searchTerm)) {
-                    option.style.display = "flex";
+                    option.style.display = "block";
                 } else {
                     option.style.display = "none";
                 }
             });
-
-            currentLanguageIndex = 0;
-            updateLanguageCarousel();
         }
+    </script>
 
-        updateLanguageCarousel();
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js"></script>
+
+    <script>
+        twemoji.parse(document.body, {
+            folder: "svg",
+            ext: ".svg"
+        });
     </script>
 </body>
 </html>

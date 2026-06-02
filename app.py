@@ -46,6 +46,7 @@ from deck_service import (
     get_language_deck_context,
     get_deck_options_for_language_deck,
     user_owns_deck,
+    get_existing_language_codes_for_user,
 )
 
 from stats_service import get_home_stats_widget_data
@@ -774,11 +775,32 @@ def set_deck_profile(
 
 @app.get("/add-language")
 def add_language_page(request: Request):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    existing_language_codes = get_existing_language_codes_for_user(
+        user_id=user[0]
+    )
+
+    existing_languages = []
+    available_languages = []
+
+    for language in LANGUAGE_OPTIONS:
+        language_code = language["code"].strip().lower()
+
+        if language_code in existing_language_codes:
+            existing_languages.append(language)
+        else:
+            available_languages.append(language)
+
     return templates.TemplateResponse(
         request,
         "add_language.html",
         {
-            "languages": LANGUAGE_OPTIONS
+            "existing_languages": existing_languages,
+            "available_languages": available_languages,
         }
     )
 
@@ -793,14 +815,26 @@ def add_language(
     if isinstance(user, RedirectResponse):
         return user
 
+    existing_language_codes = get_existing_language_codes_for_user(
+        user_id=user[0]
+    )
+
+    target_language = target_language.strip().lower()
+
+    if target_language in existing_language_codes:
+        return RedirectResponse(
+            "/add-language",
+            status_code=303
+        )
+
     create_language_deck(
-        language_name=language_name,
-        target_language=target_language,
+        language_name,
+        target_language,
         user_id=user[0]
     )
 
     return RedirectResponse(
-        "/home",
+        "/hub",
         status_code=303
     )
 
