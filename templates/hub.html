@@ -122,6 +122,14 @@
             gap: 20px;
         }
 
+        .language-badge {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
         .language-card {
             background: white;
             border-radius: 24px;
@@ -325,6 +333,47 @@
                             {{ deck[3] }} words learnt · {{ deck[5] }} due
                         </div>
                     </div>
+
+                    {% set words_learnt = deck[3] | int %}
+
+                    {% if words_learnt < 50 %}
+                        <img
+                            src="/static/images/language_badges/w.svg"
+                            class="language-badge"
+                            alt="Beginner badge"
+                        >
+                    {% elif words_learnt < 150 %}
+                        <img
+                            src="/static/images/language_badges/r.svg"
+                            class="language-badge"
+                            alt="Growing badge"
+                        >
+                    {% elif words_learnt < 300 %}
+                        <img
+                            src="/static/images/language_badges/black.svg"
+                            class="language-badge"
+                            alt="Progressing badge"
+                        >
+                    {% elif words_learnt < 600 %}
+                        <img
+                            src="/static/images/language_badges/b.svg"
+                            class="language-badge"
+                            alt="Intermediate badge"
+                        >
+                    {% elif words_learnt < 1000 %}
+                        <img
+                            src="/static/images/language_badges/m.svg"
+                            class="language-badge"
+                            alt="Advanced badge"
+                        >
+
+                    {% else %}
+                        <img
+                            src="/static/images/language_badges/g.svg"
+                            class="language-badge"
+                            alt="Mastery badge"
+                        >
+                    {% endif %}
 
                 </a>
 
