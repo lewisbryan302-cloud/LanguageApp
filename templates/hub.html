@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Language Hub</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .site-banner {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .logo-placeholder {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #111827;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-link {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .hub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+
+            margin-bottom: 32px;
+        }
+
+        .hub-title {
+            margin: 0;
+            font-size: 40px;
+        }
+
+        .hub-subtitle {
+            margin-top: 8px;
+            color: #6b7280;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            min-width: 260px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+
+        .profile-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .profile-value {
+            font-weight: bold;
+        }
+
+        .section-title {
+            margin-top: 36px;
+            margin-bottom: 18px;
+            font-size: 24px;
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .language-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+
+            text-decoration: none;
+            color: inherit;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .language-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+        }
+
+        .language-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+
+            background: var(--language-accent, #2563eb);
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .language-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .language-meta {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .add-language-card {
+            border: 2px dashed #d1d5db;
+            justify-content: center;
+            text-align: center;
+            color: #374151;
+            font-weight: bold;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-button {
+            border: none;
+            background: none;
+            font: inherit;
+            font-weight: bold;
+            color: #374151;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-banner">
+        <div class="banner-content">
+
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
+                <div>LanguageApp</div>
+            </div>
+
+            <div style="display: flex; gap: 18px; align-items: center;">
+                <a href="/profile" class="banner-link">
+                    Profile
+                </a>
+
+                <form
+                    action="/logout"
+                    method="post"
+                    class="logout-form"
+                >
+                    <button
+                        type="submit"
+                        class="logout-button"
+                    >
+                        Log Out
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </header>
+
+    <main class="page">
+
+        <section class="hub-header">
+
+            <div>
+                <h1 class="hub-title">
+                    Your Language Hub
+                </h1>
+
+                <p class="hub-subtitle">
+                    Choose a language to continue learning.
+                </p>
+            </div>
+
+            <aside class="profile-card">
+                <div class="profile-label">
+                    Signed in as
+                </div>
+
+                <div class="profile-value">
+                    {{ user[1] }}
+                </div>
+            </aside>
+
+        </section>
+
+        <h2 class="section-title">
+            My Languages
+        </h2>
+
+        <section class="language-grid">
+
+            {% for deck in language_decks %}
+
+                <a
+                    href="/language/{{ deck[0] }}"
+                    class="language-card"
+                    style="--language-accent: #2563eb;"
+                >
+
+                    <div class="language-icon">
+                        {{ deck[1][0] }}
+                    </div>
+
+                    <div>
+                        <div class="language-name">
+                            {{ deck[1] }}
+                        </div>
+
+                        <div class="language-meta">
+                            {{ deck[3] }} words learnt · {{ deck[5] }} due
+                        </div>
+                    </div>
+
+                </a>
+
+            {% endfor %}
+
+            <a
+                href="/add-language"
+                class="language-card add-language-card"
+            >
+                + Add Language
+            </a>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

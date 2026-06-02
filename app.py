@@ -41,6 +41,7 @@ from deck_service import (
     update_deck_profile,
     create_deck_and_return_id,
     get_deck_language_by_id,
+    user_owns_deck,
 )
 
 from stats_service import get_home_stats_widget_data
@@ -66,7 +67,6 @@ from phrase_helper import get_phrase_suggestions
 from embedding_helper import translate_word
 
 import os
-
 
 def make_deck_name_from_upload(filename: str) -> str:
     if not filename:
@@ -128,7 +128,7 @@ def welcome_page(request: Request):
 
     if user:
         return RedirectResponse(
-            "/home",
+            "/hub",
             status_code=303
         )
 
@@ -1006,7 +1006,7 @@ def signup(
     request.session["user_id"] = user_id
 
     return RedirectResponse(
-        "/home",
+        "/hub",
         status_code=303
     )
 
@@ -1034,7 +1034,7 @@ def login(
     request.session["user_id"] = user["id"]
 
     return RedirectResponse(
-        "/home",
+        "/hub",
         status_code=303
     )
 
@@ -1088,5 +1088,62 @@ def profile_page(request: Request):
         "profile.html",
         {
             "user": user
+        }
+    )
+
+@app.get("/hub")
+def hub_page(request: Request):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_home_decks(user_id=user[0])
+
+    language_decks = [
+        deck
+        for deck in decks
+        if deck[6] == "Languages"
+    ]
+
+    return templates.TemplateResponse(
+        request,
+        "hub.html",
+        {
+            "user": user,
+            "language_decks": language_decks
+        }
+    )
+
+@app.get("/language/{language_deck_id}")
+def language_home(
+    request: Request,
+    language_deck_id: int
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    if not user_owns_deck(user[0], language_deck_id):
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
+    language_deck = get_deck_by_id(language_deck_id)
+
+    stats_widget = get_home_stats_widget_data(
+        user_id=user[0],
+        deck_id=language_deck_id
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "language_home.html",
+        {
+            "user": user,
+            "language_deck": language_deck,
+            "stats_widget": stats_widget,
         }
     )

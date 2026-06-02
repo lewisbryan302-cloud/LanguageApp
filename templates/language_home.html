@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ language_deck[1] }} Home</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .site-banner {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-placeholder {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+
+            background: #111827;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-links {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .banner-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-button {
+            border: none;
+            background: none;
+            color: #374151;
+
+            font: inherit;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .language-hero {
+            background: white;
+            border-radius: 28px;
+            padding: 32px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border-top: 8px solid var(--language-accent, #2563eb);
+        }
+
+        .language-title-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .language-symbol {
+            width: 76px;
+            height: 76px;
+            border-radius: 24px;
+
+            background: var(--language-accent, #2563eb);
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 34px;
+            font-weight: bold;
+        }
+
+        .language-title {
+            margin: 0;
+            font-size: 40px;
+        }
+
+        .language-subtitle {
+            margin-top: 6px;
+            color: #6b7280;
+        }
+
+        .hero-action {
+            background: var(--language-accent, #2563eb);
+            color: white;
+
+            text-decoration: none;
+            font-weight: bold;
+
+            padding: 14px 22px;
+            border-radius: 16px;
+        }
+
+        .dashboard-grid {
+            margin-top: 28px;
+
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .activity-card,
+        .stats-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+
+        .activity-card {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+        }
+
+        .activity-card h2,
+        .stats-card h2 {
+            margin-top: 0;
+        }
+
+        .activity-card.primary {
+            border-top: 6px solid var(--language-accent, #2563eb);
+        }
+
+        .activity-card p {
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .stat-box {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .language-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-banner">
+        <div class="banner-content">
+
+            <div class="brand-section">
+                <div class="logo-placeholder">L</div>
+                <div>LanguageApp</div>
+            </div>
+
+            <nav class="banner-links">
+                <a href="/hub">Hub</a>
+                <a href="/profile">Profile</a>
+
+                <form
+                    action="/logout"
+                    method="post"
+                    class="logout-form"
+                >
+                    <button
+                        type="submit"
+                        class="logout-button"
+                    >
+                        Log Out
+                    </button>
+                </form>
+            </nav>
+
+        </div>
+    </header>
+
+    <main
+        class="page"
+        style="--language-accent: #2563eb;"
+    >
+
+        <section class="language-hero">
+
+            <div class="language-title-area">
+
+                <div class="language-symbol">
+                    {{ language_deck[1][0] }}
+                </div>
+
+                <div>
+                    <h1 class="language-title">
+                        {{ language_deck[1] }}
+                    </h1>
+
+                    <div class="language-subtitle">
+                        Your {{ language_deck[1] }} learning home.
+                    </div>
+                </div>
+
+            </div>
+
+            <a
+                href="/review/{{ language_deck[0] }}"
+                class="hero-action"
+            >
+                Review Now
+            </a>
+
+        </section>
+
+        <section class="dashboard-grid">
+
+            <div class="activity-grid">
+
+                <a
+                    href="/review/{{ language_deck[0] }}"
+                    class="activity-card primary"
+                >
+                    <h2>Review</h2>
+                    <p>Practise cards that are due for this language.</p>
+                </a>
+
+                <a
+                    href="/add-card?deck_id={{ language_deck[0] }}"
+                    class="activity-card"
+                >
+                    <h2>Add Card</h2>
+                    <p>Add new vocabulary, phrases, or cloze cards.</p>
+                </a>
+
+                <a
+                    href="/smart-add-card?deck_id={{ language_deck[0] }}"
+                    class="activity-card"
+                >
+                    <h2>Smart Add</h2>
+                    <p>Generate related words and suggestions.</p>
+                </a>
+
+                <a
+                    href="/import-deck?deck_id={{ language_deck[0] }}"
+                    class="activity-card"
+                >
+                    <h2>Import Cards</h2>
+                    <p>Import a CSV, TSV, or Anki deck.</p>
+                </a>
+
+                <a
+                    href="/import-media?deck_id={{ language_deck[0] }}"
+                    class="activity-card"
+                >
+                    <h2>Import Media</h2>
+                    <p>Extract words from notes, articles, or images.</p>
+                </a>
+
+                <a
+                    href="/deck/{{ language_deck[0] }}/cards"
+                    class="activity-card"
+                >
+                    <h2>View Cards</h2>
+                    <p>Browse, filter, and manage your cards.</p>
+                </a>
+
+            </div>
+
+            <aside class="stats-card">
+
+                <h2>Stats</h2>
+
+                <div class="stats-grid">
+
+                    <div class="stat-box">
+                        <div class="stat-label">
+                            Total Cards
+                        </div>
+
+                        <div class="stat-value">
+                            {{ stats_widget.total_cards }}
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">
+                            Due Now
+                        </div>
+
+                        <div class="stat-value">
+                            {{ stats_widget.cards_due_now }}
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">
+                            Added Today
+                        </div>
+
+                        <div class="stat-value">
+                            {{ stats_widget.cards_added_today }}
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">
+                            Due Next 7 Days
+                        </div>
+
+                        <div class="stat-value">
+                            {{ stats_widget.cards_due_next_7_days }}
+                        </div>
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
