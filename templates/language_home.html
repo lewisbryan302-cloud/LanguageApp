@@ -13,8 +13,8 @@
 
         .site-banner {
             width: 100%;
-            background: #f97316;
-            border-bottom: 1px solid #ea580c;
+            background: white;
+            border-bottom: 1px solid #ffedd5;
             padding: 18px 40px;
             box-sizing: border-box;
 
@@ -42,25 +42,31 @@
         }
 
         .logo-placeholder {
-            width: 44px;
-            height: 44px;
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
 
-            background: white;
-            color: #f97316;
+            background: #ffffff;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            display: block;
         }
 
         .brand-name {
             font-family: "Trebuchet MS", Arial, sans-serif;
             font-size: 32px;
             font-weight: bold;
-            color: white;
+            color: #f97316;
             letter-spacing: 0.5px;
         }
 
@@ -77,8 +83,8 @@
         .logout-button {
             text-decoration: none;
 
-            background: white;
-            color: #f97316;
+            background: #f97316;
+            color: white;
 
             padding: 10px 18px;
             border-radius: 12px;
@@ -96,7 +102,7 @@
 
         .banner-links a:hover,
         .logout-button:hover {
-            background: #ffedd5;
+            background: #ea580c;
         }
 
         .logout-form {
@@ -249,8 +255,7 @@
             }
 
             .banner-links {
-                
-                right: 0;
+                position: static;
                 flex-wrap: wrap;
                 justify-content: center;
             }
@@ -296,7 +301,11 @@
 
             <div class="brand-section">
                 <div class="logo-placeholder">
-                    L
+                    <img
+                        src="/static/images/banner_koi.svg"
+                        class="logo-image"
+                        alt="LanguageApp logo"
+                    >
                 </div>
 
                 <div class="brand-name">
