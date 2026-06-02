@@ -81,15 +81,16 @@ def user_owns_deck(user_id: int, deck_id: int) -> bool:
 
     return result is not None
 
-def get_deck_options() -> list:
+def get_deck_options(user_id: int) -> list:
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT id, name
         FROM decks
+        WHERE user_id = %s
         ORDER BY id;
-    """)
+    """, (user_id,))
 
     decks = cursor.fetchall()
 
@@ -100,7 +101,8 @@ def get_deck_options() -> list:
 
 def create_language_deck(
     language_name: str,
-    target_language: str
+    target_language: str,
+    user_id: int
 ) -> None:
     conn = get_connection()
     cursor = conn.cursor()
@@ -109,13 +111,30 @@ def create_language_deck(
         INSERT INTO decks (
             name,
             profile,
-            target_language
+            target_language,
+            user_id,
+            deck_order
         )
-        VALUES (%s, %s, %s);
+        VALUES (
+            %s,
+            %s,
+            %s,
+            %s,
+            COALESCE(
+                (
+                    SELECT MAX(deck_order) + 1
+                    FROM decks
+                    WHERE user_id = %s
+                ),
+                0
+            )
+        );
     """, (
         language_name,
         "Languages",
-        target_language
+        target_language,
+        user_id,
+        user_id
     ))
 
     conn.commit()
@@ -263,7 +282,12 @@ def update_deck_profile(deck_id: int, profile: str) -> None:
     cursor.close()
     conn.close()
 
-def create_deck_and_return_id(name: str, target_language: str = "unknown") -> int:
+def create_deck_and_return_id(
+    name: str,
+    user_id: int,
+    target_language: str = "unknown",
+    profile: str = "Decks"
+) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -272,14 +296,20 @@ def create_deck_and_return_id(name: str, target_language: str = "unknown") -> in
             name,
             target_language,
             profile,
+            user_id,
             deck_order
         )
         VALUES (
             %s,
             %s,
             %s,
+            %s,
             COALESCE(
-                (SELECT MAX(deck_order) + 1 FROM decks),
+                (
+                    SELECT MAX(deck_order) + 1
+                    FROM decks
+                    WHERE user_id = %s
+                ),
                 0
             )
         )
@@ -287,7 +317,9 @@ def create_deck_and_return_id(name: str, target_language: str = "unknown") -> in
     """, (
         name,
         target_language,
-        "Decks"
+        profile,
+        user_id,
+        user_id
     ))
 
     deck_id = cursor.fetchone()[0]

@@ -223,7 +223,12 @@ def add_card_page(
     deck_id: int | None = None,
     add_reverse: str | None = None
 ):
-    decks = get_deck_options()
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_deck_options(user_id=user[0])
 
     return templates.TemplateResponse(
         request,
@@ -272,12 +277,28 @@ def add_deck_page(request: Request):
         "add_deck.html"
     )
 
-
 @app.post("/add-deck")
-def add_deck(name: str = Form(...), target_language: str = Form(...)):
-    create_deck(name, target_language)
+def add_deck(
+    request: Request,
+    name: str = Form(...),
+    target_language: str = Form("unknown")
+):
+    user = require_login(request)
 
-    return RedirectResponse("/", status_code=303)
+    if isinstance(user, RedirectResponse):
+        return user
+
+    create_deck(
+        name=name,
+        user_id=user[0],
+        target_language=target_language,
+        profile="Decks"
+    )
+
+    return RedirectResponse(
+        "/home",
+        status_code=303
+    )
 
 # --- Mechanism to rename decks ---
 @app.get("/rename-deck/{deck_id}")
@@ -413,7 +434,12 @@ def smart_add_card_page(
     request: Request,
     deck_id: int | None = None
 ):
-    decks = get_deck_options()
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_deck_options(user_id=user[0])
 
     return templates.TemplateResponse(
         request,
@@ -600,12 +626,25 @@ def add_language_page(request: Request):
 
 @app.post("/add-language")
 def add_language(
+    request: Request,
     language_name: str = Form(...),
     target_language: str = Form(...)
 ):
-    create_language_deck(language_name, target_language)
+    user = require_login(request)
 
-    return RedirectResponse("/", status_code=303)
+    if isinstance(user, RedirectResponse):
+        return user
+
+    create_language_deck(
+        language_name=language_name,
+        target_language=target_language,
+        user_id=user[0]
+    )
+
+    return RedirectResponse(
+        "/home",
+        status_code=303
+    )
 
 @app.post("/rename-deck-inline/{deck_id}")
 def rename_deck_inline(deck_id: int, name: str = Form(...)):
@@ -673,9 +712,16 @@ def import_new_deck(
 ):
     deck_name = make_deck_name_from_upload(file.filename)
 
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
     new_deck_id = create_deck_and_return_id(
         name=deck_name,
-        target_language="unknown"
+        user_id=user[0],
+        target_language="unknown",
+        profile="Decks"
     )
 
     imported_count = import_cards_from_file(
@@ -789,7 +835,12 @@ def import_media_page(
     request: Request,
     deck_id: int | None = None
 ):
-    decks = get_deck_options()
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_deck_options(user_id=user[0])
 
     return templates.TemplateResponse(
         request,
@@ -813,7 +864,12 @@ def import_media_preview(
     minimum_count: int = Form(1),
     image_file: UploadFile | None = File(None)
 ):
-    decks = get_deck_options()
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    decks = get_deck_options(user_id=user[0])
 
     source_language = get_deck_language_by_id(deck_id)
     user_language = "en"
