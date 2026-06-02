@@ -12,38 +12,51 @@
         }
 
         .site-banner {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 16px 24px;
+            width: 100%;
+            background: #f97316;
+            border-bottom: 1px solid #ea580c;
+            padding: 18px 40px;
+            box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .banner-content {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
         .brand-section {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: bold;
-            font-size: 20px;
+            gap: 14px;
         }
 
         .logo-placeholder {
-            width: 38px;
-            height: 38px;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
-            background: #111827;
-            color: white;
-
+            background: white;
+            color: #f97316;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
+        }
+
+        .brand-name {
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            letter-spacing: 0.5px;
         }
 
         .banner-link {
@@ -60,9 +73,9 @@
 
         .hub-header {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: flex-start;
-            gap: 24px;
+            gap: 18px;
 
             margin-bottom: 32px;
         }
@@ -80,7 +93,8 @@
         .profile-card {
             background: white;
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px 20px;
+            width: fit-content;
             min-width: 260px;
 
             box-shadow: 0 6px 20px rgba(0,0,0,0.06);
@@ -104,7 +118,7 @@
 
         .language-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: auto auto auto;
             gap: 20px;
         }
 
@@ -134,21 +148,27 @@
             height: 58px;
             border-radius: 18px;
 
-            background: var(--language-accent, #2563eb);
-            color: white;
+            background: #fff7ed;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 36px;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        }
+
+        .language-icon img.emoji {
+            width: 42px;
+            height: 42px;
+            display: block;
         }
 
         .language-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 4px;
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
         }
 
         .language-meta {
@@ -165,17 +185,41 @@
         }
 
         .logout-form {
-            margin: 0;
+            position: absolute;
+            right: 0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
-        .logout-button {
-            border: none;
-            background: none;
-            font: inherit;
+        .banner-button {
+            text-decoration: none;
+            background: white;
+            color: #f97316;
+            padding: 10px 18px;
+            border-radius: 12px;
             font-weight: bold;
-            color: #374151;
+            transition: background 0.15s ease;
+
+            border: none;
             cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
         }
+
+        .banner-button:hover {
+            background: #ffedd5;
+        }
+
+        @media (max-width: 800px) {
+            .language-grid {
+            display: grid;
+            grid-template-columns: auto;
+            gap: 20px;
+        }
+            
+        }
+
     </style>
 </head>
 
@@ -186,14 +230,11 @@
 
             <div class="brand-section">
                 <div class="logo-placeholder">L</div>
-                <div>LanguageApp</div>
+                <div class="brand-name">Lexikoi</div>
             </div>
 
             <div style="display: flex; gap: 18px; align-items: center;">
-                <a href="/profile" class="banner-link">
-                    Profile
-                </a>
-
+                
                 <form
                     action="/logout"
                     method="post"
@@ -201,7 +242,7 @@
                 >
                     <button
                         type="submit"
-                        class="logout-button"
+                        class="banner-button"
                     >
                         Log Out
                     </button>
@@ -252,7 +293,27 @@
                 >
 
                     <div class="language-icon">
-                        {{ deck[1][0] }}
+                        {% set language_name = deck[1] | lower | trim %}
+
+                        {% if language_name == "spanish" %}
+                            🇪🇸
+                        {% elif language_name == "german" %}
+                            🇩🇪
+                        {% elif language_name == "french" %}
+                            🇫🇷
+                        {% elif language_name == "italian" %}
+                            🇮🇹
+                        {% elif language_name == "norwegian" %}
+                            🇳🇴
+                        {% elif language_name == "japanese" %}
+                            🇯🇵
+                        {% elif language_name == "mandarin" %}
+                            🇨🇳
+                        {% elif language_name == "korean" %}
+                            🇰🇷
+                        {% else %}
+                            🌍
+                        {% endif %}
                     </div>
 
                     <div>
@@ -280,5 +341,13 @@
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js"></script>
+
+    <script>
+        twemoji.parse(document.body, {
+            folder: "svg",
+            ext: ".svg"
+        });
+    </script>
 </body>
 </html>
