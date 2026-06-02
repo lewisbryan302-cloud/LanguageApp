@@ -89,6 +89,7 @@ def get_deck_options(user_id: int) -> list:
         SELECT id, name
         FROM decks
         WHERE user_id = %s
+        AND profile != 'Languages'
         ORDER BY id;
     """, (user_id,))
 
@@ -329,3 +330,116 @@ def create_deck_and_return_id(
     conn.close()
 
     return deck_id
+
+def get_language_deck_id_for_deck(deck_id: int, user_id: int) -> int | None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT target_language, profile
+        FROM decks
+        WHERE id = %s
+        AND user_id = %s;
+    """, (
+        deck_id,
+        user_id
+    ))
+
+    deck = cursor.fetchone()
+
+    if not deck:
+        cursor.close()
+        conn.close()
+        return None
+
+    target_language = deck[0]
+    profile = deck[1]
+
+    if profile == "Languages":
+        cursor.close()
+        conn.close()
+        return deck_id
+
+    cursor.execute("""
+        SELECT id
+        FROM decks
+        WHERE user_id = %s
+        AND profile = 'Languages'
+        AND target_language = %s
+        ORDER BY deck_order ASC, id ASC
+        LIMIT 1;
+    """, (
+        user_id,
+        target_language
+    ))
+
+    language_deck = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not language_deck:
+        return None
+
+    return language_deck[0]
+
+def get_language_deck_context(
+    language_deck_id: int,
+    user_id: int
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name, target_language
+        FROM decks
+        WHERE id = %s
+        AND user_id = %s
+        AND profile = 'Languages';
+    """, (
+        language_deck_id,
+        user_id
+    ))
+
+    language_deck = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return language_deck
+
+def get_deck_options_for_language_deck(
+    language_deck_id: int,
+    user_id: int
+) -> list:
+    language_deck = get_language_deck_context(
+        language_deck_id=language_deck_id,
+        user_id=user_id
+    )
+
+    if not language_deck:
+        return []
+
+    target_language = language_deck[2]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM decks
+        WHERE user_id = %s
+        AND profile != 'Languages'
+        AND target_language = %s
+        ORDER BY deck_order ASC, id ASC;
+    """, (
+        user_id,
+        target_language
+    ))
+
+    decks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return decks

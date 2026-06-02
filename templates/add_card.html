@@ -472,9 +472,15 @@
                     Review Deck
                 </a>
 
-                <a href="/" class="banner-button">
-                    ← Back to Decks
-                </a>
+                {% if back_language_deck_id %}
+                    <a href="/language/{{ back_language_deck_id }}" class="back-button">
+                        ← Back to Decks
+                    </a>
+                {% else %}
+                    <a href="/hub" class="back-button">
+                        ← Back to Decks
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>

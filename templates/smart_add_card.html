@@ -237,9 +237,15 @@
                     Normal Add
                 </a>
 
-                <a href="/" class="banner-button">
-                    ← Back to Decks
-                </a>
+                {% if back_language_deck_id %}
+                    <a href="/language/{{ back_language_deck_id }}" class="back-button">
+                        ← Back to Decks
+                    </a>
+                {% else %}
+                    <a href="/hub" class="back-button">
+                        ← Back to Decks
+                    </a>
+                {% endif %}
 
             </div>
 
@@ -257,6 +263,11 @@
             {% endif %}
 
             <form action="/smart-add-card/preview" method="post">
+                <input
+                    type="hidden"
+                    name="language_deck_id"
+                    value="{{ language_deck_id }}"
+                >
 
                 <label class="form-label">
                     Deck
@@ -304,7 +315,12 @@
                 <div class="suggestion-section">
 
                     <form action="/smart-add-card/create" method="post">
-
+                        
+                        <input
+                            type="hidden"
+                            name="language_deck_id"
+                            value="{{ language_deck_id }}"
+                        >
                         <input type="hidden" name="deck_id" value="{{ deck_id }}">
                         <input type="hidden" name="query_word" value="{{ query_word }}">
 
