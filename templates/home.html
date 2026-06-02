@@ -11,18 +11,26 @@
 
         .site-banner {
             width: 100%;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: #f97316;
+            border-bottom: 1px solid #ea580c;
             padding: 18px 40px;
             box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .banner-content {
             max-width: 1100px;
             margin: 0 auto;
+
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+
+            position: relative;
         }
 
         .brand-section {
@@ -35,106 +43,71 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: #2563eb;
-            color: white;
+
+            background: white;
+            color: #f97316;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: bold;
         }
 
         .brand-name {
-            font-size: 24px;
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 32px;
             font-weight: bold;
+            color: white;
+            letter-spacing: 0.5px;
         }
 
         .banner-right {
+            position: absolute;
+            right: 0;
+
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #666;
         }
 
-        .banner-button {
+        .banner-button,
+        .import-media-button,
+        .home-menu-button {
             text-decoration: none;
 
-            background: #2563eb;
-            color: white;
+            background: white;
+            color: #f97316;
 
             padding: 10px 18px;
-
             border-radius: 12px;
 
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
             font-weight: bold;
+
+            cursor: pointer;
 
             transition: background 0.15s ease;
         }
 
-        .banner-button:hover {
-            background: #1d4ed8;
+        .banner-button:hover,
+        .import-media-button:hover,
+        .home-menu-button:hover {
+            background: #ffedd5;
+        }
+
+        .import-media-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .home-banner-menu {
             position: relative;
             display: inline-block;
-        }
-
-        .home-menu-button {
-            border: none;
-            background: #e5e7eb;
-            color: black;
-
-            padding: 10px 18px;
-            border-radius: 12px;
-
-            font-weight: bold;
-            font-size: 15px;
-
-            cursor: pointer;
-        }
-
-        .home-menu-button:hover {
-            background: #d1d5db;
-        }
-
-        .home-menu-dropdown {
-            display: none;
-
-            position: absolute;
-            top: 46px;
-            right: 0;
-
-            min-width: 210px;
-
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 14px;
-
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
-
-            padding: 8px;
-            z-index: 1000;
-        }
-
-        .home-menu-dropdown.open {
-            display: block;
-        }
-
-        .home-menu-dropdown a {
-            display: block;
-
-            padding: 10px 12px;
-
-            color: #111827;
-            text-decoration: none;
-
-            border-radius: 10px;
-
-            font-weight: 600;
-        }
-
-        .home-menu-dropdown a:hover {
-            background: #f3f4f6;
         }
 
         .import-media-button {
@@ -983,15 +956,21 @@
 
     <header class="site-banner">
         <div class="banner-content">
+
             <div class="brand-section">
-                <div class="logo-placeholder">L</div>
-                <div class="brand-name">LanguageApp</div>
+                <div class="logo-placeholder">
+                    L
+                </div>
+
+                <div class="brand-name">
+                    L
+                </div>
             </div>
 
             <div class="banner-right">
 
                 <a
-                    href="/import-media?language_deck_id={{ language_deck[0] }}"
+                    href="/import-media?language_deck_id={{ language_deck[0] }}&deck_id={{ language_deck[0] }}"
                     class="import-media-button"
                 >
                     <span class="import-icon">↑</span>
@@ -1010,17 +989,11 @@
 
                     <div id="home-menu-dropdown" class="home-menu-dropdown">
 
-                        <a
-                            id="addButton"
-                            href="/add-deck"
-                        >
+                        <a href="/add-deck">
                             + Add Deck
                         </a>
 
-                        <a
-                            id="importNewDeckButton"
-                            href="/import-new-deck"
-                        >
+                        <a href="/import-new-deck">
                             Import New Deck
                         </a>
 
@@ -1058,6 +1031,7 @@
                 </div>
 
             </div>
+
         </div>
     </header>
 
@@ -1088,36 +1062,12 @@
 
     <main class="page">
 
-        <div class="home-view-switcher">
-
-            <button
-                type="button"
-                class="view-arrow"
-                onclick="previousHomeView()"
-            >
-                ◀
-            </button>
-
-            <div id="homeViewTitle" class="home-view-title">
-                Decks
-            </div>
-
-            <button
-                type="button"
-                class="view-arrow"
-                onclick="nextHomeView()"
-            >
-                ▶
-            </button>
-
-        </div>
-
         <div class="home-dashboard-layout">
 
             <div class="home-main-column">
 
                 <!-- DECKS PAGE -->
-                <section id="decks-view" class="home-view active-view">
+                <section id="decks-view">
 
                     <div class="deck-grid">
 
@@ -1267,167 +1217,6 @@
                                             class="deck-action-button"
                                         >
                                             Add Card
-                                        </a>
-
-                                        <a
-                                            href="/deck/{{ deck[0] }}/cards"
-                                            class="deck-action-button"
-                                        >
-                                            View Cards
-                                        </a>
-
-                                        <a
-                                            href="/review/{{ deck[0] }}"
-                                            class="deck-action-button primary"
-                                        >
-                                            Review
-                                        </a>
-
-                                    </div>
-
-                                </div>
-
-                            {% endif %}
-                        {% endfor %}
-
-                    </div>
-
-                </section>
-
-                <!-- LANGUAGES PAGE -->
-                <section id="languages-view" class="home-view">
-
-                    <div class="deck-grid">
-
-                        {% for deck in decks %}
-                            {% if deck[6] == "Languages" %}
-
-                                <div class="deck" data-deck-id="{{ deck[0] }}">
-
-                                    <div class="menu-container">
-
-                                        <button
-                                            class="menu-button"
-                                            onclick="toggleMenu('{{ deck[0] }}')"
-                                        >
-                                            ⋮
-                                        </button>
-
-                                        <div id="menu-{{ deck[0] }}" class="menu">
-
-                                            <a href="/deck/{{ deck[0] }}/cards">
-                                                View Cards
-                                            </a>
-
-                                            <a href="/import-deck?deck_id={{ deck[0] }}">
-                                                Import Cards
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onclick="startInlineRename(event, '{{ deck[0] }}')"
-                                            >
-                                                Rename
-                                            </button>
-
-                                            <form action="/delete-deck/{{ deck[0] }}" method="post">
-                                                <button
-                                                    type="submit"
-                                                    onclick="return confirm('Delete this deck and all its cards?');"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </form>
-
-                                            <form action="/deck/{{ deck[0] }}/set-profile" method="post">
-                                                <input type="hidden" name="profile" value="Decks">
-                                                <button type="submit">Move to Decks</button>
-                                            </form>
-
-                                            <form action="/deck/{{ deck[0] }}/set-profile" method="post">
-                                                <input type="hidden" name="profile" value="Languages">
-                                                <button type="submit">Move to Languages</button>
-                                            </form>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="drag-handle">
-                                        <div class="drag-dot"></div>
-                                        <div class="drag-dot"></div>
-                                        <div class="drag-dot"></div>
-                                    </div>
-
-                                    <div class="deck-title-section">
-
-                                        <a
-                                            href="/review/{{ deck[0] }}"
-                                            class="deck-title"
-                                            id="deck-title-{{ deck[0] }}"
-                                        >
-                                            {{ deck[1] }}
-                                        </a>
-
-                                        <input
-                                            type="text"
-                                            class="deck-rename-input"
-                                            id="deck-rename-input-{{ deck[0] }}"
-                                            value="{{ deck[1] }}"
-                                            style="display: none;"
-                                            onkeydown="handleRenameKey(event, '{{ deck[0] }}')"
-                                            onblur="submitInlineRename('{{ deck[0] }}')"
-                                        >
-
-                                    </div>
-
-                                    <div class="deck-stats">
-
-                                        <div class="stat-block">
-                                            <div class="stat-label">
-                                                Words Learnt
-                                            </div>
-
-                                            <div class="stat-value">
-                                                {{ deck[3] }}
-                                            </div>
-                                        </div>
-
-                                        <div class="stat-block">
-                                            <div class="stat-label">
-                                                New Cards
-                                            </div>
-
-                                            <div class="stat-value">
-                                                {{ deck[4] }}
-                                            </div>
-                                        </div>
-
-                                        <div class="stat-block">
-                                            <div class="stat-label">
-                                                To Review
-                                            </div>
-
-                                            <div class="stat-value">
-                                                {{ deck[5] }}
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-                                    <div class="deck-actions">
-
-                                        <a
-                                            href="/add-card?deck_id={{ deck[0] }}"
-                                            class="deck-action-button"
-                                        >
-                                            Add Card
-                                        </a>
-
-                                        <a
-                                            href="/smart-add-card?language_deck_id={{ language_deck[0] }}"
-                                            class="deck-action-button"
-                                        >
-                                            Smart Add
                                         </a>
 
                                         <a
