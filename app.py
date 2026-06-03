@@ -69,6 +69,7 @@ from auth_service import (
 )
 
 from goal_service import (
+    get_language_goal_progress_for_user,
     save_language_goal,
     get_language_goals_for_user,
 )
@@ -1353,6 +1354,10 @@ def hub_page(request: Request):
         user_id=user[0]
     )
 
+    language_goal_progress = get_language_goal_progress_for_user(
+        user_id=user[0]
+    )
+
     return templates.TemplateResponse(
         request,
         "hub.html",
@@ -1360,6 +1365,7 @@ def hub_page(request: Request):
             "user": user,
             "language_decks": language_decks,
             "language_goals": language_goals,
+            "language_goal_progress": language_goal_progress,
         }
     )
 

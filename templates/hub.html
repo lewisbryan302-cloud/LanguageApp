@@ -128,7 +128,7 @@
 
         .language-grid {
             display: grid;
-            grid-template-columns: auto auto auto;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 20px;
         }
 
@@ -143,9 +143,10 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.08);
             border: 1px solid #e5e7eb;
 
-            display: flex;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
             align-items: center;
-            gap: 16px;
+            column-gap: 16px;
 
             position: relative;
             overflow: hidden;
@@ -162,6 +163,10 @@
             height: 8px;
 
             background: var(--language-accent, #f97316);
+        }
+
+        .language-card-main {
+            min-width: 0;
         }
 
         .add-language-card::after {
@@ -441,12 +446,65 @@
             background: #ea580c;
         }
 
+        .goal-wheel {
+            width: 58px;
+            height: 58px;
+            position: relative;
+        }
+
+        .goal-wheel svg {
+            width: 58px;
+            height: 58px;
+            transform: rotate(-90deg);
+        }
+
+        .goal-wheel-track {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 5;
+        }
+
+        .goal-wheel-progress {
+            fill: none;
+            stroke: var(--language-accent, #f97316);
+            stroke-width: 5;
+            stroke-linecap: round;
+        }
+
+        .goal-wheel-text {
+            position: absolute;
+            inset: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 12px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .goal-wheel-subtext {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .goal-wheel-container {
+            justify-self: end;
+            flex-shrink: 0;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         @media (max-width: 800px) {
             .language-grid {
-                display: grid;
-                grid-template-columns: auto;
-                gap: 20px;
+                grid-template-columns: 1fr;
             }
+        
 
             .banner-content {
                 justify-content: space-between;
@@ -613,6 +671,49 @@
                         </div>
                     </div>
 
+                    {% set goal = language_goal_progress.get(deck[0]) %}
+
+                    {% if goal %}
+
+                        {% set radius = 24 %}
+                        {% set circumference = 150.8 %}
+                        {% set progress_offset = circumference - ((goal.progress_percent / 100) * circumference) %}
+
+                        <div>
+                            <div
+                                class="goal-wheel"
+                                title="{{ goal.current_words }} / {{ goal.target_words }} new words this {{ goal.time_frame }}"
+                            >
+                                <svg viewBox="0 0 58 58" aria-hidden="true">
+                                    <circle
+                                        class="goal-wheel-track"
+                                        cx="29"
+                                        cy="29"
+                                        r="{{ radius }}"
+                                    />
+
+                                    <circle
+                                        class="goal-wheel-progress"
+                                        cx="29"
+                                        cy="29"
+                                        r="{{ radius }}"
+                                        stroke-dasharray="{{ circumference }}"
+                                        stroke-dashoffset="{{ progress_offset }}"
+                                    />
+                                </svg>
+
+                                <div class="goal-wheel-text">
+                                    {{ goal.progress_percent }}%
+                                </div>
+                            </div>
+
+                            <div class="goal-wheel-subtext">
+                                {{ goal.current_words }}/{{ goal.target_words }}
+                            </div>
+                        </div>
+
+                    {% endif %}
+
                 </a>
 
             {% endfor %}
@@ -709,8 +810,8 @@
                 <button
                     type="button"
                     class="settings-close-button"
-                    onclick="backToSettingsMenu()"
-                    aria-label="Back to settings menu"
+                    onclick="closeSettingsMenu()"
+                    aria-label="Close settings menu"
                 >
                     ×
                 </button>
@@ -741,8 +842,8 @@
                 <button
                     type="button"
                     class="settings-close-button"
-                    onclick="closeGoalsMenu()"
-                    aria-label="Close goals menu"
+                    onclick="backToSettingsMenu()"
+                    aria-label="Back to settings menu"
                 >
                     ×
                 </button>
