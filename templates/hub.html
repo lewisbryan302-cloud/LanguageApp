@@ -466,7 +466,7 @@
 
         .goal-wheel-progress {
             fill: none;
-            stroke: var(--language-accent, #f97316);
+            stroke: var(--goal-wheel-colour, var(--language-accent, #f97316));
             stroke-width: 5;
             stroke-linecap: round;
         }
@@ -498,6 +498,64 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .danger-option {
+            margin-top: 10px;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .danger-option:hover {
+            background: #fecaca;
+        }
+
+        .delete-language-menu {
+            max-width: 480px;
+        }
+
+        .delete-warning {
+            color: #6b7280;
+            line-height: 1.5;
+            margin: 0 0 18px 0;
+        }
+
+        .delete-confirm-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+
+            margin-top: 8px;
+
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .delete-confirm-row input {
+            margin-top: 3px;
+        }
+
+        .delete-language-button {
+            margin-top: 12px;
+
+            background: #dc2626;
+            color: white;
+
+            border: none;
+            border-radius: 14px;
+
+            padding: 14px 18px;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .delete-language-button:hover {
+            background: #b91c1c;
         }
 
         @media (max-width: 800px) {
@@ -619,22 +677,28 @@
 
                 {% if words_learnt < 50 %}
                     {% set accent_colour = "#FFFFFF" %}
+                    {% set wheel_colour = "#f97316" %}
                 {% elif words_learnt < 150 %}
                     {% set accent_colour = "#C41E3A" %}
+                    {% set wheel_colour = "#C41E3A" %}
                 {% elif words_learnt < 300 %}
-                    {% set accent_colour = "#1A1A1A" %}
-                {% elif words_learnt < 600 %}
                     {% set accent_colour = "#1E3A8A" %}
-                {% elif words_learnt < 1000 %}
+                    {% set wheel_colour = "#1E3A8A" %}
+                {% elif words_learnt < 600 %}
                     {% set accent_colour = "#C0C0C0" %}
+                    {% set wheel_colour = "#C0C0C0" %}
+                {% elif words_learnt < 1000 %}
+                    {% set accent_colour = "#1A1A1A" %}
+                    {% set wheel_colour = "#1A1A1A" %}
                 {% else %}
                     {% set accent_colour = "#D4A017" %}
+                    {% set wheel_colour = "#D4A017" %}
                 {% endif %}
 
                 <a
                     href="/language/{{ deck[0] }}"
                     class="language-card"
-                    style="--language-accent: {{ accent_colour }};"
+                    style="--language-accent: {{ accent_colour }}; --goal-wheel-colour: {{ wheel_colour }};"
                 >
 
                     <div class="language-icon">
@@ -786,10 +850,49 @@
             openSettingsMenu();
         }
 
+        function openDeleteLanguageMenu() {
+            closeSettingsMenu();
+
+            const overlay = document.getElementById("deleteLanguageOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.remove("hidden");
+        }
+
+        function closeDeleteLanguageMenu() {
+            const overlay = document.getElementById("deleteLanguageOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.add("hidden");
+        }
+
+        function backToSettingsFromDeleteLanguage() {
+            closeDeleteLanguageMenu();
+            openSettingsMenu();
+        }
+
+        function confirmDeleteLanguageForm() {
+            const checkbox = document.getElementById("deleteLanguageConfirm");
+
+            if (!checkbox || !checkbox.checked) {
+                alert("Please confirm that you understand this language will be deleted.");
+                return false;
+            }
+
+            return confirm("Are you sure you want to delete this language?");
+        }
+
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
                 closeSettingsMenu();
                 closeGoalsMenu();
+                closeDeleteLanguageMenu();
             }
         });
 
@@ -824,6 +927,15 @@
             >
                 Set / Edit Goals
             </button>
+
+            <button
+                type="button"
+                class="settings-menu-option danger-option"
+                onclick="openDeleteLanguageMenu()"
+            >
+                Delete Language
+            </button>
+
         </div>
     </div>
 
@@ -907,6 +1019,76 @@
                     class="goals-save-button"
                 >
                     Save Goal
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div
+        id="deleteLanguageOverlay"
+        class="settings-overlay hidden"
+        onclick="closeDeleteLanguageMenu()"
+    >
+        <div
+            class="settings-menu delete-language-menu"
+            onclick="event.stopPropagation()"
+        >
+            <div class="settings-menu-header">
+                <h2>Delete Language</h2>
+
+                <button
+                    type="button"
+                    class="settings-close-button"
+                    onclick="backToSettingsFromDeleteLanguage()"
+                    aria-label="Back to settings menu"
+                >
+                    ×
+                </button>
+            </div>
+
+            <p class="delete-warning">
+                This will delete the selected language from your hub. Any cards in that language deck will also be deleted.
+            </p>
+
+            <form
+                action="/language/delete"
+                method="post"
+                class="goals-form"
+                onsubmit="return confirmDeleteLanguageForm()"
+            >
+                <label class="goals-label">
+                    Language
+                </label>
+
+                <select
+                    name="language_deck_id"
+                    class="goals-input"
+                    required
+                >
+                    {% for deck in language_decks %}
+                        <option value="{{ deck[0] }}">
+                            {{ deck[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label class="delete-confirm-row">
+                    <input
+                        type="checkbox"
+                        id="deleteLanguageConfirm"
+                        required
+                    >
+
+                    <span>
+                        I understand this language and its cards will be deleted.
+                    </span>
+                </label>
+
+                <button
+                    type="submit"
+                    class="delete-language-button"
+                >
+                    Delete Language
                 </button>
             </form>
         </div>

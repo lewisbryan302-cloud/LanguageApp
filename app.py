@@ -47,6 +47,7 @@ from deck_service import (
     get_deck_options_for_language_deck,
     user_owns_deck,
     get_existing_language_codes_for_user,
+    delete_language_deck_for_user,
 )
 
 from stats_service import get_home_stats_widget_data
@@ -1463,6 +1464,26 @@ def save_goals(
         language_deck_id=language_deck_id,
         target_words=target_words,
         time_frame=time_frame
+    )
+
+    return RedirectResponse(
+        "/hub",
+        status_code=303
+    )
+
+@app.post("/language/delete")
+def delete_language(
+    request: Request,
+    language_deck_id: int = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    delete_language_deck_for_user(
+        user_id=user[0],
+        language_deck_id=language_deck_id
     )
 
     return RedirectResponse(

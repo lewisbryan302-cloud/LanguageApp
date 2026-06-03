@@ -469,3 +469,74 @@ def get_existing_language_codes_for_user(user_id: int) -> set[str]:
         for row in rows
         if row[0]
     }
+
+def delete_language_deck_for_user(
+    user_id: int,
+    language_deck_id: int
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT id
+            FROM decks
+            WHERE id = %s
+              AND user_id = %s
+              AND profile = 'Languages';
+            """,
+            (
+                language_deck_id,
+                user_id
+            )
+        )
+
+        language_deck = cursor.fetchone()
+
+        if not language_deck:
+            conn.rollback()
+            return
+
+        cursor.execute(
+            """
+            DELETE FROM language_goals
+            WHERE language_deck_id = %s
+              AND user_id = %s;
+            """,
+            (
+                language_deck_id,
+                user_id
+            )
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM flashcards
+            WHERE deck_id = %s;
+            """,
+            (language_deck_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM decks
+            WHERE id = %s
+              AND user_id = %s
+              AND profile = 'Languages';
+            """,
+            (
+                language_deck_id,
+                user_id
+            )
+        )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
