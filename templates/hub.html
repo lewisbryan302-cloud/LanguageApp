@@ -62,7 +62,7 @@
 
         .brand-name {
             font-family: "Trebuchet MS", Arial, sans-serif;
-            font-size: 32px;
+            font-size: 44px;
             font-weight: bold;
             color: #f97316;
             letter-spacing: 0.5px;
@@ -131,14 +131,6 @@
             gap: 20px;
         }
 
-        .language-badge {
-            width: 54px;
-            height: 54px;
-            object-fit: contain;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-
         .language-card {
             background: white;
             border-radius: 24px;
@@ -153,6 +145,26 @@
             display: flex;
             align-items: center;
             gap: 16px;
+
+            position: relative;
+            overflow: hidden;
+        }
+
+        .language-card::after {
+            content: "";
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 8px;
+
+            background: var(--language-accent, #f97316);
+        }
+
+        .add-language-card::after {
+            display: none;
         }
 
         .language-card:hover {
@@ -312,10 +324,26 @@
 
             {% for deck in language_decks %}
 
+                {% set words_learnt = deck[3] | int %}
+
+                {% if words_learnt < 50 %}
+                    {% set accent_colour = "#FFFFFF" %}
+                {% elif words_learnt < 150 %}
+                    {% set accent_colour = "#C41E3A" %}
+                {% elif words_learnt < 300 %}
+                    {% set accent_colour = "#1A1A1A" %}
+                {% elif words_learnt < 600 %}
+                    {% set accent_colour = "#1E3A8A" %}
+                {% elif words_learnt < 1000 %}
+                    {% set accent_colour = "#C0C0C0" %}
+                {% else %}
+                    {% set accent_colour = "#D4A017" %}
+                {% endif %}
+
                 <a
                     href="/language/{{ deck[0] }}"
                     class="language-card"
-                    style="--language-accent: #2563eb;"
+                    style="--language-accent: {{ accent_colour }};"
                 >
 
                     <div class="language-icon">
@@ -351,47 +379,6 @@
                             {{ deck[3] }} words learnt · {{ deck[5] }} due
                         </div>
                     </div>
-
-                    {% set words_learnt = deck[3] | int %}
-
-                    {% if words_learnt < 50 %}
-                        <img
-                            src="/static/images/language_badges/w.svg"
-                            class="language-badge"
-                            alt="Beginner badge"
-                        >
-                    {% elif words_learnt < 150 %}
-                        <img
-                            src="/static/images/language_badges/r.svg"
-                            class="language-badge"
-                            alt="Growing badge"
-                        >
-                    {% elif words_learnt < 300 %}
-                        <img
-                            src="/static/images/language_badges/black.svg"
-                            class="language-badge"
-                            alt="Progressing badge"
-                        >
-                    {% elif words_learnt < 600 %}
-                        <img
-                            src="/static/images/language_badges/b.svg"
-                            class="language-badge"
-                            alt="Intermediate badge"
-                        >
-                    {% elif words_learnt < 1000 %}
-                        <img
-                            src="/static/images/language_badges/m.svg"
-                            class="language-badge"
-                            alt="Advanced badge"
-                        >
-
-                    {% else %}
-                        <img
-                            src="/static/images/language_badges/g.svg"
-                            class="language-badge"
-                            alt="Mastery badge"
-                        >
-                    {% endif %}
 
                 </a>
 
