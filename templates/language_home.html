@@ -25,14 +25,13 @@
         }
 
         .banner-content {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
 
-            display: flex;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
-            justify-content: center;
-
-            position: relative;
+            gap: 24px;
         }
 
         .brand-section {
@@ -71,11 +70,9 @@
         }
 
         .banner-links {
-            position: absolute;
-            right: 0;
-
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 12px;
         }
 
@@ -107,6 +104,60 @@
 
         .logout-form {
             margin: 0;
+        }
+
+        .language-banner-stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .language-banner-stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .language-banner-stat {
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            border-radius: 999px;
+
+            padding: 8px 14px;
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            min-height: 42px;
+        }
+
+        .language-banner-stat-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #9a3412;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .language-banner-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f97316;
+        }
+
+        .banner-flame {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .language-banner-stat-subtext {
+            margin-top: 2px;
+
+            font-size: 12px;
+            color: #6b7280;
         }
 
         .page {
@@ -437,6 +488,35 @@
             display: block;
         }
 
+        .language-hero-right {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .daily-points-card {
+            min-width: 220px;
+        }
+
+        .daily-points-label {
+            color: #6b7280;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .daily-points-value {
+            margin-top: 6px;
+            font-size: 38px;
+            font-weight: bold;
+            color: var(--language-hover, #f97316);
+        }
+
+        .daily-points-details {
+            margin-top: 4px;
+            color: #6b7280;
+            font-size: 16px;
+        }
+
         @media (max-width: 850px) {
             .banner-content {
                 flex-direction: column;
@@ -505,33 +585,33 @@
     </style>
 </head>
 
-    {% set words_learnt = stats_widget.total_cards | int %}
+    {% set language_points = score_data.get("total_score", 0) | int %}
 
-    {% if words_learnt < 50 %}
+    {% if language_points < 100 %}
         {% set badge_image = "w.svg" %}
         {% set accent_colour = "#FFFFFF" %}
         {% set hover_colour = "#f97316" %}
         {% set accent_text_colour = "#111827" %}
 
-    {% elif words_learnt < 150 %}
+    {% elif language_points < 1000 %}
         {% set badge_image = "r.svg" %}
         {% set accent_colour = "#C41E3A" %}
         {% set hover_colour = "#9F1830" %}
         {% set accent_text_colour = "#FFFFFF" %}
 
-    {% elif words_learnt < 300 %}
+    {% elif language_points < 3000 %}
         {% set badge_image = "black.svg" %}
         {% set accent_colour = "#1A1A1A" %}
         {% set hover_colour = "#000000" %}
         {% set accent_text_colour = "#FFFFFF" %}
 
-    {% elif words_learnt < 600 %}
+    {% elif language_points < 6000 %}
         {% set badge_image = "b.svg" %}
         {% set accent_colour = "#1E3A8A" %}
         {% set hover_colour = "#172F6E" %}
         {% set accent_text_colour = "#FFFFFF" %}
 
-    {% elif words_learnt < 1000 %}
+    {% elif language_points < 10000 %}
         {% set badge_image = "m.svg" %}
         {% set accent_colour = "#1A1A1A" %}
         {% set hover_colour = "#000000" %}
@@ -567,6 +647,34 @@
                 <div class="brand-name">
                     Lexikoi
                 </div>
+            </div>
+
+            <div class="language-banner-stats">
+
+                <div class="language-banner-stat">
+                    <span class="language-banner-stat-label">
+                        Total Points
+                    </span>
+
+                    <span class="language-banner-stat-value">
+                        {{ "%.0f"|format(score_data["total_score"]) }}
+                    </span>
+                </div>
+
+                <div class="language-banner-stat">
+                    <span class="banner-flame">
+                        🔥
+                    </span>
+
+                    <span class="language-banner-stat-label">
+                        Streak
+                    </span>
+
+                    <span class="language-banner-stat-value">
+                        {{ score_data["streak"] }}
+                    </span>
+                </div>
+
             </div>
 
             <nav class="banner-links">
@@ -622,7 +730,7 @@
 
                 </div>
 
-                <div class="language-hero-actions">
+                <div class="language-hero-right">
 
                     <a
                         href="/review/{{ language_deck[0] }}"
@@ -631,23 +739,16 @@
                         Review Now
                     </a>
 
-                    <div class="language-points-inline">
-                        <div class="points-top-row">
-                            <div>
-                                <div class="points-label">Today's points</div>
-
-                                <div class="points-value">
-                                    {{ "%.0f"|format(score_data["daily_score"]) }}
-                                </div>
-                            </div>
-
-                            <div class="streak-display">
-                                <span class="streak-flame">🔥</span>
-                                <span>{{ score_data["streak"] }} day streak</span>
-                            </div>
+                    <div class="daily-points-card">
+                        <div class="daily-points-label">
+                            Today's points
                         </div>
 
-                        <div class="points-details">
+                        <div class="daily-points-value">
+                            {{ "%.0f"|format(score_data["daily_score"]) }}
+                        </div>
+
+                        <div class="daily-points-details">
                             {{ score_data["cards_reviewed"] }} reviewed ·
                             {{ score_data["cards_added"] }} added ·
                             {{ score_data["cards_learnt"] }} learnt

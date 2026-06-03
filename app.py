@@ -1394,8 +1394,9 @@ def language_home(
     )
 
     score_data = get_today_language_score(
-        profile=str(user[0]),
-        language=str(language_deck_id)
+        profile=user[1],
+        language=language_deck[1],
+        language_deck_id=language_deck_id
     )
 
     return templates.TemplateResponse(

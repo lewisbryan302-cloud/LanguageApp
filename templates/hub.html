@@ -673,23 +673,28 @@
 
             {% for deck in language_decks %}
 
-                {% set words_learnt = deck[3] | int %}
+                {% set language_points = deck[3] | int %}
 
-                {% if words_learnt < 50 %}
+                {% if language_points < 100 %}
                     {% set accent_colour = "#FFFFFF" %}
                     {% set wheel_colour = "#f97316" %}
-                {% elif words_learnt < 150 %}
+
+                {% elif language_points < 1000 %}
                     {% set accent_colour = "#C41E3A" %}
                     {% set wheel_colour = "#C41E3A" %}
-                {% elif words_learnt < 300 %}
-                    {% set accent_colour = "#1E3A8A" %}
-                    {% set wheel_colour = "#1E3A8A" %}
-                {% elif words_learnt < 600 %}
-                    {% set accent_colour = "#C0C0C0" %}
-                    {% set wheel_colour = "#C0C0C0" %}
-                {% elif words_learnt < 1000 %}
+
+                {% elif language_points < 3000 %}
                     {% set accent_colour = "#1A1A1A" %}
                     {% set wheel_colour = "#1A1A1A" %}
+
+                {% elif language_points < 6000 %}
+                    {% set accent_colour = "#1E3A8A" %}
+                    {% set wheel_colour = "#1E3A8A" %}
+
+                {% elif language_points < 10000 %}
+                    {% set accent_colour = "#C0C0C0" %}
+                    {% set wheel_colour = "#C0C0C0" %}
+
                 {% else %}
                     {% set accent_colour = "#D4A017" %}
                     {% set wheel_colour = "#D4A017" %}

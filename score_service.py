@@ -45,9 +45,37 @@ def improved_daily_score(
     return review_points + add_points + learning_points + streak_bonus
 
 
-def get_today_language_score(profile: str, language: str):
+def get_today_language_score(profile: str, language: str, language_deck_id: int):
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM flashcards
+        WHERE deck_id = %s;
+        """,
+        (language_deck_id,)
+    )
+
+    deck_size_row = cursor.fetchone()
+    deck_size_score = int(deck_size_row[0]) if deck_size_row else 0
+
+    cursor.execute(
+        """
+        SELECT
+            COALESCE(SUM(daily_score), 0)
+        FROM daily_language_scores
+        WHERE profile = %s
+          AND language = %s;
+        """,
+        (profile, language)
+    )
+
+    activity_score_row = cursor.fetchone()
+    activity_score = float(activity_score_row[0]) if activity_score_row else 0
+
+    total_score = deck_size_score + activity_score
 
     cursor.execute(
         """
@@ -72,6 +100,9 @@ def get_today_language_score(profile: str, language: str):
 
     if row is None:
         return {
+            "total_score": total_score,
+            "deck_size_score": deck_size_score,
+            "activity_score": activity_score,
             "cards_reviewed": 0,
             "cards_added": 0,
             "cards_learnt": 0,
@@ -80,6 +111,9 @@ def get_today_language_score(profile: str, language: str):
         }
 
     return {
+        "total_score": total_score,
+        "deck_size_score": deck_size_score,
+        "activity_score": activity_score,
         "cards_reviewed": row[0],
         "cards_added": row[1],
         "cards_learnt": row[2],
