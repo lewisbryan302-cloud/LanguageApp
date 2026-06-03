@@ -48,6 +48,11 @@ from deck_service import (
     user_owns_deck,
     get_existing_language_codes_for_user,
     delete_language_deck_for_user,
+    get_deck_language_and_profile,
+)
+
+from score_service import (
+    update_today_language_score,
 )
 
 from stats_service import get_home_stats_widget_data
@@ -273,34 +278,27 @@ def add_card_page(
         }
     )
 
+
 @app.post("/add-card")
 def add_card(
     deck_id: int = Form(...),
     front: str = Form(...),
     back: str = Form(...),
-    card_type: str = Form("basic"),
-    add_reverse: str | None = Form(None),
-    image: UploadFile | None = File(None),
-    pasted_image_data: str | None = Form(None),
-    tags: str = Form("")
 ):
-    new_card_id = create_manual_card(
-        deck_id=deck_id,
-        front=front,
-        back=back,
-        card_type=card_type,
-        add_reverse=add_reverse,
-        image=image,
-        pasted_image_data=pasted_image_data,
-    )
+    create_manual_card(deck_id, front, back)
 
-    if tags.strip():
-        set_card_tags(new_card_id, tags)
+    language, profile = get_deck_language_and_profile(deck_id)
 
-    return RedirectResponse(
-        f"/add-card?deck_id={deck_id}&add_reverse={add_reverse or ''}",
-        status_code=303
-    )
+    if language is not None and profile is not None:
+        update_today_language_score(
+            profile=profile,
+            language=language,
+            cards_added_delta=1,
+            daily_review_goal=50,
+            daily_add_goal=10,
+        )
+
+    return RedirectResponse("/", status_code=303)
 
 # --- Mechanism to add new decks ---
 @app.get("/add-deck")
@@ -1370,6 +1368,8 @@ def hub_page(request: Request):
         }
     )
 
+from score_service import get_today_language_score
+
 @app.get("/language/{language_deck_id}")
 def language_home(
     request: Request,
@@ -1393,6 +1393,11 @@ def language_home(
         deck_id=language_deck_id
     )
 
+    score_data = get_today_language_score(
+        profile=str(user[0]),
+        language=str(language_deck_id)
+    )
+
     return templates.TemplateResponse(
         request,
         "language_home.html",
@@ -1400,6 +1405,7 @@ def language_home(
             "user": user,
             "language_deck": language_deck,
             "stats_widget": stats_widget,
+            "score_data": score_data,
         }
     )
 

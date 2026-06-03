@@ -325,6 +325,118 @@
             box-shadow: 0 8px 18px rgba(0,0,0,0.16);
         }
 
+        .points-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .points-value {
+            font-size: 34px;
+            font-weight: bold;
+            line-height: 1;
+            color: var(--language-accent, #f97316);
+        }
+
+        .points-details {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .language-hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .language-hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .language-points-inline {
+            min-width: 260px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .points-top-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .points-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .points-value {
+            margin-top: 4px;
+
+            font-size: 34px;
+            font-weight: bold;
+            line-height: 1;
+
+            color: var(--language-hover, #f97316);
+        }
+
+        .points-details {
+            font-size: 13px;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .streak-flame {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .points-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .points-value {
+            font-size: 30px;
+            font-weight: bold;
+            line-height: 1;
+            color: var(--language-hover, #f97316);
+        }
+
+        .points-details {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .streak-display {
+            margin-top: 2px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .streak-flame {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .streak-flame img.emoji {
+            width: 28px;
+            height: 28px;
+            display: block;
+        }
+
         @media (max-width: 850px) {
             .banner-content {
                 flex-direction: column;
@@ -364,12 +476,34 @@
             .language-tabs {
                 flex-wrap: nowrap;
             }
+
+            .language-hero-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
+            .review-now-button {
+                text-align: center;
+            }
+
+            .language-points-inline {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .points-top-row {
+                align-items: center;
+            }
+
+            .points-details {
+                white-space: normal;
+            }
         }
 
     </style>
 </head>
-
-<body>
 
     {% set words_learnt = stats_widget.total_cards | int %}
 
@@ -410,6 +544,14 @@
         {% set accent_text_colour = "#FFFFFF" %}
     {% endif %}
 
+    <body
+        style="
+            --language-accent: {{ accent_colour }};
+            --language-hover: {{ hover_colour }};
+            --accent-text-colour: {{ accent_text_colour }};
+        "
+    >
+
     <header class="site-banner">
         <div class="banner-content">
 
@@ -431,20 +573,12 @@
                 <a href="/hub">
                     Return to Hub
                 </a>
-                
             </nav>
 
         </div>
     </header>
 
-    <main
-        class="page"
-        style="
-            --language-accent: {{ accent_colour }};
-            --language-hover: {{ hover_colour }};
-            --accent-text-colour: {{ accent_text_colour }};
-        "
-    >
+    <main class="page">
 
         <section class="language-hero">
 
@@ -488,12 +622,39 @@
 
                 </div>
 
-                <a
-                    href="/review/{{ language_deck[0] }}"
-                    class="review-now-button"
-                >
-                    Review Now
-                </a>
+                <div class="language-hero-actions">
+
+                    <a
+                        href="/review/{{ language_deck[0] }}"
+                        class="review-now-button"
+                    >
+                        Review Now
+                    </a>
+
+                    <div class="language-points-inline">
+                        <div class="points-top-row">
+                            <div>
+                                <div class="points-label">Today's points</div>
+
+                                <div class="points-value">
+                                    {{ "%.0f"|format(score_data["daily_score"]) }}
+                                </div>
+                            </div>
+
+                            <div class="streak-display">
+                                <span class="streak-flame">🔥</span>
+                                <span>{{ score_data["streak"] }} day streak</span>
+                            </div>
+                        </div>
+
+                        <div class="points-details">
+                            {{ score_data["cards_reviewed"] }} reviewed ·
+                            {{ score_data["cards_added"] }} added ·
+                            {{ score_data["cards_learnt"] }} learnt
+                        </div>
+                    </div>
+
+                </div>
 
             </div>
 

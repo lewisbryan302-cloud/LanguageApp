@@ -540,3 +540,29 @@ def delete_language_deck_for_user(
     finally:
         cursor.close()
         conn.close()
+
+def get_deck_language_and_profile(deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT user_id, language_deck_id
+        FROM decks
+        WHERE id = %s;
+        """,
+        (deck_id,)
+    )
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if row is None:
+        return None, None
+
+    profile = str(row[0])
+    language = str(row[1])
+
+    return language, profile

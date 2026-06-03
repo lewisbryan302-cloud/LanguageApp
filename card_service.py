@@ -7,6 +7,9 @@ from fastapi import UploadFile
 from database import get_connection
 import re
 
+from score_service import update_today_language_score
+from deck_service import get_deck_language_and_profile
+
 
 def parse_tag_string(tag_string: str) -> list[str]:
     return [
@@ -81,15 +84,9 @@ def insert_card(
             image_path
         )
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id
+        RETURNING id;
         """,
-        (
-            deck_id,
-            front,
-            back,
-            card_type,
-            image_path
-        )
+        (deck_id, front, back, card_type, image_path)
     )
 
     return cursor.fetchone()[0]
@@ -109,30 +106,52 @@ def create_manual_card(
     conn = get_connection()
     cursor = conn.cursor()
 
-    new_card_id = insert_card(
-        cursor=cursor,
-        deck_id=deck_id,
-        front=front,
-        back=back,
-        card_type=card_type,
-        image_path=image_path
-    )
-
-    if add_reverse == "yes" and card_type == "basic":
-        insert_card(
+    try:
+        new_card_id = insert_card(
             cursor=cursor,
             deck_id=deck_id,
-            front=back,
-            back=front,
-            card_type="basic",
-            image_path=None
+            front=front,
+            back=back,
+            card_type=card_type,
+            image_path=image_path
         )
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        cards_added_count = 1
 
-    return new_card_id
+        if add_reverse == "yes" and card_type == "basic":
+            insert_card(
+                cursor=cursor,
+                deck_id=deck_id,
+                front=back,
+                back=front,
+                card_type="basic",
+                image_path=None
+            )
+
+            cards_added_count += 1
+
+        conn.commit()
+
+        language, profile = get_deck_language_and_profile(deck_id)
+
+        if language is not None and profile is not None:
+            update_today_language_score(
+                profile=profile,
+                language=language,
+                cards_added_delta=cards_added_count,
+                daily_review_goal=50,
+                daily_add_goal=10,
+            )
+
+        return new_card_id
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 def get_deck_cards_page_data(deck_id: int) -> dict:
     conn = get_connection()
