@@ -66,6 +66,7 @@
             font-weight: bold;
             color: #f97316;
             letter-spacing: 0.5px;
+            left: 0;
         }
 
         .banner-link {
@@ -213,12 +214,208 @@
             font-weight: bold;
         }
 
-        .logout-form {
+        .banner-actions {
             position: absolute;
             right: 0;
+
             display: flex;
-            gap: 12px;
             align-items: center;
+            gap: 12px;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .settings-button {
+            width: 42px;
+            height: 42px;
+
+            border: none;
+            outline: none;
+            box-shadow: none;
+
+            appearance: none;
+            -webkit-appearance: none;
+
+            padding: 0;
+            margin: 0;
+
+            background: white;
+            color: #f97316;
+
+            border-radius: 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+            font: inherit;
+            line-height: 1;
+        }
+
+        .settings-button:hover {
+            background: #ffedd5;
+            transform: rotate(18deg);
+        }
+
+        .settings-button:focus,
+        .settings-button:active {
+            border: none;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .settings-icon {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            display: block;
+        }
+
+        .settings-overlay {
+            position: fixed;
+            inset: 0;
+
+            background: rgba(17, 24, 39, 0.55);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            z-index: 2000;
+        }
+
+        .settings-overlay.hidden {
+            display: none;
+        }
+
+        .settings-menu {
+            width: min(420px, calc(100% - 40px));
+
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        .settings-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 18px;
+        }
+
+        .settings-menu-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .settings-close-button {
+            width: 36px;
+            height: 36px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #fff7ed;
+            color: #f97316;
+
+            font-size: 24px;
+            line-height: 1;
+
+            cursor: pointer;
+        }
+
+        .settings-close-button:hover {
+            background: #ffedd5;
+        }
+
+        .settings-menu-option {
+            width: 100%;
+
+            display: block;
+
+            text-decoration: none;
+            text-align: left;
+
+            background: #f97316;
+            color: white;
+
+            padding: 14px 18px;
+            border-radius: 14px;
+
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .settings-menu-option:hover {
+            background: #ea580c;
+        }
+
+        .goals-menu {
+            max-width: 460px;
+        }
+
+        .goals-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .goals-label {
+            font-weight: bold;
+            color: #374151;
+            margin-top: 6px;
+        }
+
+        .goals-input {
+            width: 100%;
+
+            padding: 12px 14px;
+
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+
+            font-family: inherit;
+            font-size: 15px;
+
+            box-sizing: border-box;
+        }
+
+        .goals-input:focus {
+            outline: 3px solid #ffedd5;
+            border-color: #f97316;
+        }
+
+        .goals-save-button {
+            margin-top: 12px;
+
+            background: #f97316;
+            color: white;
+
+            border: none;
+            border-radius: 14px;
+
+            padding: 14px 18px;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .goals-save-button:hover {
+            background: #ea580c;
         }
 
         .banner-button {
@@ -230,6 +427,7 @@
             border-radius: 12px;
 
             border: none;
+            right: 0;
 
             font-weight: bold;
             transition: background 0.15s ease;
@@ -245,10 +443,23 @@
 
         @media (max-width: 800px) {
             .language-grid {
-            display: grid;
-            grid-template-columns: auto;
-            gap: 20px;
-        }
+                display: grid;
+                grid-template-columns: auto;
+                gap: 20px;
+            }
+
+            .banner-content {
+                justify-content: space-between;
+            }
+
+            .brand-section {
+                justify-content: flex-start;
+            }
+
+            .banner-actions {
+                position: static;
+                margin-left: auto;
+            }
             
         }
 
@@ -273,18 +484,40 @@
 
             <div style="display: flex; gap: 18px; align-items: center;">
                 
-                <form
-                    action="/logout"
-                    method="post"
-                    class="logout-form"
-                >
+                <div class="banner-actions">
+
                     <button
-                        type="submit"
-                        class="banner-button"
+                        type="button"
+                        class="settings-button"
+                        title="Settings"
+                        aria-label="Open settings menu"
+                        onclick="openSettingsMenu()"
                     >
-                        Log Out
+                        <svg
+                            class="settings-icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.37-.31-.6-.22l-2.49 1a7.28 7.28 0 0 0-1.69-.98L14.5 2.42A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42L9.12 5.07c-.61.24-1.18.56-1.69.98l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.02.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.37.31.6.22l2.49-1c.51.4 1.08.73 1.69.98l.38 2.65a.5.5 0 0 0 .5.42h4a.5.5 0 0 0 .5-.42l.38-2.65c.61-.24 1.18-.56 1.69-.98l2.49 1c.23.08.48 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"
+                            />
+                        </svg>
                     </button>
-                </form>
+
+                    <form
+                        action="/logout"
+                        method="post"
+                        class="logout-form"
+                    >
+                        <button
+                            type="submit"
+                            class="banner-button"
+                        >
+                            Log Out
+                        </button>
+                    </form>
+
+                </div>
             </div>
 
         </div>
@@ -403,5 +636,179 @@
             ext: ".svg"
         });
     </script>
+
+    <script>
+        function openSettingsMenu() {
+            const overlay = document.getElementById("settingsOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.remove("hidden");
+        }
+
+        function closeSettingsMenu() {
+            const overlay = document.getElementById("settingsOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.add("hidden");
+        }
+
+        function openGoalsMenu() {
+            closeSettingsMenu();
+
+            const overlay = document.getElementById("goalsOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.remove("hidden");
+        }
+
+        function closeGoalsMenu() {
+            const overlay = document.getElementById("goalsOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.add("hidden");
+        }
+
+        function backToSettingsMenu() {
+            closeGoalsMenu();
+            openSettingsMenu();
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                closeSettingsMenu();
+                closeGoalsMenu();
+            }
+        });
+
+    </script>
+
+    <div
+        id="settingsOverlay"
+        class="settings-overlay hidden"
+        onclick="closeSettingsMenu()"
+    >
+        <div
+            class="settings-menu"
+            onclick="event.stopPropagation()"
+        >
+            <div class="settings-menu-header">
+                <h2>Settings</h2>
+
+                <button
+                    type="button"
+                    class="settings-close-button"
+                    onclick="backToSettingsMenu()"
+                    aria-label="Back to settings menu"
+                >
+                    ×
+                </button>
+            </div>
+
+            <button
+                type="button"
+                class="settings-menu-option"
+                onclick="openGoalsMenu()"
+            >
+                Set / Edit Goals
+            </button>
+        </div>
+    </div>
+
+    <div
+        id="goalsOverlay"
+        class="settings-overlay hidden"
+        onclick="closeGoalsMenu()"
+    >
+        <div
+            class="settings-menu goals-menu"
+            onclick="event.stopPropagation()"
+        >
+            <div class="settings-menu-header">
+                <h2>Set Goals</h2>
+
+                <button
+                    type="button"
+                    class="settings-close-button"
+                    onclick="closeGoalsMenu()"
+                    aria-label="Close goals menu"
+                >
+                    ×
+                </button>
+            </div>
+
+            <form
+                action="/goals/save"
+                method="post"
+                class="goals-form"
+            >
+                <label class="goals-label">
+                    Language
+                </label>
+
+                <select
+                    name="language_deck_id"
+                    class="goals-input"
+                    required
+                >
+                    {% for deck in language_decks %}
+                        <option value="{{ deck[0] }}">
+                            {{ deck[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label class="goals-label">
+                    I want to learn
+                </label>
+
+                <input
+                    type="number"
+                    name="target_words"
+                    class="goals-input"
+                    min="1"
+                    max="1000"
+                    value="10"
+                    required
+                >
+
+                <label class="goals-label">
+                    New words per
+                </label>
+
+                <select
+                    name="time_frame"
+                    class="goals-input"
+                    required
+                >
+                    <option value="day">
+                        Day
+                    </option>
+
+                    <option value="week">
+                        Week
+                    </option>
+                </select>
+
+                <button
+                    type="submit"
+                    class="goals-save-button"
+                >
+                    Save Goal
+                </button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

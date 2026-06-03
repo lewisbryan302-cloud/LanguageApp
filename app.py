@@ -67,6 +67,12 @@ from auth_service import (
     authenticate_user,
     get_user_by_id
 )
+
+from goal_service import (
+    save_language_goal,
+    get_language_goals_for_user,
+)
+
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
 from embedding_helper import translate_word
@@ -1343,12 +1349,17 @@ def hub_page(request: Request):
         if deck[6] == "Languages"
     ]
 
+    language_goals = get_language_goals_for_user(
+        user_id=user[0]
+    )
+
     return templates.TemplateResponse(
         request,
         "hub.html",
         {
             "user": user,
-            "language_decks": language_decks
+            "language_decks": language_decks,
+            "language_goals": language_goals,
         }
     )
 
@@ -1414,3 +1425,41 @@ def add_language_back_link_data(
     )
 
     return page_data
+
+@app.post("/goals/save")
+def save_goals(
+    request: Request,
+    language_deck_id: int = Form(...),
+    target_words: int = Form(...),
+    time_frame: str = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    time_frame = time_frame.strip().lower()
+
+    if time_frame not in ["day", "week"]:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
+    if target_words < 1:
+        return RedirectResponse(
+            "/hub",
+            status_code=303
+        )
+
+    save_language_goal(
+        user_id=user[0],
+        language_deck_id=language_deck_id,
+        target_words=target_words,
+        time_frame=time_frame
+    )
+
+    return RedirectResponse(
+        "/hub",
+        status_code=303
+    )
