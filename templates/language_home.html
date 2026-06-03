@@ -118,15 +118,64 @@
         .language-hero {
             background: white;
             border-radius: 28px;
+            padding: 0;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border-top: 8px solid var(--language-accent, #2563eb);
+
+            overflow: hidden;
+        }
+
+        .language-hero-top {
             padding: 32px;
 
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 24px;
+        }
 
-            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
-            border-top: 8px solid var(--language-accent, #2563eb);
+        .language-tabs {
+            display: flex;
+            align-items: stretch;
+
+            border-top: 1px solid #e5e7eb;
+
+            background: #f9fafb;
+
+            overflow-x: auto;
+        }
+
+        .language-tab {
+            flex: 1;
+
+            min-width: 130px;
+
+            text-align: center;
+            text-decoration: none;
+
+            color: #374151;
+
+            padding: 16px 14px;
+
+            font-weight: bold;
+            font-size: 14px;
+
+            border-right: 1px solid #e5e7eb;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease,
+                transform 0.15s ease;
+        }
+
+        .language-tab:last-child {
+            border-right: none;
+        }
+
+        .language-tab:hover {
+            background: #fff7ed;
+            color: #f97316;
         }
 
         .language-title-area {
@@ -166,22 +215,11 @@
             color: #6b7280;
         }
 
-        .hero-action {
-            background: var(--language-accent, #2563eb);
-            color: white;
-
-            text-decoration: none;
-            font-weight: bold;
-
-            padding: 14px 22px;
-            border-radius: 16px;
-        }
-
         .dashboard-grid {
             margin-top: 28px;
 
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr;
             gap: 24px;
         }
 
@@ -248,6 +286,45 @@
             margin-top: 4px;
         }
 
+        .active-language-tab {
+            background: var(--language-accent, #f97316);
+            color: var(--accent-text-colour, white);
+        }
+
+        .active-language-tab:hover {
+            background: var(--language-hover, #ea580c);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .review-now-button {
+            text-decoration: none;
+
+            background: var(--language-accent, #f97316);
+            color: var(--accent-text-colour, white);
+
+            padding: 12px 18px;
+            border-radius: 14px;
+
+            font-weight: bold;
+
+            border: 1px solid #e5e7eb;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .review-now-button:hover {
+            background: var(--language-hover, #ea580c);
+            color: white;
+
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+        }
+
         @media (max-width: 850px) {
             .banner-content {
                 flex-direction: column;
@@ -264,11 +341,31 @@
                 grid-template-columns: 1fr;
             }
 
-            .language-hero {
+            .banner-content {
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .banner-links {
+                position: static;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .language-hero-top {
                 align-items: flex-start;
                 flex-direction: column;
             }
+
+            .language-tabs {
+                flex-wrap: nowrap;
+            }
         }
+
     </style>
 </head>
 
@@ -279,21 +376,38 @@
     {% if words_learnt < 50 %}
         {% set badge_image = "w.svg" %}
         {% set accent_colour = "#FFFFFF" %}
+        {% set hover_colour = "#f97316" %}
+        {% set accent_text_colour = "#111827" %}
+
     {% elif words_learnt < 150 %}
         {% set badge_image = "r.svg" %}
         {% set accent_colour = "#C41E3A" %}
+        {% set hover_colour = "#9F1830" %}
+        {% set accent_text_colour = "#FFFFFF" %}
+
     {% elif words_learnt < 300 %}
         {% set badge_image = "black.svg" %}
         {% set accent_colour = "#1A1A1A" %}
+        {% set hover_colour = "#000000" %}
+        {% set accent_text_colour = "#FFFFFF" %}
+
     {% elif words_learnt < 600 %}
         {% set badge_image = "b.svg" %}
         {% set accent_colour = "#1E3A8A" %}
+        {% set hover_colour = "#172F6E" %}
+        {% set accent_text_colour = "#FFFFFF" %}
+
     {% elif words_learnt < 1000 %}
         {% set badge_image = "m.svg" %}
         {% set accent_colour = "#1A1A1A" %}
+        {% set hover_colour = "#000000" %}
+        {% set accent_text_colour = "#FFFFFF" %}
+
     {% else %}
         {% set badge_image = "g.svg" %}
         {% set accent_colour = "#D4A017" %}
+        {% set hover_colour = "#B88712" %}
+        {% set accent_text_colour = "#FFFFFF" %}
     {% endif %}
 
     <header class="site-banner">
@@ -325,111 +439,113 @@
 
     <main
         class="page"
-        style="--language-accent: {{ accent_colour }};"
+        style="
+            --language-accent: {{ accent_colour }};
+            --language-hover: {{ hover_colour }};
+            --accent-text-colour: {{ accent_text_colour }};
+        "
     >
 
         <section class="language-hero">
 
-            <div class="language-title-area">
+            <div class="language-hero-top">
 
-                <div class="language-symbol">
-                    {% set language_name = language_deck[1] | lower | trim %}
+                <div class="language-title-area">
 
-                    {% if language_name == "spanish" %}
-                        🇪🇸
-                    {% elif language_name == "german" %}
-                        🇩🇪
-                    {% elif language_name == "french" %}
-                        🇫🇷
-                    {% elif language_name == "italian" %}
-                        🇮🇹
-                    {% elif language_name == "norwegian" %}
-                        🇳🇴
-                    {% elif language_name == "japanese" %}
-                        🇯🇵
-                    {% elif language_name == "mandarin" %}
-                        🇨🇳
-                    {% elif language_name == "korean" %}
-                        🇰🇷
-                    {% else %}
-                        🌍
-                    {% endif %}
-                </div>
+                    <div class="language-symbol">
+                        {% set language_name = language_deck[1] | lower | trim %}
 
-                <div>
-                    <h1 class="language-title">
-                        {{ language_deck[1] }}
-                    </h1>
-
-                    <div class="language-subtitle">
-                        Your {{ language_deck[1] }} learning home.
+                        {% if language_name == "spanish" %}
+                            🇪🇸
+                        {% elif language_name == "german" %}
+                            🇩🇪
+                        {% elif language_name == "french" %}
+                            🇫🇷
+                        {% elif language_name == "italian" %}
+                            🇮🇹
+                        {% elif language_name == "norwegian" %}
+                            🇳🇴
+                        {% elif language_name == "japanese" %}
+                            🇯🇵
+                        {% elif language_name == "mandarin" %}
+                            🇨🇳
+                        {% elif language_name == "korean" %}
+                            🇰🇷
+                        {% else %}
+                            🌍
+                        {% endif %}
                     </div>
+
+                    <div>
+                        <h1 class="language-title">
+                            {{ language_deck[1] }}
+                        </h1>
+
+                        <div class="language-subtitle">
+                            Your {{ language_deck[1] }} learning home.
+                        </div>
+                    </div>
+
                 </div>
-
-            </div>
-
-            <a
-                href="/review/{{ language_deck[0] }}"
-                class="hero-action"
-            >
-                Review Now
-            </a>
-
-        </section>
-
-        <section class="dashboard-grid">
-
-            <div class="activity-grid">
 
                 <a
                     href="/review/{{ language_deck[0] }}"
-                    class="activity-card primary"
+                    class="review-now-button"
                 >
-                    <h2>Review</h2>
-                    <p>Practise cards that are due for this language.</p>
+                    Review Now
+                </a>
+
+            </div>
+
+            <nav class="language-tabs">
+
+                <a
+                    href="/review/{{ language_deck[0] }}"
+                    class="language-tab active-language-tab"
+                >
+                    Review
                 </a>
 
                 <a
                     href="/add-card?deck_id={{ language_deck[0] }}"
-                    class="activity-card"
+                    class="language-tab"
                 >
-                    <h2>Add Card</h2>
-                    <p>Add new vocabulary, phrases, or cloze cards.</p>
+                    Add Card
                 </a>
 
                 <a
                     href="/smart-add-card?deck_id={{ language_deck[0] }}&language_deck_id={{ language_deck[0] }}"
-                    class="activity-card"
+                    class="language-tab"
                 >
-                    <h2>Smart Add</h2>
-                    <p>Generate related words and suggestions.</p>
+                    Smart Add
                 </a>
 
                 <a
                     href="/import-deck?deck_id={{ language_deck[0] }}"
-                    class="activity-card"
+                    class="language-tab"
                 >
-                    <h2>Import Cards</h2>
-                    <p>Import a CSV, TSV, or Anki deck.</p>
+                    Import Cards
                 </a>
 
                 <a
                     href="/import-media?language_deck_id={{ language_deck[0] }}"
-                    class="activity-card"
+                    class="language-tab"
                 >
-                    <h2>Import Media</h2>
-                    <p>Extract words from notes, articles, or images.</p>
+                    Import Media
                 </a>
 
                 <a
                     href="/deck/{{ language_deck[0] }}/cards"
-                    class="activity-card"
+                    class="language-tab"
                 >
-                    <h2>View Cards</h2>
-                    <p>Browse, filter, and manage your cards.</p>
+                    View Cards
                 </a>
 
-            </div>
+            </nav>
+
+        </section>
+
+        <section class="dashboard-grid">
 
             <aside class="stats-card">
 
