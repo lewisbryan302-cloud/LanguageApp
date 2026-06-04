@@ -972,6 +972,7 @@ def add_network_suggestion(
         redirect_url = (
             f"/language/{return_language_id}"
             f"?network_deck_id={deck_id}"
+            f"&search_network=yes"
             f"#network-widget"
         )
     else:
@@ -1037,6 +1038,7 @@ def add_selected_network_suggestions(
         redirect_url = (
             f"/language/{return_language_id}"
             f"?network_deck_id={deck_id}"
+            f"&search_network=yes"
             f"#network-widget"
         )
     else:
@@ -1431,7 +1433,8 @@ from score_service import get_today_language_score
 def language_home(
     request: Request,
     language_deck_id: int,
-    network_deck_id: int | None = None
+    network_deck_id: int | None = None,
+    search_network: str | None = None
 ):
     user = require_login(request)
 
@@ -1475,14 +1478,18 @@ def language_home(
 
     network_language = get_deck_language_by_id(network_deck_id)
 
-    network_data = get_cached_network_suggestions_for_deck(
-        deck_id=network_deck_id,
-        language=network_language,
-        n_words=10000,
-        n_suggestions=20,
-        top_k_known_words=5,
-        min_similarity_to_known=0.30
-    )
+    network_data = None
+    network_has_been_searched = search_network == "yes"
+
+    if network_has_been_searched:
+        network_data = get_cached_network_suggestions_for_deck(
+            deck_id=network_deck_id,
+            language=network_language,
+            n_words=10000,
+            n_suggestions=20,
+            top_k_known_words=5,
+            min_similarity_to_known=0.30
+        )
 
     return templates.TemplateResponse(
         request,
@@ -1496,6 +1503,7 @@ def language_home(
             "selected_network_deck_id": network_deck_id,
             "network_language": network_language,
             "network_data": network_data,
+            "network_has_been_searched": network_has_been_searched,
         }
     )
 

@@ -998,18 +998,18 @@
                     </h2>
 
                     <div class="network-subtitle">
-                        Suggested words connected to what you already know.
+                        Search for suggested words connected to what you already know.
                     </div>
                 </div>
 
                 <form
                     method="get"
                     action="/language/{{ language_deck[0] }}"
+                    style="display: flex; gap: 10px; align-items: center;"
                 >
                     <select
                         name="network_deck_id"
                         class="network-select"
-                        onchange="this.form.submit()"
                     >
                         {% for deck in decks %}
                             <option
@@ -1022,10 +1022,23 @@
                             </option>
                         {% endfor %}
                     </select>
+
+                    <input
+                        type="hidden"
+                        name="search_network"
+                        value="yes"
+                    >
+
+                    <button
+                        type="submit"
+                        class="network-add-button"
+                    >
+                        Find Suggestions
+                    </button>
                 </form>
             </div>
 
-            {% if network_data and network_data.suggestions %}
+            {% if network_has_been_searched and network_data and network_data.suggestions %}
 
                 <form
                     id="add-selected-network-form"
@@ -1120,10 +1133,16 @@
                     </form>
                 {% endfor %}
 
+            {% elif network_has_been_searched %}
+
+                <div class="network-empty">
+                    No network suggestions found yet. Add more cards to this language and try again.
+                </div>
+
             {% else %}
 
                 <div class="network-empty">
-                    No network suggestions yet. Add more cards to this language to build suggestions.
+                    Network suggestions are not loaded yet. Press <strong>Find Suggestions</strong> when you want to search.
                 </div>
 
             {% endif %}
