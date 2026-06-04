@@ -547,7 +547,9 @@ def get_deck_language_and_profile(deck_id: int):
 
     cursor.execute(
         """
-        SELECT user_id, language_deck_id
+        SELECT
+            target_language,
+            profile
         FROM decks
         WHERE id = %s;
         """,
@@ -562,7 +564,7 @@ def get_deck_language_and_profile(deck_id: int):
     if row is None:
         return None, None
 
-    profile = str(row[0])
-    language = str(row[1])
+    language = row[0]
+    profile = row[1]
 
     return language, profile

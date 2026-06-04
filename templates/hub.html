@@ -353,6 +353,7 @@
             width: 100%;
 
             display: block;
+            margin-bottom: 10px;
 
             text-decoration: none;
             text-align: left;
@@ -631,6 +632,24 @@
             color: #9a3412;
             font-size: 12px;
             font-weight: bold;
+        }
+
+        .username-message {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .username-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .username-message.error {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         @media (max-width: 800px) {
@@ -1048,10 +1067,38 @@
             return confirm("Are you sure you want to delete this language?");
         }
 
+        function openUsernameMenu() {
+            closeSettingsMenu();
+
+            const overlay = document.getElementById("usernameOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.remove("hidden");
+        }
+
+        function closeUsernameMenu() {
+            const overlay = document.getElementById("usernameOverlay");
+
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.add("hidden");
+        }
+
+        function backToSettingsFromUsername() {
+            closeUsernameMenu();
+            openSettingsMenu();
+        }
+
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
                 closeSettingsMenu();
                 closeGoalsMenu();
+                closeUsernameMenu();
                 closeDeleteLanguageMenu();
             }
         });
@@ -1086,6 +1133,14 @@
                 onclick="openGoalsMenu()"
             >
                 Set / Edit Goals
+            </button>
+
+            <button
+                type="button"
+                class="settings-menu-option"
+                onclick="openUsernameMenu()"
+            >
+                Change Username
             </button>
 
             <button
@@ -1179,6 +1234,87 @@
                     class="goals-save-button"
                 >
                     Save Goal
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div
+        id="usernameOverlay"
+        class="settings-overlay hidden"
+        onclick="closeUsernameMenu()"
+    >
+        <div
+            class="settings-menu goals-menu"
+            onclick="event.stopPropagation()"
+        >
+            <div class="settings-menu-header">
+                <h2>Change Username</h2>
+
+                <button
+                    type="button"
+                    class="settings-close-button"
+                    onclick="backToSettingsFromUsername()"
+                    aria-label="Back to settings menu"
+                >
+                    ×
+                </button>
+            </div>
+
+            {% if username_changed == "yes" %}
+                <div class="username-message success">
+                    Username changed successfully.
+                </div>
+            {% endif %}
+
+            {% if username_error == "too_short" %}
+                <div class="username-message error">
+                    Username must be at least 3 characters.
+                </div>
+            {% elif username_error == "invalid" %}
+                <div class="username-message error">
+                    Username can only contain letters, numbers, hyphens, and underscores.
+                </div>
+            {% elif username_error == "taken" %}
+                <div class="username-message error">
+                    That username is already taken.
+                </div>
+            {% endif %}
+
+            <form
+                action="/profile/change-username"
+                method="post"
+                class="goals-form"
+            >
+                <label class="goals-label">
+                    Current username
+                </label>
+
+                <input
+                    type="text"
+                    class="goals-input"
+                    value="{{ user['username'] }}"
+                    disabled
+                >
+
+                <label class="goals-label">
+                    New username
+                </label>
+
+                <input
+                    type="text"
+                    name="new_username"
+                    class="goals-input"
+                    value="{{ user['username'] }}"
+                    minlength="3"
+                    required
+                >
+
+                <button
+                    type="submit"
+                    class="goals-save-button"
+                >
+                    Save Username
                 </button>
             </form>
         </div>

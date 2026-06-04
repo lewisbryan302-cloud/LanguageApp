@@ -11,7 +11,7 @@ def send_friend_request(requester_user_id: int, friend_identifier: str):
         cursor.execute(
             """
             SELECT id
-            FROM YOUR_USER_TABLE
+            FROM app_users
             WHERE LOWER(username) = %s;
             """,
             (friend_identifier,)
@@ -89,7 +89,7 @@ def get_friends_for_user(user_id: int):
         """
         SELECT
             u.id,
-            u.email
+            u.username
         FROM friendships f
         JOIN app_users u
             ON u.id = CASE
@@ -101,7 +101,7 @@ def get_friends_for_user(user_id: int):
                 f.requester_user_id = %s
              OR f.receiver_user_id = %s
           )
-        ORDER BY u.email;
+        ORDER BY u.username;
         """,
         (user_id, user_id, user_id)
     )
@@ -114,7 +114,7 @@ def get_friends_for_user(user_id: int):
     return [
         {
             "id": row[0],
-            "email": row[1],
+            "username": row[1],
             "display_name": row[1],
         }
         for row in rows
@@ -130,7 +130,7 @@ def get_pending_friend_requests(user_id: int):
         SELECT
             f.id,
             u.id,
-            u.email
+            u.username
         FROM friendships f
         JOIN app_users u
             ON u.id = f.requester_user_id
@@ -150,7 +150,6 @@ def get_pending_friend_requests(user_id: int):
         {
             "id": row[0],
             "user_id": row[1],
-            "email": row[2],
             "username": row[2],
             "display_name": row[2],
         }
@@ -180,13 +179,13 @@ def get_global_leaderboard(limit: int = 50):
                 COALESCE(SUM(dls.daily_score), 0) AS activity_score
             FROM app_users u
             LEFT JOIN daily_language_scores dls
-                ON dls.profile = u.email
+                ON dls.profile = u.username
             GROUP BY u.id
         )
 
         SELECT
             u.id,
-            u.email,
+            u.username,
             COALESCE(dp.deck_score, 0) + COALESCE(ap.activity_score, 0) AS total_score
         FROM app_users u
         LEFT JOIN deck_points dp
@@ -208,7 +207,6 @@ def get_global_leaderboard(limit: int = 50):
         {
             "user_id": row[0],
             "username": row[1],
-            "email": row[1],
             "score": float(row[2]),
         }
         for row in rows
@@ -255,13 +253,13 @@ def get_friends_leaderboard(user_id: int):
                 COALESCE(SUM(dls.daily_score), 0) AS activity_score
             FROM app_users u
             LEFT JOIN daily_language_scores dls
-                ON dls.profile = u.email
+                ON dls.profile = u.username
             GROUP BY u.id
         )
 
         SELECT
             u.id,
-            u.email,
+            u.username,
             COALESCE(dp.deck_score, 0) + COALESCE(ap.activity_score, 0) AS total_score
         FROM friend_ids fi
         JOIN app_users u
@@ -284,7 +282,6 @@ def get_friends_leaderboard(user_id: int):
         {
             "user_id": row[0],
             "username": row[1],
-            "email": row[1],
             "score": float(row[2]),
         }
         for row in rows

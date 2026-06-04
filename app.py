@@ -71,7 +71,8 @@ from suggestion_service import get_smart_add_preview_data_from_query, create_sma
 from auth_service import (
     create_user,
     authenticate_user,
-    get_user_by_id
+    get_user_by_id,
+    update_username
 )
 
 from goal_service import (
@@ -947,6 +948,7 @@ def add_network_suggestion(
     deck_id: int = Form(...),
     front: str = Form(...),
     back: str = Form(""),
+    return_language_id: int | None = Form(None),
     network_threshold: float = Form(0.45),
     use_auto_threshold: str | None = Form(None),
     stats_deck_id: int | None = Form(None)
@@ -966,18 +968,25 @@ def add_network_suggestion(
         "network-suggestion"
     )
 
-    redirect_url = (
-        f"/?network_deck_id={deck_id}"
-        f"&network_threshold={network_threshold}"
-    )
+    if return_language_id is not None:
+        redirect_url = (
+            f"/language/{return_language_id}"
+            f"?network_deck_id={deck_id}"
+            f"#network-widget"
+        )
+    else:
+        redirect_url = (
+            f"/?network_deck_id={deck_id}"
+            f"&network_threshold={network_threshold}"
+        )
 
-    if use_auto_threshold == "yes":
-        redirect_url += "&use_auto_threshold=yes"
+        if use_auto_threshold == "yes":
+            redirect_url += "&use_auto_threshold=yes"
 
-    if stats_deck_id is not None:
-        redirect_url += f"&stats_deck_id={stats_deck_id}"
+        if stats_deck_id is not None:
+            redirect_url += f"&stats_deck_id={stats_deck_id}"
 
-    redirect_url += "#network-widget"
+        redirect_url += "#network-widget"
 
     return RedirectResponse(
         redirect_url,
@@ -987,15 +996,20 @@ def add_network_suggestion(
 @app.post("/network/add-selected-suggestions")
 def add_selected_network_suggestions(
     deck_id: int = Form(...),
-    selected_words: list[str] = Form(...),
-    selected_translations: list[str] = Form(...),
+    selected_pairs: list[str] = Form(...),
+    return_language_id: int | None = Form(None),
     network_threshold: float = Form(0.45),
     use_auto_threshold: str | None = Form(None),
     stats_deck_id: int | None = Form(None)
 ):
     added_count = 0
 
-    for word, translation in zip(selected_words, selected_translations):
+    for pair in selected_pairs:
+        if "|||" not in pair:
+            continue
+
+        word, translation = pair.split("|||", 1)
+
         word = word.strip()
         translation = translation.strip()
 
@@ -1019,18 +1033,25 @@ def add_selected_network_suggestions(
 
         added_count += 1
 
-    redirect_url = (
-        f"/?network_deck_id={deck_id}"
-        f"&network_threshold={network_threshold}"
-    )
+    if return_language_id is not None:
+        redirect_url = (
+            f"/language/{return_language_id}"
+            f"?network_deck_id={deck_id}"
+            f"#network-widget"
+        )
+    else:
+        redirect_url = (
+            f"/?network_deck_id={deck_id}"
+            f"&network_threshold={network_threshold}"
+        )
 
-    if use_auto_threshold == "yes":
-        redirect_url += "&use_auto_threshold=yes"
+        if use_auto_threshold == "yes":
+            redirect_url += "&use_auto_threshold=yes"
 
-    if stats_deck_id is not None:
-        redirect_url += f"&stats_deck_id={stats_deck_id}"
+        if stats_deck_id is not None:
+            redirect_url += f"&stats_deck_id={stats_deck_id}"
 
-    redirect_url += "#network-widget"
+        redirect_url += "#network-widget"
 
     return RedirectResponse(
         redirect_url,
@@ -1365,7 +1386,11 @@ def profile_page(request: Request):
     )
 
 @app.get("/hub")
-def hub_page(request: Request):
+def hub_page(
+    request: Request,
+    username_error: str | None = None,
+    username_changed: str | None = None
+):
     user = require_login(request)
 
     if isinstance(user, RedirectResponse):
@@ -1395,6 +1420,8 @@ def hub_page(request: Request):
             "language_decks": language_decks,
             "language_goals": language_goals,
             "language_goal_progress": language_goal_progress,
+            "username_error": username_error,
+            "username_changed": username_changed
         }
     )
 
@@ -1403,7 +1430,8 @@ from score_service import get_today_language_score
 @app.get("/language/{language_deck_id}")
 def language_home(
     request: Request,
-    language_deck_id: int
+    language_deck_id: int,
+    network_deck_id: int | None = None
 ):
     user = require_login(request)
 
@@ -1429,6 +1457,33 @@ def language_home(
         language_deck_id=language_deck_id
     )
 
+    decks = get_deck_options_for_language_deck(
+        language_deck_id=language_deck_id,
+        user_id=user["id"]
+    )
+
+    if not decks:
+        decks = [
+            (
+                language_deck[0],
+                language_deck[1]
+            )
+        ]
+
+    if network_deck_id is None:
+        network_deck_id = decks[0][0]
+
+    network_language = get_deck_language_by_id(network_deck_id)
+
+    network_data = get_cached_network_suggestions_for_deck(
+        deck_id=network_deck_id,
+        language=network_language,
+        n_words=10000,
+        n_suggestions=20,
+        top_k_known_words=5,
+        min_similarity_to_known=0.30
+    )
+
     return templates.TemplateResponse(
         request,
         "language_home.html",
@@ -1437,6 +1492,10 @@ def language_home(
             "language_deck": language_deck,
             "stats_widget": stats_widget,
             "score_data": score_data,
+            "decks": decks,
+            "selected_network_deck_id": network_deck_id,
+            "network_language": network_language,
+            "network_data": network_data,
         }
     )
 
@@ -1585,3 +1644,46 @@ def accept_friend(
     )
 
     return RedirectResponse("/community", status_code=303)
+
+@app.post("/profile/change-username")
+def change_username(
+    request: Request,
+    new_username: str = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    new_username = new_username.strip().lower()
+
+    if len(new_username) < 3:
+        return RedirectResponse(
+            "/hub?username_error=too_short",
+            status_code=303
+        )
+
+    if not new_username.replace("_", "").replace("-", "").isalnum():
+        return RedirectResponse(
+            "/hub?username_error=invalid",
+            status_code=303
+        )
+
+    try:
+        update_username(
+            user_id=user["id"],
+            new_username=new_username
+        )
+
+    except Exception as error:
+        print("CHANGE USERNAME ERROR:", error)
+
+        return RedirectResponse(
+            "/hub?username_error=taken",
+            status_code=303
+        )
+
+    return RedirectResponse(
+        "/hub?username_changed=yes",
+        status_code=303
+    )

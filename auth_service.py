@@ -137,3 +137,29 @@ def authenticate_user(
         "username": username,
         "email": user_email
     }
+
+def update_username(user_id: int, new_username: str):
+    new_username = new_username.strip().lower()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            UPDATE app_users
+            SET username = %s
+            WHERE id = %s;
+            """,
+            (new_username, user_id)
+        )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()

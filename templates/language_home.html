@@ -517,6 +517,120 @@
             font-size: 16px;
         }
 
+        .network-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+
+            margin-top: 24px;
+        }
+
+        .network-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+
+            margin-bottom: 18px;
+        }
+
+        .network-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .network-subtitle {
+            margin-top: 6px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .network-select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .network-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .network-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+
+            padding: 12px 14px;
+
+            border-radius: 16px;
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+        }
+
+        .network-checkbox {
+            width: 18px;
+            height: 18px;
+        }
+
+        .network-word {
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .network-translation {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .network-add-button {
+            background: #f97316;
+            color: white;
+
+            border: none;
+            border-radius: 12px;
+
+            padding: 9px 13px;
+
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .network-add-button:hover {
+            background: #ea580c;
+        }
+
+        .network-actions {
+            margin-top: 16px;
+
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .network-empty {
+            color: #6b7280;
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .network-add-form {
+            margin: 0;
+        }
+
+        @media (max-width: 800px) {
+            
+        }
+
         @media (max-width: 850px) {
             .banner-content {
                 flex-direction: column;
@@ -579,6 +693,18 @@
 
             .points-details {
                 white-space: normal;
+            }
+
+            .network-header {
+                flex-direction: column;
+            }
+
+            .network-select {
+                width: 100%;
+            }
+
+            .network-item {
+                grid-template-columns: auto 1fr auto;
             }
         }
 
@@ -859,6 +985,148 @@
 
             </aside>
 
+        </section>
+
+        <section
+            id="network-widget"
+            class="network-card"
+        >
+            <div class="network-header">
+                <div>
+                    <h2 class="network-title">
+                        Network Suggestions
+                    </h2>
+
+                    <div class="network-subtitle">
+                        Suggested words connected to what you already know.
+                    </div>
+                </div>
+
+                <form
+                    method="get"
+                    action="/language/{{ language_deck[0] }}"
+                >
+                    <select
+                        name="network_deck_id"
+                        class="network-select"
+                        onchange="this.form.submit()"
+                    >
+                        {% for deck in decks %}
+                            <option
+                                value="{{ deck[0] }}"
+                                {% if deck[0] == selected_network_deck_id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ deck[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            {% if network_data and network_data.suggestions %}
+
+                <form
+                    id="add-selected-network-form"
+                    action="/network/add-selected-suggestions"
+                    method="post"
+                >
+                    <input
+                        type="hidden"
+                        name="deck_id"
+                        value="{{ selected_network_deck_id }}"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="return_language_id"
+                        value="{{ language_deck[0] }}"
+                    >
+
+                    <div class="network-list">
+                        {% for item in network_data.suggestions %}
+
+                            <div class="network-item">
+                                <input
+                                    type="checkbox"
+                                    class="network-checkbox"
+                                    name="selected_pairs"
+                                    value="{{ item.word }}|||{{ item.translation }}"
+                                >
+
+                                <div>
+                                    <div class="network-word">
+                                        {{ item.word }}
+                                    </div>
+
+                                    <div class="network-translation">
+                                        {{ item.translation }}
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    form="single-network-form-{{ loop.index }}"
+                                    class="network-add-button"
+                                >
+                                    +
+                                </button>
+                            </div>
+
+                        {% endfor %}
+                    </div>
+
+                    <div class="network-actions">
+                        <button
+                            type="submit"
+                            class="network-add-button"
+                        >
+                            Add Selected
+                        </button>
+                    </div>
+                </form>
+
+                {% for item in network_data.suggestions %}
+                    <form
+                        id="single-network-form-{{ loop.index }}"
+                        action="/network/add-suggestion"
+                        method="post"
+                        class="network-add-form"
+                    >
+                        <input
+                            type="hidden"
+                            name="deck_id"
+                            value="{{ selected_network_deck_id }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="return_language_id"
+                            value="{{ language_deck[0] }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="front"
+                            value="{{ item.word }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="back"
+                            value="{{ item.translation }}"
+                        >
+                    </form>
+                {% endfor %}
+
+            {% else %}
+
+                <div class="network-empty">
+                    No network suggestions yet. Add more cards to this language to build suggestions.
+                </div>
+
+            {% endif %}
         </section>
 
     </main>
