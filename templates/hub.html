@@ -558,6 +558,71 @@
             background: #b91c1c;
         }
 
+        .language-badge-shelf {
+            width: min(520px, 100%);
+            max-width: 50%;
+
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            border-radius: 20px;
+
+            padding: 14px 16px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+        }
+
+        .language-badge-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            background: white;
+            border: 1px solid #ffedd5;
+            border-radius: 16px;
+
+            padding: 8px 10px;
+        }
+
+        .language-badge-icon {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 14px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--badge-background, #fff7ed);
+            border: 2px solid var(--badge-accent, #f97316);
+        }
+
+        .language-badge-icon img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .language-badge-language {
+            font-weight: bold;
+            color: #111827;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .language-badge-level {
+            color: #9a3412;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         @media (max-width: 800px) {
             .language-grid {
                 grid-template-columns: 1fr;
@@ -575,6 +640,11 @@
             .banner-actions {
                 position: static;
                 margin-left: auto;
+            }
+
+            .language-badge-shelf {
+                max-width: 50%;
+                width: 50%;
             }
             
         }
@@ -662,6 +732,74 @@
                     {{ user[1] }}
                 </div>
             </aside>
+
+            <div class="language-badge-shelf">
+
+                {% for deck in language_decks %}
+
+                    {% if language_scores is defined %}
+                        {% set score = language_scores.get(deck[0], {}) %}
+                        {% set language_points = score.get("total_score", deck[3]) | int %}
+                    {% else %}
+                        {% set language_points = deck[3] | int %}
+                    {% endif %}
+
+                    {% if language_points < 100 %}
+                        {% set badge_image = "w.svg" %}
+                        {% set badge_accent = "#f97316" %}
+                        {% set badge_background = "#FFFFFF" %}
+
+                    {% elif language_points < 1000 %}
+                        {% set badge_image = "r.svg" %}
+                        {% set badge_accent = "#C41E3A" %}
+                        {% set badge_background = "#FFFFFF" %}
+
+                    {% elif language_points < 3000 %}
+                        {% set badge_image = "black.svg" %}
+                        {% set badge_accent = "#1A1A1A" %}
+                        {% set badge_background = "#FFFFFF" %}
+
+                    {% elif language_points < 6000 %}
+                        {% set badge_image = "b.svg" %}
+                        {% set badge_accent = "#1E3A8A" %}
+                        {% set badge_background = "#FFFFFF" %}
+
+                    {% elif language_points < 10000 %}
+                        {% set badge_image = "m.svg" %}
+                        {% set badge_accent = "#C0C0C0" %}
+                        {% set badge_background = "#FFFFFF" %}
+
+                    {% else %}
+                        {% set badge_image = "g.svg" %}
+                        {% set badge_accent = "#D4A017" %}
+                        {% set badge_background = "#FFFFFF" %}
+                    {% endif %}
+
+                    <div
+                        class="language-badge-item"
+                        title="{{ deck[1] }} · {{ language_points }} points"
+                    >
+                        <div
+                            class="language-badge-icon"
+                            style="
+                                --badge-accent: {{ badge_accent }};
+                                --badge-background: {{ badge_background }};
+                            "
+                        >
+                            <img
+                                src="/static/images/language_badges/{{ badge_image }}"
+                                alt="Koi badge for {{ deck[1] }}"
+                            >
+                        </div>
+
+                        <div class="language-badge-language">
+                            {{ deck[1] }}
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+            </div>
 
         </section>
 
