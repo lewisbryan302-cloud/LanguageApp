@@ -5,37 +5,177 @@
 
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .site-banner {
+            width: 100%;
+            background: white;
+            border-bottom: 1px solid #ffedd5;
+            padding: 18px 40px;
+            box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+
             background: #ffffff;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand-name {
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 44px;
+            font-weight: bold;
+            color: #f97316;
+            letter-spacing: 0.5px;
+        }
+
+        .page-title {
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .banner-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .banner-button,
+        .button {
+            text-decoration: none;
+
+            background: #f97316;
+            color: white;
+
+            padding: 10px 18px;
+            border-radius: 12px;
+
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .banner-button:hover,
+        .button:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .banner-button.secondary,
+        .button.secondary {
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+        }
+
+        .banner-button.secondary:hover,
+        .button.secondary:hover {
+            background: #ffedd5;
         }
 
         .page {
             max-width: 1000px;
-            margin: 50px auto;
-            padding: 0 24px;
+            margin: 0 auto;
+            padding: 40px 24px 70px 24px;
         }
 
         .card {
             background: white;
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+            border-radius: 28px;
+            padding: 34px;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            border-top: 8px solid #f97316;
         }
 
-        h1 {
-            margin-top: 0;
+        .page-heading {
+            margin: 0;
+            font-size: 36px;
             text-align: center;
+        }
+
+        .page-subtitle {
+            max-width: 720px;
+            margin: 10px auto 30px auto;
+
+            color: #6b7280;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
         }
 
         .form-group {
             margin-bottom: 22px;
         }
 
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
         label {
             display: block;
             font-weight: bold;
             margin-bottom: 8px;
+            color: #374151;
         }
 
         select,
@@ -44,48 +184,55 @@
         input[type="text"],
         input[type="file"] {
             width: 100%;
-            padding: 12px 14px;
+            padding: 13px 15px;
             border-radius: 14px;
-            border: 1px solid #ddd;
+            border: 1px solid #d1d5db;
+
+            font-family: inherit;
             font-size: 15px;
+
+            background: white;
+            color: #111827;
+
             box-sizing: border-box;
         }
 
+        select:focus,
+        textarea:focus,
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: 3px solid #ffedd5;
+            border-color: #f97316;
+        }
+
         textarea {
-            min-height: 220px;
+            min-height: 230px;
             resize: vertical;
+            line-height: 1.5;
         }
 
         .button-row {
             display: flex;
             gap: 12px;
             justify-content: center;
-            margin-top: 24px;
-        }
-
-        .button {
-            border: none;
-            border-radius: 14px;
-            padding: 12px 20px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
+            flex-wrap: wrap;
+            margin-top: 26px;
         }
 
         .button.primary {
-            background: #2563eb;
+            background: #f97316;
             color: white;
         }
 
-        .button.secondary {
-            background: #e5e7eb;
-            color: black;
+        .button.primary:hover {
+            background: #ea580c;
         }
 
         .candidate-section {
             margin-top: 34px;
-            padding-top: 24px;
-            border-top: 1px solid #eee;
+            padding-top: 28px;
+            border-top: 1px solid #ffedd5;
         }
 
         .candidate-header {
@@ -93,62 +240,92 @@
             justify-content: space-between;
             align-items: center;
             gap: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+        }
+
+        .candidate-header h2 {
+            margin: 0;
+            font-size: 26px;
         }
 
         .candidate-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
         }
 
         .candidate-card {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
 
-            padding: 12px 14px;
-            background: #f9fafb;
-            border-radius: 14px;
-            border: 2px solid transparent;
+            padding: 14px 16px;
+            background: #fff7ed;
+            border-radius: 18px;
+            border: 2px solid #ffedd5;
+
             cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
         }
 
         .candidate-card.selected {
-            border-color: #2563eb;
-            background: #eff6ff;
+            border-color: #f97316;
+            background: #ffedd5;
         }
 
         .candidate-word {
             font-weight: bold;
+            color: #111827;
         }
 
         .candidate-count {
-            color: #666;
+            color: #9a3412;
             font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .candidate-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #f97316;
+            cursor: pointer;
         }
 
         .empty-message {
-            color: #666;
+            color: #6b7280;
             line-height: 1.5;
+
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
         }
 
         .candidate-translation {
             margin-top: 4px;
-            color: #111827;
+            color: #374151;
             font-size: 14px;
             font-weight: 600;
         }
 
         .candidate-translation.muted {
-            color: #999;
+            color: #9ca3af;
             font-weight: normal;
         }
 
         .error-message {
-            margin-top: 18px;
-            padding: 12px 14px;
+            margin-top: 22px;
+            padding: 13px 15px;
 
             background: #fee2e2;
             color: #991b1b;
@@ -157,19 +334,132 @@
             font-weight: bold;
         }
 
+        .source-note {
+            margin-top: -10px;
+            margin-bottom: 24px;
+
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 14px 16px;
+        }
+
+        @media (max-width: 850px) {
+            .site-banner {
+                padding: 16px 22px;
+            }
+
+            .banner-content {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .brand-name {
+                font-size: 36px;
+            }
+
+            .banner-actions {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .page-heading {
+                font-size: 32px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .candidate-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .candidate-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
 <body>
 
+    <header class="site-banner">
+        <div class="banner-content">
+
+            <div class="brand-section">
+                <div class="logo-placeholder">
+                    <img
+                        src="/static/images/banner_koi.svg"
+                        class="logo-image"
+                        alt="Lexikoi logo"
+                    >
+                </div>
+
+                <div>
+                    <div class="brand-name">
+                        Lexikoi
+                    </div>
+
+                    <div class="page-title">
+                        Import Media
+                    </div>
+                </div>
+            </div>
+
+            <div class="banner-actions">
+                {% set effective_language_deck_id = language_deck_id or back_language_deck_id %}
+                {% set effective_deck_id = selected_deck_id or deck_id or effective_language_deck_id %}
+
+                {% if effective_language_deck_id %}
+                    <a
+                        href="/language/{{ effective_language_deck_id }}"
+                        class="banner-button secondary"
+                    >
+                        ← Back to Language
+                    </a>
+                {% else %}
+                    <a
+                        href="/hub"
+                        class="banner-button secondary"
+                    >
+                        ← Back to Hub
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </header>
+
     <main class="page">
 
         <div class="card">
 
-            <h1>Import Media</h1>
+            <h1 class="page-heading">
+                Import Media
+            </h1>
 
-            {% set effective_language_deck_id = language_deck_id or back_language_deck_id %}
-            {% set effective_deck_id = selected_deck_id or deck_id or effective_language_deck_id %}
+            <p class="page-subtitle">
+                Paste text, upload notes, or import extracted media content to find unknown words and add them as flashcards.
+            </p>
+
+            {% if language_deck %}
+                <div class="source-note">
+                    Importing into <strong>{{ language_deck[1] }}</strong>.
+                    Choose a deck, extract candidate words, then select the words you want to add.
+                </div>
+            {% endif %}
 
             <form
                 action="/import-media/preview"
@@ -189,106 +479,119 @@
                     value="{{ selected_deck_id }}"
                 >
 
-                <div class="form-group">
-                    <label>
-                        Source type
-                    </label>
+                <div class="form-grid">
 
-                    <select
-                        name="source_type"
-                        id="sourceTypeSelect"
-                        onchange="updateImportMediaSourceType()"
-                    >
-                        <option
-                            value="text"
-                            {% if source_type == "text" %}
-                                selected
-                            {% endif %}
+                    <div class="form-group">
+                        <label>
+                            Source type
+                        </label>
+
+                        <select
+                            name="source_type"
+                            id="sourceTypeSelect"
+                            onchange="updateImportMediaSourceType()"
                         >
-                            Text / Article Paste
-                        </option>
+                            <option
+                                value="text"
+                                {% if source_type == "text" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Text / Article Paste
+                            </option>
 
-                        <option
-                            value="image"
-                            {% if source_type == "image" %}
-                                selected
-                            {% endif %}
+                            <option
+                                value="image"
+                                {% if source_type == "image" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Notes Image OCR
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Minimum word count
+                        </label>
+
+                        <input
+                            type="number"
+                            name="minimum_count"
+                            min="1"
+                            value="{{ minimum_count or 1 }}"
                         >
-                            Notes Image OCR
-                        </option>
-                    </select>
-                </div>
+                    </div>
 
-                <div
-                    id="youtubeUrlGroup"
-                    class="form-group"
-                >
-                    <label>
-                        YouTube URL
-                    </label>
-
-                    <input
-                        type="text"
-                        name="youtube_url"
-                        value="{{ youtube_url or '' }}"
-                        placeholder="Paste a YouTube video URL..."
+                    <div
+                        id="youtubeUrlGroup"
+                        class="form-group full-width"
                     >
-                </div>
+                        <label>
+                            YouTube URL
+                        </label>
 
-                <div class="form-group">
-                    <label>
-                        Minimum word count
-                    </label>
+                        <input
+                            type="text"
+                            name="youtube_url"
+                            value="{{ youtube_url or '' }}"
+                            placeholder="Paste a YouTube video URL..."
+                        >
+                    </div>
 
-                    <input
-                        type="number"
-                        name="minimum_count"
-                        min="1"
-                        value="{{ minimum_count or 1 }}"
+                    <div
+                        id="sourceTextGroup"
+                        class="form-group full-width"
                     >
-                </div>
+                        <label>
+                            Paste text or article content
+                        </label>
 
-                <div
-                    id="sourceTextGroup"
-                    class="form-group"
-                >
-                    <label>
-                        Paste text or article content
-                    </label>
+                        <textarea
+                            name="source_text"
+                            placeholder="Paste your notes, article text, or transcript here..."
+                        >{{ source_text }}</textarea>
+                    </div>
 
-                    <textarea
-                        name="source_text"
-                        placeholder="Paste your notes, article text, or transcript here..."
-                    >{{ source_text }}</textarea>
-                </div>
-
-                <div
-                    id="imageUploadGroup"
-                    class="form-group"
-                >
-                    <label>
-                        Upload image of notes/text
-                    </label>
-
-                    <input
-                        type="file"
-                        name="image_file"
-                        accept="image/*"
+                    <div
+                        id="imageUploadGroup"
+                        class="form-group full-width"
                     >
+                        <label>
+                            Upload image of notes/text
+                        </label>
+
+                        <input
+                            type="file"
+                            name="image_file"
+                            accept="image/*"
+                        >
+                    </div>
+
                 </div>
 
                 <div class="button-row">
-                    <button type="submit" class="button primary">
+                    <button
+                        type="submit"
+                        class="button primary"
+                    >
                         Extract Words
                     </button>
 
                     {% if effective_language_deck_id %}
-                        <a href="/language/{{ effective_language_deck_id }}" class="button secondary">
-                            Back to Decks
+                        <a
+                            href="/language/{{ effective_language_deck_id }}"
+                            class="button secondary"
+                        >
+                            Cancel
                         </a>
                     {% else %}
-                        <a href="/hub" class="button secondary">
-                            Back to Decks
+                        <a
+                            href="/hub"
+                            class="button secondary"
+                        >
+                            Cancel
                         </a>
                     {% endif %}
                 </div>
@@ -456,6 +759,10 @@
         function submitSelectedWords() {
             const form =
                 document.getElementById("selectedWordsForm");
+
+            if (!form) {
+                return;
+            }
 
             const selected =
                 form.querySelectorAll(".candidate-card.selected");

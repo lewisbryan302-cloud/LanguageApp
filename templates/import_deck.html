@@ -1,31 +1,181 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Import Deck</title>
+    <title>Import Cards</title>
 
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .site-banner {
+            width: 100%;
+            background: white;
+            border-bottom: 1px solid #ffedd5;
+            padding: 18px 40px;
+            box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-placeholder {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+
             background: #ffffff;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand-name {
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 44px;
+            font-weight: bold;
+            color: #f97316;
+            letter-spacing: 0.5px;
+        }
+
+        .page-title {
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .banner-button,
+        .back-button {
+            text-decoration: none;
+
+            background: #f97316;
+            color: white;
+
+            padding: 10px 18px;
+            border-radius: 12px;
+
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .banner-button:hover,
+        .back-button:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+
+        .banner-button.secondary,
+        .back-button.secondary {
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+        }
+
+        .banner-button.secondary:hover,
+        .back-button.secondary:hover {
+            background: #ffedd5;
         }
 
         .page {
-            max-width: 700px;
-            margin: 70px auto;
-            padding: 0 24px;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            box-sizing: border-box;
         }
 
         .import-card {
             background: white;
-            border-radius: 24px;
-            padding: 34px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+            border-radius: 28px;
+            padding: 36px;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            border-top: 8px solid #f97316;
+        }
+
+        .import-header {
+            text-align: center;
+            margin-bottom: 28px;
         }
 
         h1 {
-            margin-top: 0;
-            text-align: center;
+            margin: 0;
+            font-size: 36px;
+        }
+
+        .import-subtitle {
+            margin: 10px auto 0 auto;
+            max-width: 560px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .deck-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            margin-top: 18px;
+            padding: 8px 14px;
+
+            border-radius: 999px;
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+
+            color: #9a3412;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .form-group {
@@ -34,66 +184,222 @@
 
         label {
             display: block;
-            font-weight: bold;
             margin-bottom: 8px;
+            color: #374151;
+            font-weight: bold;
         }
 
         select,
         input[type="file"] {
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 14px;
-            border: 1px solid #ddd;
+            padding: 14px 16px;
+
+            border-radius: 16px;
+            border: 1px solid #d1d5db;
+
+            font-family: inherit;
             font-size: 15px;
+
+            background: white;
+            color: #111827;
+
             box-sizing: border-box;
         }
 
-        .help-text {
-            color: #666;
+        select:focus,
+        input[type="file"]:focus {
+            outline: 3px solid #ffedd5;
+            border-color: #f97316;
+        }
+
+        .help-box {
+            margin-top: 24px;
+            padding: 16px 18px;
+
+            border-radius: 18px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+
+            color: #6b7280;
             font-size: 14px;
             line-height: 1.5;
+        }
+
+        .help-box strong {
+            color: #374151;
+        }
+
+        .format-list {
+            margin: 10px 0 0 0;
+            padding-left: 18px;
+        }
+
+        .format-list li {
+            margin-top: 4px;
         }
 
         .button-row {
             display: flex;
             justify-content: center;
-            gap: 12px;
-            margin-top: 28px;
+            gap: 14px;
+            flex-wrap: wrap;
+
+            margin-top: 30px;
         }
 
         .button {
             border: none;
             border-radius: 14px;
-            padding: 12px 20px;
+            padding: 13px 22px;
+
+            font-family: inherit;
+            font-size: 15px;
             font-weight: bold;
+
             cursor: pointer;
             text-decoration: none;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
         }
 
         .button.primary {
-            background: #2563eb;
+            background: #f97316;
             color: white;
         }
 
+        .button.primary:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+        }
+
         .button.secondary {
-            background: #e5e7eb;
-            color: black;
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+        }
+
+        .button.secondary:hover {
+            background: #ffedd5;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 800px) {
+            .site-banner {
+                padding: 16px 22px;
+            }
+
+            .banner-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .brand-name {
+                font-size: 38px;
+            }
+
+            .banner-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .page {
+                padding: 32px 18px;
+            }
+
+            .import-card {
+                padding: 26px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+            }
         }
     </style>
 </head>
 
 <body>
 
+    <header class="site-banner">
+        <div class="banner-content">
+
+            <div class="brand-section">
+                <div class="logo-placeholder">
+                    <img
+                        src="/static/images/banner_koi.svg"
+                        class="logo-image"
+                        alt="Lexikoi logo"
+                    >
+                </div>
+
+                <div>
+                    <div class="brand-name">
+                        Lexikoi
+                    </div>
+
+                    <div class="page-title">
+                        Import Cards
+                    </div>
+                </div>
+            </div>
+
+            <div class="banner-actions">
+                <a
+                    href="/deck/{{ deck[0] }}/cards"
+                    class="banner-button secondary"
+                >
+                    View Cards
+                </a>
+
+                <a
+                    href="/add-card?deck_id={{ deck[0] }}"
+                    class="banner-button secondary"
+                >
+                    Add Card
+                </a>
+
+                <a
+                    href="/hub"
+                    class="back-button secondary"
+                >
+                    ← Back to Hub
+                </a>
+            </div>
+
+        </div>
+    </header>
+
     <main class="page">
 
         <div class="import-card">
 
-            <h1>Import Cards</h1>
+            <div class="import-header">
+                <h1>
+                    Import Cards
+                </h1>
 
-            <p class="help-text">
-                Import cards into <strong>{{ deck[1] }}</strong>.
-                For the first version, CSV or TSV import is the safest format.
-            </p>
+                <p class="import-subtitle">
+                    Upload an existing deck file and add its cards into your selected Lexikoi deck.
+                </p>
+
+                <div class="deck-pill">
+                    Importing into: {{ deck[1] }}
+                </div>
+            </div>
 
             <form
                 action="/import-deck"
@@ -148,18 +454,31 @@
                     >
                 </div>
 
-                <p class="help-text">
-                    Recommended CSV columns for now:
-                    front, back, card_type, tags, times_seen, times_correct,
-                    times_wrong, last_reviewed, next_review.
-                </p>
+                <div class="help-box">
+                    <strong>Recommended CSV/TSV columns:</strong>
+
+                    <ul class="format-list">
+                        <li>front</li>
+                        <li>back</li>
+                        <li>card_type</li>
+                        <li>tags</li>
+                        <li>times_seen, times_correct, times_wrong</li>
+                        <li>last_reviewed, next_review</li>
+                    </ul>
+                </div>
 
                 <div class="button-row">
-                    <button type="submit" class="button primary">
+                    <button
+                        type="submit"
+                        class="button primary"
+                    >
                         Import Cards
                     </button>
 
-                    <a href="/" class="button secondary">
+                    <a
+                        href="/deck/{{ deck[0] }}/cards"
+                        class="button secondary"
+                    >
                         Cancel
                     </a>
                 </div>

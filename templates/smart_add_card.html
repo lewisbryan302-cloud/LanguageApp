@@ -5,25 +5,33 @@
 
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
         }
 
         .site-banner {
             width: 100%;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: white;
+            border-bottom: 1px solid #ffedd5;
             padding: 18px 40px;
             box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .banner-content {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            display: flex;
+
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
-            justify-content: space-between;
+            gap: 24px;
         }
 
         .brand-section {
@@ -33,25 +41,37 @@
         }
 
         .logo-placeholder {
-            width: 44px;
-            height: 44px;
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
-            background: #2563eb;
-            color: white;
+
+            background: #ffffff;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            display: block;
         }
 
         .brand-name {
-            font-size: 24px;
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 44px;
             font-weight: bold;
+            color: #f97316;
+            letter-spacing: 0.5px;
         }
 
         .page-title {
             font-size: 14px;
-            color: #666;
+            color: #9a3412;
             margin-top: 2px;
             font-weight: bold;
         }
@@ -60,120 +80,111 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            justify-content: flex-end;
         }
 
         .banner-button,
         .back-button {
             text-decoration: none;
-            background: #2563eb;
+
+            background: #f97316;
             color: white;
+
             padding: 10px 18px;
             border-radius: 12px;
+
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
             font-weight: bold;
-            transition: background 0.15s ease;
+
+            cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
         }
 
         .banner-button:hover,
         .back-button:hover {
-            background: #1d4ed8;
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
         }
 
         .banner-button.secondary,
         .back-button.secondary {
-            background: #e5e7eb;
-            color: black;
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
         }
 
         .banner-button.secondary:hover,
         .back-button.secondary:hover {
-            background: #d1d5db;
+            background: #ffedd5;
+            color: #ea580c;
         }
 
         .page {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 0 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 42px 24px 70px 24px;
+            box-sizing: border-box;
         }
 
         .smart-card-box {
             background: white;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 28px;
+            padding: 0;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            border-top: 8px solid #f97316;
+
+            overflow: hidden;
+        }
+
+        .smart-card-header {
+            padding: 32px 36px;
+            background: white;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .smart-card-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        .smart-card-title {
+            margin: 0;
+            font-size: 34px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .smart-card-subtitle {
+            margin-top: 8px;
+            color: #6b7280;
+            line-height: 1.5;
         }
 
         .language-context {
-            text-align: center;
-            color: #666;
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #ffedd5;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 14px;
             font-weight: bold;
-            margin-top: -10px;
-            margin-bottom: 24px;
+            white-space: nowrap;
         }
 
-        .form-label {
-            display: block;
-            font-weight: bold;
-            margin-top: 24px;
-            margin-bottom: 10px;
-        }
-
-        .smart-input,
-        .smart-select {
-            width: 100%;
-            padding: 14px;
-            border-radius: 14px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-            box-sizing: border-box;
-            background: white;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 14px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .action-button {
-            padding: 12px 22px;
-            border-radius: 14px;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-        }
-
-        .preview-button {
-            background: #7c3aed;
-        }
-
-        .create-button {
-            background: #2563eb;
-        }
-
-        .suggestion-section {
-            margin-top: 40px;
-        }
-
-        .suggestion-card {
-            background: #fafafa;
-            border: 1px solid #eee;
-            border-radius: 14px;
-            padding: 16px;
-            margin-top: 14px;
-        }
-
-        .suggestion-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .empty-message {
-            margin-top: 20px;
-            color: #666;
-            line-height: 1.5;
+        .smart-card-body {
+            padding: 32px 36px 38px 36px;
         }
 
         .success-message {
@@ -181,7 +192,7 @@
             border: 1px solid #86efac;
             color: #166534;
             padding: 14px 18px;
-            border-radius: 14px;
+            border-radius: 16px;
             font-weight: bold;
             margin-bottom: 24px;
             transition: opacity 0.4s ease, transform 0.4s ease;
@@ -192,40 +203,222 @@
             transform: translateY(-8px);
         }
 
+        .search-panel {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 22px;
+            padding: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 18px;
+            align-items: end;
+        }
+
+        .form-group {
+            min-width: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .smart-input,
+        .smart-select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: white;
+            color: #111827;
+            font-family: inherit;
+        }
+
+        .smart-input:focus,
+        .smart-select:focus {
+            outline: 3px solid #ffedd5;
+            border-color: #f97316;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 14px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            padding: 13px 22px;
+            border-radius: 14px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-family: inherit;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+        }
+
+        .preview-button,
+        .create-button {
+            background: #f97316;
+        }
+
+        .preview-button:hover,
+        .create-button:hover {
+            background: #ea580c;
+        }
+
+        .suggestion-section {
+            margin-top: 34px;
+        }
+
+        .suggestion-section h2 {
+            margin: 0 0 16px 0;
+            font-size: 24px;
+        }
+
+        .suggestion-group {
+            background: white;
+            border-radius: 22px;
+            border: 1px solid #e5e7eb;
+            padding: 22px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .suggestion-card {
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-top: 12px;
+        }
+
+        .suggestion-card:first-of-type {
+            margin-top: 0;
+        }
+
+        .suggestion-card label {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            align-items: start;
+            cursor: pointer;
+        }
+
+        .suggestion-card input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+        }
+
+        .suggestion-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #111827;
+            line-height: 1.4;
+        }
+
+        .suggestion-meta {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .empty-message {
+            margin-top: 14px;
+            color: #6b7280;
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+            line-height: 1.5;
+        }
+
         .pos-tag {
             display: inline-block;
             font-size: 0.75rem;
             font-weight: 700;
             padding: 2px 7px;
             border-radius: 999px;
-            background: #e0f2fe;
-            color: #075985;
+            background: #ffedd5;
+            color: #9a3412;
             margin-left: 6px;
         }
 
         .example-sentences {
-            margin-top: 10px;
-            color: #444;
-            line-height: 1.4;
+            margin-top: 12px;
+            margin-left: 30px;
+            color: #374151;
+            line-height: 1.45;
+        }
+
+        .example-sentences p {
+            margin: 0 0 8px 0;
         }
 
         .example-sentences ul {
             margin-top: 6px;
+            margin-bottom: 0;
+            padding-left: 22px;
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 850px) {
+            .site-banner {
+                padding: 16px 20px;
+            }
+
             .banner-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+                grid-template-columns: 1fr;
+                gap: 14px;
             }
 
             .banner-actions {
+                justify-content: flex-start;
                 flex-wrap: wrap;
+            }
+
+            .brand-name {
+                font-size: 36px;
+            }
+
+            .page {
+                padding: 28px 18px 54px 18px;
+            }
+
+            .smart-card-header,
+            .smart-card-body {
+                padding: 24px;
+            }
+
+            .smart-card-title-row {
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
             }
 
             .button-row {
                 flex-direction: column;
+            }
+
+            .action-button {
+                width: 100%;
             }
         }
     </style>
@@ -237,15 +430,23 @@
         <div class="banner-content">
 
             <div class="brand-section">
-                <div class="logo-placeholder">L</div>
+                <div class="logo-placeholder">
+                    <img
+                        src="/static/images/banner_koi.svg"
+                        class="logo-image"
+                        alt="Lexikoi logo"
+                    >
+                </div>
 
                 <div>
-                    <div class="brand-name">LanguageApp</div>
+                    <div class="brand-name">Lexikoi</div>
                     <div class="page-title">
                         Smart Add Card
                     </div>
                 </div>
             </div>
+
+            <div></div>
 
             <div class="banner-actions">
 
@@ -270,21 +471,21 @@
                         href="/language/{{ language_deck_id }}"
                         class="back-button secondary"
                     >
-                        ← Back to Decks
+                        ← Back to Language
                     </a>
                 {% elif back_language_deck_id %}
                     <a
                         href="/language/{{ back_language_deck_id }}"
                         class="back-button secondary"
                     >
-                        ← Back to Decks
+                        ← Back to Language
                     </a>
                 {% else %}
                     <a
                         href="/hub"
                         class="back-button secondary"
                     >
-                        ← Back to Decks
+                        ← Back to Hub
                     </a>
                 {% endif %}
 
@@ -297,66 +498,90 @@
 
         <div class="smart-card-box">
 
-            {% if language_deck %}
-                <div class="language-context">
-                    {{ language_deck[1] }}
-                </div>
-            {% endif %}
+            <div class="smart-card-header">
+                <div class="smart-card-title-row">
+                    <div>
+                        <h1 class="smart-card-title">
+                            Smart Add
+                        </h1>
 
-            {% if success_message %}
-                <div id="successMessage" class="success-message">
-                    {{ success_message }}
-                </div>
-            {% endif %}
-
-            <form action="/smart-add-card/preview" method="post">
-
-                    <input
-                        type="hidden"
-                        name="language_deck_id"
-                        value="{{ language_deck_id }}"
-                    >
-
-                    <label class="form-label">
-                        Deck
-                    </label>
-
-                    <select name="deck_id" required class="smart-select">
-                        {% for deck in decks %}
-                            <option
-                                value="{{ deck[0] }}"
-                                {% if deck_id and deck[0]|int == deck_id|int %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ deck[1] }}
-                            </option>
-                        {% endfor %}
-                    </select>
-
-                    <label class="form-label">
-                        Search in English
-                    </label>
-
-                    <input
-                        type="text"
-                        name="query_word"
-                        class="smart-input"
-                        value="{{ query_word if query_word is defined else '' }}"
-                        placeholder="e.g. house, cold, go, animal"
-                        required
-                    >
-
-                    <div class="button-row">
-                        <button
-                            type="submit"
-                            class="action-button preview-button"
-                        >
-                            Find Suggestions
-                        </button>
+                        <div class="smart-card-subtitle">
+                            Search for related words, similar cards, and useful phrases, then add the best suggestions to your deck.
+                        </div>
                     </div>
 
-                </form>
+                    {% if language_deck %}
+                        <div class="language-context">
+                            {{ language_deck[1] }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="smart-card-body">
+
+                {% if success_message %}
+                    <div id="successMessage" class="success-message">
+                        {{ success_message }}
+                    </div>
+                {% endif %}
+
+                <div class="search-panel">
+                    <form action="/smart-add-card/preview" method="post">
+
+                        <input
+                            type="hidden"
+                            name="language_deck_id"
+                            value="{{ language_deck_id }}"
+                        >
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Deck
+                                </label>
+
+                                <select name="deck_id" required class="smart-select">
+                                    {% for deck in decks %}
+                                        <option
+                                            value="{{ deck[0] }}"
+                                            {% if deck_id and deck[0]|int == deck_id|int %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ deck[1] }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Search in English
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="query_word"
+                                    class="smart-input"
+                                    value="{{ query_word if query_word is defined else '' }}"
+                                    placeholder="e.g. house, cold, go, animal"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="button-row">
+                            <button
+                                type="submit"
+                                class="action-button preview-button"
+                            >
+                                Find Suggestions
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
 
                 {% if suggestions is not none %}
 
@@ -382,44 +607,47 @@
                                 value="{{ query_word }}"
                             >
 
-                            <h2>Similar Existing Cards</h2>
+                            <div class="suggestion-group">
+                                <h2>Similar Existing Cards</h2>
 
-                            {% if suggestions %}
+                                {% if suggestions %}
 
-                                {% for card in suggestions %}
-                                    <div class="suggestion-card">
+                                    {% for card in suggestions %}
+                                        <div class="suggestion-card">
 
-                                        <label>
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    name="selected_card_ids"
+                                                    value="{{ card[0] }}"
+                                                >
 
-                                            <input
-                                                type="checkbox"
-                                                name="selected_card_ids"
-                                                value="{{ card[0] }}"
-                                            >
+                                                <div>
+                                                    <div class="suggestion-title">
+                                                        {{ card[1] }} → {{ card[2] }}
+                                                    </div>
 
-                                            <div class="suggestion-title">
-                                                {{ card[1] }} → {{ card[2] }}
-                                            </div>
+                                                    <div class="suggestion-meta">
+                                                        Similarity: {{ "%.2f"|format(card[3]) }}
+                                                    </div>
+                                                </div>
+                                            </label>
 
-                                            Similarity:
-                                            {{ "%.2f"|format(card[3]) }}
+                                        </div>
+                                    {% endfor %}
 
-                                        </label>
+                                {% else %}
 
+                                    <div class="empty-message">
+                                        No similar cards found.
                                     </div>
-                                {% endfor %}
 
-                            {% else %}
-
-                                <div class="empty-message">
-                                    No similar cards found.
-                                </div>
-
-                            {% endif %}
+                                {% endif %}
+                            </div>
 
                             {% if word_suggestions %}
 
-                                <div class="suggestion-section">
+                                <div class="suggestion-section suggestion-group">
 
                                     <h2>Suggested New Cards</h2>
 
@@ -427,29 +655,29 @@
                                         <div class="suggestion-card">
 
                                             <label>
-
                                                 <input
                                                     type="checkbox"
                                                     name="selected_suggestion_indices"
                                                     value="{{ loop.index0 }}"
                                                 >
 
-                                                <div class="suggestion-title">
-                                                    {{ item.word }}
+                                                <div>
+                                                    <div class="suggestion-title">
+                                                        {{ item.word }}
 
-                                                    {% if item.pos_tag %}
-                                                        <span class="pos-tag">
-                                                            {{ item.pos_tag }}
-                                                        </span>
-                                                    {% endif %}
+                                                        {% if item.pos_tag %}
+                                                            <span class="pos-tag">
+                                                                {{ item.pos_tag }}
+                                                            </span>
+                                                        {% endif %}
 
-                                                    →
-                                                    {{ item.translation }}
+                                                        → {{ item.translation }}
+                                                    </div>
+
+                                                    <div class="suggestion-meta">
+                                                        Similarity: {{ "%.2f"|format(item.score) }}
+                                                    </div>
                                                 </div>
-
-                                                Similarity:
-                                                {{ "%.2f"|format(item.score) }}
-
                                             </label>
 
                                             <input
@@ -473,7 +701,7 @@
 
                             {% if phrase_suggestions %}
 
-                                <div class="suggestion-section">
+                                <div class="suggestion-section suggestion-group">
 
                                     <h2>
                                         Suggested Phrases
@@ -486,21 +714,21 @@
                                         <div class="suggestion-card">
 
                                             <label>
-
                                                 <input
                                                     type="checkbox"
                                                     name="selected_phrase_indices"
                                                     value="{{ loop.index0 }}"
                                                 >
 
-                                                <div class="suggestion-title">
-                                                    {{ item.translation }}
-                                                    →
-                                                    {{ item.phrase }}
+                                                <div>
+                                                    <div class="suggestion-title">
+                                                        {{ item.translation }} → {{ item.phrase }}
+                                                    </div>
+
+                                                    <div class="suggestion-meta">
+                                                        Found {{ item.count }} time{% if item.count != 1 %}s{% endif %}
+                                                    </div>
                                                 </div>
-
-                                                Found {{ item.count }} time{% if item.count != 1 %}s{% endif %}
-
                                             </label>
 
                                             {% if item.examples %}
@@ -556,6 +784,8 @@
                     </div>
 
                 {% endif %}
+
+            </div>
 
         </div>
 

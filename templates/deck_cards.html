@@ -5,25 +5,33 @@
 
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
         }
 
         .site-banner {
             width: 100%;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: white;
+            border-bottom: 1px solid #ffedd5;
             padding: 18px 40px;
             box-sizing: border-box;
+
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .banner-content {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            display: flex;
+
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
-            justify-content: space-between;
+            gap: 24px;
         }
 
         .brand-section {
@@ -33,104 +41,130 @@
         }
 
         .logo-placeholder {
-            width: 44px;
-            height: 44px;
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
-            background: #2563eb;
-            color: white;
+
+            background: #ffffff;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            display: block;
         }
 
         .brand-name {
-            font-size: 24px;
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: 44px;
             font-weight: bold;
+            color: #f97316;
+            letter-spacing: 0.5px;
         }
 
-        .banner-right {
-            color: #666;
-        }
-
-        .banner-button {
-            text-decoration: none;
-
-            background: #2563eb;
-            color: white;
-
-            padding: 10px 18px;
-
-            border-radius: 12px;
-
+        .page-title {
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 14px;
             font-weight: bold;
-
-            transition: background 0.15s ease;
-        }
-
-        .banner-button:hover {
-            background: #1d4ed8;
-        }
-
-        .page {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 0 10px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .top-links {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        }
-
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid #eee;
-            text-align: left;
-        }
-
-        th {
-            background: #222;
-            color: white;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .empty {
-            text-align: center;
-            background: white;
-            padding: 40px;
-            border-radius: 14px;
-        }
-
-        .banner-button.secondary {
-                background: #e5e7eb;
-                color: black;
-        }
-
-        .banner-button.secondary:hover {
-            background: #d1d5db;
         }
 
         .banner-actions {
             display: flex;
-            gap: 12px;
             align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .banner-button,
+        .back-button {
+            text-decoration: none;
+
+            background: #f97316;
+            color: white;
+
+            padding: 10px 18px;
+            border-radius: 12px;
+
+            border: none;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .banner-button:hover,
+        .back-button:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .banner-button.secondary,
+        .back-button.secondary {
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+        }
+
+        .banner-button.secondary:hover,
+        .back-button.secondary:hover {
+            background: #ffedd5;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px 70px 24px;
+        }
+
+        .deck-header-card {
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            border-top: 8px solid #f97316;
+
+            margin-bottom: 24px;
+        }
+
+        .deck-title {
+            margin: 0;
+            text-align: center;
+            font-size: 38px;
+        }
+
+        .deck-subtitle {
+            margin-top: 8px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .controls-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+
+            margin-bottom: 22px;
         }
 
         .bulk-actions {
@@ -138,31 +172,141 @@
             flex-wrap: wrap;
             gap: 12px;
             align-items: center;
-            margin: auto 10px 20px;
+            justify-content: center;
+            margin-bottom: 18px;
         }
 
         .bulk-actions button {
-            padding: 9px 14px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
             border: none;
-            background: #e5e7eb;
+
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+
+            font-family: inherit;
+            font-size: 14px;
             font-weight: bold;
+
             cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease;
         }
 
         .bulk-actions button:hover {
-            background: #d1d5db;
+            background: #ffedd5;
+            transform: translateY(-1px);
         }
 
-        .card-search {
-            display: block;
-            width: 80%;
-            max-width: 500px;
-            margin: 20px auto;
+        .bulk-actions .danger-button {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .bulk-actions .danger-button:hover {
+            background: #fecaca;
+        }
+
+        .select-all-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 10px 14px;
+            border-radius: 999px;
+
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+
+            color: #374151;
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .select-all-label input {
+            accent-color: #f97316;
+            cursor: pointer;
+        }
+
+        .card-filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .card-search,
+        .date-order-select {
+            width: 100%;
+
             padding: 12px 16px;
             border-radius: 14px;
-            border: 1px solid #ddd;
-            font-size: 16px;
+            border: 1px solid #d1d5db;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+
+            background: white;
+            color: #374151;
+
+            box-sizing: border-box;
+        }
+
+        .card-search:focus,
+        .date-order-select:focus {
+            outline: 3px solid #ffedd5;
+            border-color: #f97316;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 24px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1050px;
+
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         .card-row {
@@ -171,11 +315,11 @@
         }
 
         .card-row:hover {
-            background: #f8fafc;
+            background: #fff7ed;
         }
 
         .card-row.selected {
-            background: #dbeafe;
+            background: #ffedd5;
         }
 
         .card-checkbox {
@@ -187,6 +331,12 @@
             -webkit-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+
+        .card-content-cell {
+            max-width: 260px;
+            line-height: 1.45;
+            word-break: break-word;
         }
 
         .card-tags {
@@ -204,8 +354,9 @@
 
             border-radius: 999px;
 
-            background: #e5e7eb;
-            color: #374151;
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #ffedd5;
 
             font-size: 12px;
             font-weight: bold;
@@ -219,97 +370,122 @@
             white-space: nowrap;
         }
 
-        .card-filter-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-
-            margin: 20px auto;
+        .inline-action-link {
+            color: #f97316;
+            font-weight: bold;
+            text-decoration: none;
         }
 
-        .card-filter-row .card-search {
-            margin: 0;
+        .inline-action-link:hover {
+            text-decoration: underline;
         }
 
-        .tag-search {
-            max-width: 260px;
+        .row-delete-button {
+            border: none;
+            border-radius: 10px;
+
+            background: #fee2e2;
+            color: #991b1b;
+
+            padding: 8px 10px;
+
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: bold;
+
+            cursor: pointer;
         }
 
-        .date-order-select {
-            padding: 12px 16px;
-            border-radius: 14px;
-            border: 1px solid #ddd;
+        .row-delete-button:hover {
+            background: #fecaca;
+        }
 
-            font-size: 16px;
-            font-weight: 600;
-
+        .empty {
+            text-align: center;
             background: white;
-            color: #374151;
+            padding: 42px;
+            border-radius: 24px;
+
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+
+            color: #6b7280;
         }
 
-        @media (max-width: 800px) {
+        .empty a {
+            color: #f97316;
+            font-weight: bold;
+        }
+
+        @media (max-width: 850px) {
+            .site-banner {
+                padding: 16px 22px;
+            }
+
             .banner-content {
+                display: flex;
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 14px;
+            }
+
+            .brand-name {
+                font-size: 36px;
             }
 
             .banner-actions {
+                width: 100%;
                 flex-wrap: wrap;
+                justify-content: flex-start;
             }
 
-            .deck-selector-top-right {
-                position: static;
-                margin: 20px auto;
-                justify-content: center;
+            .deck-title {
+                font-size: 32px;
             }
 
-            .add-card {
-                width: 92%;
+            .card-filter-row {
+                grid-template-columns: 1fr;
             }
 
-            .button-row {
-                flex-direction: column;
-                align-items: center;
+            .bulk-actions {
+                justify-content: flex-start;
             }
 
-            .add-card-button {
-                width: 80%;
-                text-align: center;
+            .page {
+                padding: 28px 18px 60px 18px;
             }
         }
     </style>
 </head>
 
 <body>
+
     <header class="site-banner">
         <div class="banner-content">
-            <div class="brand-section">
 
+            <div class="brand-section">
                 <div class="logo-placeholder">
-                    L
+                    <img
+                        src="/static/images/banner_koi.svg"
+                        class="logo-image"
+                        alt="Lexikoi logo"
+                    >
                 </div>
 
                 <div>
-
                     <div class="brand-name">
-                        LanguageApp
+                        Lexikoi
                     </div>
 
                     <div class="page-title">
                         Deck Cards
                     </div>
-
                 </div>
-
             </div>
 
-            <div class="banner-right">
+            <div class="banner-actions">
 
-                <div class="banner-actions">
-
+                {% if deck %}
                     <a
                         href="/add-card?deck_id={{ deck[0] }}"
                         class="banner-button secondary"
@@ -324,447 +500,541 @@
                         Review Deck
                     </a>
 
-                    <a href="/language/{{ deck[0] }}" class="back-button">
-                        ← Back to Decks
+                    <a
+                        href="/language/{{ deck[0] }}"
+                        class="back-button secondary"
+                    >
+                        ← Back to Language
                     </a>
-
-                </div>
+                {% else %}
+                    <a
+                        href="/hub"
+                        class="back-button secondary"
+                    >
+                        ← Back to Hub
+                    </a>
+                {% endif %}
 
             </div>
+
         </div>
     </header>
-    {% if deck %}
-        <h1>{{ deck[1] }}</h1>
 
-        {% if cards %}
-            
+    <main class="page">
+
+        {% if deck %}
+
+            <section class="deck-header-card">
+                <h1 class="deck-title">
+                    {{ deck[1] }}
+                </h1>
+
+                <div class="deck-subtitle">
+                    Search, filter, edit, and organise cards in this deck.
+                </div>
+            </section>
+
+            {% if cards %}
+
                 <form method="post">
-                    <input type="hidden" name="deck_id" value="{{ deck[0] }}">
+                    <input
+                        type="hidden"
+                        name="deck_id"
+                        value="{{ deck[0] }}"
+                    >
 
-                    <div class="bulk-actions">
-                        <button type="submit" formaction="/cards/delete-selected" onclick="return confirm('Delete selected cards?');">
-                            Delete Selected
-                        </button>
+                    <section class="controls-card">
 
-                        <button type="submit" formaction="/cards/add-reverse-selected">
-                            Add Reverse for Selected
-                        </button>
-
-                        <button type="submit" formaction="/cards/reset-srs-selected" onclick="return confirm('Reset SRS data for selected cards?');">
-                            Reset SRS for Selected
-                        </button>
-
-                        <button
-                            type="submit"
-                            formaction="/cards/delete-front-back-duplicates"
-                            onclick="return confirm('Delete exact front-back duplicate cards in this deck?');"
-                        >
-                            Delete Front-Back Duplicates
-                        </button>
-
-                        <label>
-                            <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                            Select All
-                        </label>
-                    </div>
-
-                    <div class="card-filter-row">
-
-                        <input
-                            type="text"
-                            id="card-search"
-                            placeholder="Search cards..."
-                            class="card-search"
-                            oninput="filterCards()"
-                        >
-
-                        <input
-                            type="text"
-                            id="tag-search"
-                            placeholder="Filter by tag..."
-                            class="card-search tag-search"
-                            oninput="filterCards()"
-                        >
-
-                        <select
-                            id="date-order"
-                            class="date-order-select"
-                            onchange="orderCardsByDate()"
-                        >
-                            <option value="">Order by date</option>
-                            <option value="last_reviewed_newest">Last reviewed: newest first</option>
-                            <option value="last_reviewed_oldest">Last reviewed: oldest first</option>
-                            <option value="next_review_soonest">Next review: soonest first</option>
-                            <option value="next_review_latest">Next review: latest first</option>
-                        </select>
-
-                    </div>
-
-                    <table>
-                        <tr>
-                            <th>Select</th>
-                            <th>Front</th>
-                            <th>Back</th>
-                            <th>Tags</th>
-                            <th>Seen</th>
-                            <th>Correct</th>
-                            <th>Wrong</th>
-                            <th>Last Reviewed</th>
-                            <th>Next Review</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
-                        </tr>
-
-                        {% for card in cards %}
-                            <tr
-                                class="card-row"
-                                data-card-row
-                                data-last-reviewed="{{ card[6] }}"
-                                data-next-review="{{ card[7] }}"
+                        <div class="bulk-actions">
+                            <button
+                                type="submit"
+                                class="danger-button"
+                                formaction="/cards/delete-selected"
+                                onclick="return confirm('Delete selected cards?');"
                             >
-                                <td>
-                                    <input type="checkbox" class="card-checkbox" name="card_ids" value="{{ card[0] }}">
-                                </td>
+                                Delete Selected
+                            </button>
 
-                                <td>
+                            <button
+                                type="submit"
+                                formaction="/cards/add-reverse-selected"
+                            >
+                                Add Reverse for Selected
+                            </button>
 
-                                    {% if card[8] == "image_occlusion" %}
+                            <button
+                                type="submit"
+                                formaction="/cards/reset-srs-selected"
+                                onclick="return confirm('Reset SRS data for selected cards?');"
+                            >
+                                Reset SRS for Selected
+                            </button>
 
-                                        Image Occlusion Card
+                            <button
+                                type="submit"
+                                class="danger-button"
+                                formaction="/cards/delete-front-back-duplicates"
+                                onclick="return confirm('Delete exact front-back duplicate cards in this deck?');"
+                            >
+                                Delete Front-Back Duplicates
+                            </button>
 
-                                    {% elif card[8] == "cloze" %}
+                            <label class="select-all-label">
+                                <input
+                                    type="checkbox"
+                                    id="selectAll"
+                                    onclick="toggleSelectAll()"
+                                >
+                                Select All
+                            </label>
+                        </div>
 
-                                        {{ card[1] | cloze_hidden }}
+                        <div class="card-filter-row">
 
-                                    {% else %}
+                            <input
+                                type="text"
+                                id="card-search"
+                                placeholder="Search cards..."
+                                class="card-search"
+                                oninput="filterCards()"
+                            >
 
-                                        {{ card[1] }}
+                            <input
+                                type="text"
+                                id="tag-search"
+                                placeholder="Filter by tag..."
+                                class="card-search tag-search"
+                                oninput="filterCards()"
+                            >
 
-                                    {% endif %}
+                            <select
+                                id="date-order"
+                                class="date-order-select"
+                                onchange="orderCardsByDate()"
+                            >
+                                <option value="">Order by date</option>
+                                <option value="last_reviewed_newest">Last reviewed: newest first</option>
+                                <option value="last_reviewed_oldest">Last reviewed: oldest first</option>
+                                <option value="next_review_soonest">Next review: soonest first</option>
+                                <option value="next_review_latest">Next review: latest first</option>
+                            </select>
 
-                                </td>
-                                <td>
-                                    {% if card[8] == "image_occlusion" %}
-                                        Hidden boxes
-                                    {% else %}
-                                        {{ card[2] }}
-                                    {% endif %}
-                                </td>
+                        </div>
 
-                                <td>
-                                    {% set card_tags = tags_by_card_id.get(card[0], []) %}
+                    </section>
 
-                                    <div
-                                        class="card-tags"
-                                        data-card-tags="{{ card_tags | join(' ') }}"
+                    <section class="table-card">
+                        <div class="table-scroll">
+
+                            <table>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Front</th>
+                                    <th>Back</th>
+                                    <th>Tags</th>
+                                    <th>Seen</th>
+                                    <th>Correct</th>
+                                    <th>Wrong</th>
+                                    <th>Last Reviewed</th>
+                                    <th>Next Review</th>
+                                    <th>Edit</th>
+                                    <th>Delete</th>
+                                </tr>
+
+                                {% for card in cards %}
+                                    <tr
+                                        class="card-row"
+                                        data-card-row
+                                        data-last-reviewed="{{ card[6] }}"
+                                        data-next-review="{{ card[7] }}"
                                     >
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                class="card-checkbox"
+                                                name="card_ids"
+                                                value="{{ card[0] }}"
+                                            >
+                                        </td>
 
-                                        {% if card_tags %}
-                                            {% for tag in card_tags %}
-                                                <span class="tag-pill">
-                                                    {{ tag }}
-                                                </span>
-                                            {% endfor %}
-                                        {% else %}
-                                            <span class="no-tags">
-                                                No tags
-                                            </span>
-                                        {% endif %}
+                                        <td class="card-content-cell">
 
-                                    </div>
-                                </td>
+                                            {% if card[8] == "image_occlusion" %}
 
-                                <td>{{ card[3] }}</td>
-                                <td>{{ card[4] }}</td>
-                                <td>{{ card[5] }}</td>
-                                <td>{{ card[6] }}</td>
-                                <td>{{ card[7] }}</td>
+                                                Image Occlusion Card
 
-                                <td>
-                                    <a href="/card/{{ card[0] }}/edit">Edit</a>
-                                </td>
+                                            {% elif card[8] == "cloze" %}
 
-                                <td>
-                                    <button
-                                        type="submit"
-                                        formaction="/card/{{ card[0] }}/delete"
-                                        onclick="return confirm('Delete this card?');"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </table>
+                                                {{ card[1] | cloze_hidden }}
+
+                                            {% else %}
+
+                                                {{ card[1] | safe }}
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td class="card-content-cell">
+                                            {% if card[8] == "image_occlusion" %}
+                                                Hidden boxes
+                                            {% else %}
+                                                {{ card[2] | safe }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% set card_tags = tags_by_card_id.get(card[0], []) %}
+
+                                            <div
+                                                class="card-tags"
+                                                data-card-tags="{{ card_tags | join(' ') }}"
+                                            >
+
+                                                {% if card_tags %}
+                                                    {% for tag in card_tags %}
+                                                        <span class="tag-pill">
+                                                            {{ tag }}
+                                                        </span>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span class="no-tags">
+                                                        No tags
+                                                    </span>
+                                                {% endif %}
+
+                                            </div>
+                                        </td>
+
+                                        <td>{{ card[3] }}</td>
+                                        <td>{{ card[4] }}</td>
+                                        <td>{{ card[5] }}</td>
+                                        <td>{{ card[6] }}</td>
+                                        <td>{{ card[7] }}</td>
+
+                                        <td>
+                                            <a
+                                                href="/card/{{ card[0] }}/edit"
+                                                class="inline-action-link"
+                                            >
+                                                Edit
+                                            </a>
+                                        </td>
+
+                                        <td>
+                                            <button
+                                                type="submit"
+                                                class="row-delete-button"
+                                                formaction="/card/{{ card[0] }}/delete"
+                                                onclick="return confirm('Delete this card?');"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+
+                        </div>
+                    </section>
+
                 </form>
-            
+
+            {% else %}
+
+                <div class="empty">
+                    <p>No cards in this deck yet.</p>
+                    <p>
+                        <a href="/add-card?deck_id={{ deck[0] }}">
+                            Add your first card
+                        </a>
+                    </p>
+                </div>
+
+            {% endif %}
+
         {% else %}
+
             <div class="empty">
-                <p>No cards in this deck yet.</p>
-                <p><a href="/add-card">Add your first card</a></p>
+                <p>Deck not found.</p>
+                <p>
+                    <a href="/hub">
+                        Back to Hub
+                    </a>
+                </p>
             </div>
+
         {% endif %}
-    {% else %}
-        <div class="empty">
-            <p>Deck not found.</p>
-            <p><a href="/">Back to My Decks</a></p>
-        </div>
-    {% endif %}
+
+    </main>
 
     <script>
 
-    let autoScrollInterval = null;
-    let dragMode = null;
-    let dragStartRow = null;
- 
+        let autoScrollInterval = null;
+        let dragMode = null;
+        let dragStartRow = null;
 
-    function handleAutoScroll(event) {
-        const scrollMargin = 120;
-        const scrollSpeed = 12;
+        function handleAutoScroll(event) {
+            const scrollMargin = 120;
+            const scrollSpeed = 12;
 
-        const mouseY = event.clientY;
-        const windowHeight = window.innerHeight;
+            const mouseY = event.clientY;
+            const windowHeight = window.innerHeight;
 
-        clearInterval(autoScrollInterval);
+            clearInterval(autoScrollInterval);
 
-        if (mouseY < scrollMargin) {
+            if (mouseY < scrollMargin) {
 
-            autoScrollInterval = setInterval(() => {
-                window.scrollBy(0, -scrollSpeed);
-            }, 10);
+                autoScrollInterval = setInterval(() => {
+                    window.scrollBy(0, -scrollSpeed);
+                }, 10);
 
-        } else if (mouseY > windowHeight - scrollMargin) {
+            } else if (mouseY > windowHeight - scrollMargin) {
 
-            autoScrollInterval = setInterval(() => {
-                window.scrollBy(0, scrollSpeed);
-            }, 10);
+                autoScrollInterval = setInterval(() => {
+                    window.scrollBy(0, scrollSpeed);
+                }, 10);
 
-        }
-    }
-
-    function toggleSelectAll() {
-        const selectAll = document.getElementById("selectAll");
-        const checkboxes = document.querySelectorAll(".card-checkbox");
-
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = selectAll.checked;
-        });
-    }
-
-    function filterCards() {
-        const searchTerm = document
-            .getElementById("card-search")
-            .value
-            .toLowerCase()
-            .trim();
-
-        const tagTerm = document
-            .getElementById("tag-search")
-            .value
-            .toLowerCase()
-            .trim();
-
-        const rows = document.querySelectorAll(".card-row");
-
-        rows.forEach(row => {
-            const rowText = row.innerText.toLowerCase();
-
-            const tagElement = row.querySelector(".card-tags");
-
-            const tagText = tagElement
-                ? tagElement.dataset.cardTags.toLowerCase()
-                : "";
-
-            const matchesCardSearch =
-                !searchTerm || rowText.includes(searchTerm);
-
-            const matchesTagSearch =
-                !tagTerm || tagText.includes(tagTerm);
-
-            if (matchesCardSearch && matchesTagSearch) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
             }
-        });
-    }
-
-    function parseDateValue(value) {
-        if (!value || value === "None" || value === "null") {
-            return null;
         }
 
-        const parsed = new Date(value);
+        function toggleSelectAll() {
+            const selectAll = document.getElementById("selectAll");
+            const checkboxes = document.querySelectorAll(".card-checkbox");
 
-        if (Number.isNaN(parsed.getTime())) {
-            return null;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+
+                const row = checkbox.closest(".card-row");
+
+                if (row) {
+                    row.classList.toggle("selected", checkbox.checked);
+                }
+            });
         }
 
-        return parsed;
-    }
+        function filterCards() {
+            const searchTerm = document
+                .getElementById("card-search")
+                .value
+                .toLowerCase()
+                .trim();
 
-    function orderCardsByDate() {
-        const orderValue =
-            document.getElementById("date-order").value;
+            const tagTerm = document
+                .getElementById("tag-search")
+                .value
+                .toLowerCase()
+                .trim();
 
-        if (!orderValue) {
-            return;
+            const rows = document.querySelectorAll(".card-row");
+
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+
+                const tagElement = row.querySelector(".card-tags");
+
+                const tagText = tagElement
+                    ? tagElement.dataset.cardTags.toLowerCase()
+                    : "";
+
+                const matchesCardSearch =
+                    !searchTerm || rowText.includes(searchTerm);
+
+                const matchesTagSearch =
+                    !tagTerm || tagText.includes(tagTerm);
+
+                if (matchesCardSearch && matchesTagSearch) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
         }
 
-        const table = document.querySelector("table");
-        const rows = [...document.querySelectorAll(".card-row")];
-
-        rows.sort((a, b) => {
-            let dateA;
-            let dateB;
-
-            if (
-                orderValue === "last_reviewed_newest" ||
-                orderValue === "last_reviewed_oldest"
-            ) {
-                dateA = parseDateValue(a.dataset.lastReviewed);
-                dateB = parseDateValue(b.dataset.lastReviewed);
+        function parseDateValue(value) {
+            if (!value || value === "None" || value === "null") {
+                return null;
             }
 
-            if (
-                orderValue === "next_review_soonest" ||
-                orderValue === "next_review_latest"
-            ) {
-                dateA = parseDateValue(a.dataset.nextReview);
-                dateB = parseDateValue(b.dataset.nextReview);
+            const parsed = new Date(value);
+
+            if (Number.isNaN(parsed.getTime())) {
+                return null;
             }
 
-            if (!dateA && !dateB) return 0;
-            if (!dateA) return 1;
-            if (!dateB) return -1;
+            return parsed;
+        }
 
-            if (
-                orderValue === "last_reviewed_newest" ||
-                orderValue === "next_review_latest"
-            ) {
-                return dateB - dateA;
+        function orderCardsByDate() {
+            const orderValue =
+                document.getElementById("date-order").value;
+
+            if (!orderValue) {
+                return;
             }
 
-            return dateA - dateB;
-        });
+            const table = document.querySelector("table");
+            const rows = [...document.querySelectorAll(".card-row")];
 
-        rows.forEach(row => {
-            table.appendChild(row);
-        });
-    }
+            rows.sort((a, b) => {
+                let dateA;
+                let dateB;
 
-    let mouseDown = false;
+                if (
+                    orderValue === "last_reviewed_newest" ||
+                    orderValue === "last_reviewed_oldest"
+                ) {
+                    dateA = parseDateValue(a.dataset.lastReviewed);
+                    dateB = parseDateValue(b.dataset.lastReviewed);
+                }
 
-    document.addEventListener("mousedown", () => {
-        mouseDown = true;
-    });
+                if (
+                    orderValue === "next_review_soonest" ||
+                    orderValue === "next_review_latest"
+                ) {
+                    dateA = parseDateValue(a.dataset.nextReview);
+                    dateB = parseDateValue(b.dataset.nextReview);
+                }
 
-    document.addEventListener("mouseup", () => {
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1;
+                if (!dateB) return -1;
 
-        mouseDown = false;
+                if (
+                    orderValue === "last_reviewed_newest" ||
+                    orderValue === "next_review_latest"
+                ) {
+                    return dateB - dateA;
+                }
 
-        dragStartRow = null;
-        dragMode = null;
+                return dateA - dateB;
+            });
 
-        clearInterval(autoScrollInterval);
-    });
+            rows.forEach(row => {
+                table.appendChild(row);
+            });
+        }
 
-    document.querySelectorAll("[data-card-row]").forEach(row => {
+        let mouseDown = false;
 
-        row.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-
+        document.addEventListener("mousedown", () => {
             mouseDown = true;
-
-            dragStartRow = row;
-
-            const checkbox = row.querySelector(".card-checkbox");
-
-            dragMode = checkbox.checked ? "deselect" : "select";
-
-            updateDragSelection(row);
         });
 
-        row.addEventListener("mouseover", function (event) {
-            if (!mouseDown || !dragStartRow) return;
+        document.addEventListener("mouseup", () => {
 
-            event.preventDefault();
+            mouseDown = false;
 
-            updateDragSelection(row);
+            dragStartRow = null;
+            dragMode = null;
 
-            handleAutoScroll(event);
+            clearInterval(autoScrollInterval);
         });
-    });
 
-    function toggleRowSelection(row) {
-        const checkbox = row.querySelector(".card-checkbox");
+        document.querySelectorAll("[data-card-row]").forEach(row => {
 
-        checkbox.checked = !checkbox.checked;
+            row.addEventListener("mousedown", function (event) {
+                if (
+                    event.target.tagName === "A" ||
+                    event.target.tagName === "BUTTON" ||
+                    event.target.tagName === "INPUT"
+                ) {
+                    return;
+                }
 
-        row.classList.toggle("selected", checkbox.checked);
-    }
+                event.preventDefault();
 
-    function updateDragSelection(currentRow) {
+                mouseDown = true;
 
-        const rows = [
-            ...document.querySelectorAll("[data-card-row]")
-        ];
+                dragStartRow = row;
 
-        const startIndex = rows.indexOf(dragStartRow);
-        const currentIndex = rows.indexOf(currentRow);
+                const checkbox = row.querySelector(".card-checkbox");
 
-        const minIndex = Math.min(startIndex, currentIndex);
-        const maxIndex = Math.max(startIndex, currentIndex);
+                dragMode = checkbox.checked ? "deselect" : "select";
 
-        rows.forEach((row, index) => {
+                updateDragSelection(row);
+            });
 
+            row.addEventListener("mouseover", function (event) {
+                if (!mouseDown || !dragStartRow) return;
+
+                event.preventDefault();
+
+                updateDragSelection(row);
+
+                handleAutoScroll(event);
+            });
+        });
+
+        function toggleRowSelection(row) {
             const checkbox = row.querySelector(".card-checkbox");
 
-            const insideRange =
-                index >= minIndex &&
-                index <= maxIndex;
+            checkbox.checked = !checkbox.checked;
 
-            if (insideRange) {
+            row.classList.toggle("selected", checkbox.checked);
+        }
 
-                if (dragMode === "select") {
-                    checkbox.checked = true;
-                    row.classList.add("selected");
+        function updateDragSelection(currentRow) {
+
+            const rows = [
+                ...document.querySelectorAll("[data-card-row]")
+            ];
+
+            const startIndex = rows.indexOf(dragStartRow);
+            const currentIndex = rows.indexOf(currentRow);
+
+            const minIndex = Math.min(startIndex, currentIndex);
+            const maxIndex = Math.max(startIndex, currentIndex);
+
+            rows.forEach((row, index) => {
+
+                const checkbox = row.querySelector(".card-checkbox");
+
+                const insideRange =
+                    index >= minIndex &&
+                    index <= maxIndex;
+
+                if (insideRange) {
+
+                    if (dragMode === "select") {
+                        checkbox.checked = true;
+                        row.classList.add("selected");
+                    }
+
+                    if (dragMode === "deselect") {
+                        checkbox.checked = false;
+                        row.classList.remove("selected");
+                    }
+
+                } else {
+
+                    if (dragMode === "select") {
+                        checkbox.checked = false;
+                        row.classList.remove("selected");
+                    }
+
+                    if (dragMode === "deselect") {
+                        checkbox.checked = true;
+                        row.classList.add("selected");
+                    }
                 }
+            });
+        }
 
-                if (dragMode === "deselect") {
-                    checkbox.checked = false;
-                    row.classList.remove("selected");
-                }
+        function applyRowSelection(row) {
+            const checkbox = row.querySelector(".card-checkbox");
 
-            } else {
-
-                if (dragMode === "select") {
-                    checkbox.checked = false;
-                    row.classList.remove("selected");
-                }
-
-                if (dragMode === "deselect") {
-                    checkbox.checked = true;
-                    row.classList.add("selected");
-                }
+            if (dragMode === "select") {
+                checkbox.checked = true;
+                row.classList.add("selected");
             }
-        });
-    }
 
-    function applyRowSelection(row) {
-        const checkbox = row.querySelector(".card-checkbox");
-
-        if (dragMode === "select") {
-            checkbox.checked = true;
-            row.classList.add("selected");
+            if (dragMode === "deselect") {
+                checkbox.checked = false;
+                row.classList.remove("selected");
+            }
         }
 
-        if (dragMode === "deselect") {
-            checkbox.checked = false;
-            row.classList.remove("selected");
-        }
-    }
-
-</script>
+    </script>
 </body>
 </html>
