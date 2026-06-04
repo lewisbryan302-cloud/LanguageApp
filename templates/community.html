@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Community</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .community-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .community-title {
+            margin: 0;
+            font-size: 40px;
+        }
+
+        .hub-link {
+            text-decoration: none;
+            background: #f97316;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .community-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .community-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+
+        .community-card h2 {
+            margin-top: 0;
+        }
+
+        .friend-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .friend-input {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .friend-button {
+            background: #f97316;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .leaderboard-row {
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            gap: 12px;
+            align-items: center;
+
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .leaderboard-row:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #f97316;
+        }
+
+        .score {
+            font-weight: bold;
+        }
+
+        @media (max-width: 850px) {
+            .community-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .community-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="page">
+
+        <div class="community-header">
+            <div>
+                <h1 class="community-title">Community</h1>
+                <p>Connect with friends and compete for language points.</p>
+            </div>
+
+            <a href="/hub" class="hub-link">
+                Return to Hub
+            </a>
+        </div>
+
+        <section class="community-grid">
+
+            <div class="community-card">
+                <h2>Add Friend</h2>
+
+                <form
+                    action="/community/add-friend"
+                    method="post"
+                    class="friend-form"
+                >
+                    <input
+                        type="text"
+                        name="friend_identifier"
+                        class="friend-input"
+                        placeholder="Username or email"
+                        required
+                    >
+
+                    <button type="submit" class="friend-button">
+                        Add
+                    </button>
+                </form>
+            </div>
+
+            <div class="community-card">
+                <h2>Friend Requests</h2>
+
+                {% if pending_requests %}
+                    {% for request in pending_requests %}
+                        <form
+                            action="/community/accept-friend"
+                            method="post"
+                            class="leaderboard-row"
+                        >
+                            <input
+                                type="hidden"
+                                name="friendship_id"
+                                value="{{ request.id }}"
+                            >
+
+                            <div>👤</div>
+                            <div>{{ request.username }}</div>
+
+                            <button type="submit" class="friend-button">
+                                Accept
+                            </button>
+                        </form>
+                    {% endfor %}
+                {% else %}
+                    <p>No pending requests.</p>
+                {% endif %}
+            </div>
+
+            <div class="community-card">
+                <h2>Friends Leaderboard</h2>
+
+                {% for row in friends_leaderboard %}
+                    <div class="leaderboard-row">
+                        <div class="rank">
+                            #{{ loop.index }}
+                        </div>
+
+                        <div>
+                            {{ row.username }}
+                        </div>
+
+                        <div class="score">
+                            {{ "%.0f"|format(row.score) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="community-card">
+                <h2>Global Leaderboard</h2>
+
+                {% for row in global_leaderboard %}
+                    <div class="leaderboard-row">
+                        <div class="rank">
+                            #{{ loop.index }}
+                        </div>
+
+                        <div>
+                            {{ row.username }}
+                        </div>
+
+                        <div class="score">
+                            {{ "%.0f"|format(row.score) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

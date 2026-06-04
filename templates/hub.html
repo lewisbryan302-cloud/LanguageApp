@@ -228,6 +228,16 @@
             gap: 12px;
         }
 
+        .community-button {
+            background: #fff7ed;
+            color: #f97316;
+            border: 1px solid #ffedd5;
+        }
+
+        .community-button:hover {
+            background: #ffedd5;
+        }
+
         .logout-form {
             margin: 0;
         }
@@ -672,6 +682,13 @@
                 
                 <div class="banner-actions">
 
+                    <a
+                        href="/community"
+                        class="banner-button community-button"
+                    >
+                        Community
+                    </a>
+
                     <button
                         type="button"
                         class="settings-button"
@@ -729,7 +746,7 @@
                 </div>
 
                 <div class="profile-value">
-                    {{ user[1] }}
+                    {{ user["username"] }}
                 </div>
             </aside>
 

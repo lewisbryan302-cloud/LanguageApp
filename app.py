@@ -80,6 +80,15 @@ from goal_service import (
     get_language_goals_for_user,
 )
 
+from community_service import (
+    send_friend_request,
+    accept_friend_request,
+    get_friends_for_user,
+    get_pending_friend_requests,
+    get_friends_leaderboard,
+    get_global_leaderboard
+)
+
 from constants import LANGUAGE_OPTIONS
 from phrase_helper import get_phrase_suggestions
 from embedding_helper import translate_word
@@ -171,9 +180,9 @@ def home(
     if isinstance(user, RedirectResponse):
         return user
 
-    decks = get_home_decks(user_id=user[0])
+    decks = get_home_decks(user_id=user["id"])
     stats_widget = get_home_stats_widget_data(
-        user_id=user[0],
+        user_id=user["id"],
         deck_id=stats_deck_id
     )
 
@@ -220,7 +229,7 @@ def review_page(request: Request, deck_id: int):
     page_data = add_language_back_link_data(
         page_data=page_data,
         deck_id=deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     return templates.TemplateResponse(
@@ -257,14 +266,14 @@ def add_card_page(
     if isinstance(user, RedirectResponse):
         return user
 
-    decks = get_deck_options(user_id=user[0])
+    decks = get_deck_options(user_id=user["id"])
 
     back_language_deck_id = None
 
     if deck_id is not None:
         back_language_deck_id = get_language_deck_id_for_deck(
             deck_id=deck_id,
-            user_id=user[0]
+            user_id=user["id"]
         )
 
     return templates.TemplateResponse(
@@ -321,7 +330,7 @@ def add_deck(
 
     create_deck(
         name=name,
-        user_id=user[0],
+        user_id=user["id"],
         target_language=target_language,
         profile="Decks"
     )
@@ -507,7 +516,7 @@ def smart_add_card_page(
     if language_deck_id is None:
         language_deck_id = get_language_deck_id_for_deck(
             deck_id=deck_id,
-            user_id=user[0]
+            user_id=user["id"]
         )
 
     if language_deck_id is None:
@@ -515,7 +524,7 @@ def smart_add_card_page(
 
     language_deck = get_language_deck_context(
         language_deck_id=language_deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     if not language_deck:
@@ -571,7 +580,7 @@ def smart_add_card_preview(
 
     language_deck = get_language_deck_context(
         language_deck_id=language_deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     if not language_deck:
@@ -655,7 +664,7 @@ def smart_add_card_create(
 
     language_deck = get_language_deck_context(
         language_deck_id=language_deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     if not language_deck:
@@ -787,7 +796,7 @@ def add_language_page(request: Request):
         return user
 
     existing_language_codes = get_existing_language_codes_for_user(
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     existing_languages = []
@@ -822,7 +831,7 @@ def add_language(
         return user
 
     existing_language_codes = get_existing_language_codes_for_user(
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     target_language = target_language.strip().lower()
@@ -836,7 +845,7 @@ def add_language(
     create_language_deck(
         language_name,
         target_language,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     return RedirectResponse(
@@ -917,7 +926,7 @@ def import_new_deck(
 
     new_deck_id = create_deck_and_return_id(
         name=deck_name,
-        user_id=user[0],
+        user_id=user["id"],
         target_language="unknown",
         profile="Decks"
     )
@@ -1043,7 +1052,7 @@ def import_media_page(
         if deck_id is not None:
             language_deck_id = get_language_deck_id_for_deck(
                 deck_id=deck_id,
-                user_id=user[0]
+                user_id=user["id"]
             )
         else:
             return RedirectResponse(
@@ -1053,7 +1062,7 @@ def import_media_page(
 
     language_deck, decks = get_language_context_decks(
         language_deck_id=language_deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     if not language_deck:
@@ -1101,7 +1110,7 @@ def import_media_preview(
 
     language_deck, decks = get_language_context_decks(
         language_deck_id=language_deck_id,
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     if not language_deck:
@@ -1205,10 +1214,12 @@ def import_media_add_selected(
 @app.post("/signup")
 def signup(
     request: Request,
+    username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
     confirm_password: str = Form(...)
 ):
+    username = username.strip().lower()
     email = email.strip().lower()
 
     if password != confirm_password:
@@ -1228,9 +1239,28 @@ def signup(
                 "error_message": "Password must be at least 8 characters."
             }
         )
+    
+    if len(username) < 3:
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": "Username must be at least 3 characters."
+            }
+        )
+
+    if not username.replace("_", "").replace("-", "").isalnum():
+        return templates.TemplateResponse(
+            request,
+            "welcome.html",
+            {
+                "error_message": "Username can only contain letters, numbers, hyphens, and underscores."
+            }
+        )
 
     try:
         user_id = create_user(
+            username=username,
             email=email,
             password=password
         )
@@ -1341,7 +1371,7 @@ def hub_page(request: Request):
     if isinstance(user, RedirectResponse):
         return user
 
-    decks = get_home_decks(user_id=user[0])
+    decks = get_home_decks(user_id=user["id"])
 
     language_decks = [
         deck
@@ -1350,11 +1380,11 @@ def hub_page(request: Request):
     ]
 
     language_goals = get_language_goals_for_user(
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     language_goal_progress = get_language_goal_progress_for_user(
-        user_id=user[0]
+        user_id=user["id"]
     )
 
     return templates.TemplateResponse(
@@ -1380,7 +1410,7 @@ def language_home(
     if isinstance(user, RedirectResponse):
         return user
 
-    if not user_owns_deck(user[0], language_deck_id):
+    if not user_owns_deck(user["id"], language_deck_id):
         return RedirectResponse(
             "/hub",
             status_code=303
@@ -1389,12 +1419,12 @@ def language_home(
     language_deck = get_deck_by_id(language_deck_id)
 
     stats_widget = get_home_stats_widget_data(
-        user_id=user[0],
+        user_id=user["id"],
         deck_id=language_deck_id
     )
 
     score_data = get_today_language_score(
-        profile=user[1],
+        profile=user["username"],
         language=language_deck[1],
         language_deck_id=language_deck_id
     )
@@ -1467,7 +1497,7 @@ def save_goals(
         )
 
     save_language_goal(
-        user_id=user[0],
+        user_id=user["id"],
         language_deck_id=language_deck_id,
         target_words=target_words,
         time_frame=time_frame
@@ -1489,7 +1519,7 @@ def delete_language(
         return user
 
     delete_language_deck_for_user(
-        user_id=user[0],
+        user_id=user["id"],
         language_deck_id=language_deck_id
     )
 
@@ -1497,3 +1527,61 @@ def delete_language(
         "/hub",
         status_code=303
     )
+
+@app.get("/community")
+def community_page(request: Request):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    friends = get_friends_for_user(user_id=user["id"])
+    pending_requests = get_pending_friend_requests(user_id=user["id"])
+    friends_leaderboard = get_friends_leaderboard(user_id=user["id"])
+    global_leaderboard = get_global_leaderboard(limit=50)
+
+    return templates.TemplateResponse(
+        request,
+        "community.html",
+        {
+            "user": user,
+            "friends": friends,
+            "pending_requests": pending_requests,
+            "friends_leaderboard": friends_leaderboard,
+            "global_leaderboard": global_leaderboard,
+        }
+    )
+
+@app.post("/community/add-friend")
+def add_friend(
+    request: Request,
+    friend_identifier: str = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    send_friend_request(
+        requester_user_id=user["id"],
+        friend_identifier=friend_identifier
+    )
+
+    return RedirectResponse("/community", status_code=303)
+
+@app.post("/community/accept-friend")
+def accept_friend(
+    request: Request,
+    friendship_id: int = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    accept_friend_request(
+        friendship_id=friendship_id,
+        receiver_user_id=user["id"]
+    )
+
+    return RedirectResponse("/community", status_code=303)

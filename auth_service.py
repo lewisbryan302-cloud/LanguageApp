@@ -26,10 +26,12 @@ def verify_password(
 
 
 def create_user(
+    username: str,
     email: str,
-    password: str
+    password: str,
 ) -> int:
     email = email.strip().lower()
+    username = username.strip().lower()
 
     password_hash = hash_password(password)
 
@@ -39,13 +41,15 @@ def create_user(
     cursor.execute(
         """
         INSERT INTO app_users (
+            username,
             email,
             password_hash
         )
-        VALUES (%s, %s)
+        VALUES (%s, %s, %s)
         RETURNING id;
         """,
         (
+            username,
             email,
             password_hash
         )
@@ -68,7 +72,7 @@ def get_user_by_email(email: str):
 
     cursor.execute(
         """
-        SELECT id, email, password_hash
+        SELECT id, username, email, password_hash
         FROM app_users
         WHERE email = %s;
         """,
@@ -89,7 +93,7 @@ def get_user_by_id(user_id: int):
 
     cursor.execute(
         """
-        SELECT id, email
+        SELECT id, username, email
         FROM app_users
         WHERE id = %s;
         """,
@@ -101,7 +105,14 @@ def get_user_by_id(user_id: int):
     cursor.close()
     conn.close()
 
-    return user
+    if user is None:
+        return None
+
+    return {
+        "id": user[0],
+        "username": user[1],
+        "email": user[2]
+    }
 
 
 def authenticate_user(
@@ -114,13 +125,15 @@ def authenticate_user(
         return None
 
     user_id = user[0]
-    user_email = user[1]
-    password_hash = user[2]
+    username = user[1]
+    user_email = user[2]
+    password_hash = user[3]
 
     if not verify_password(password, password_hash):
         return None
 
     return {
         "id": user_id,
+        "username": username,
         "email": user_email
     }
