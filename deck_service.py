@@ -568,3 +568,141 @@ def get_deck_language_and_profile(deck_id: int):
     profile = row[1]
 
     return language, profile
+
+def get_deck_score_identity(deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            d.user_id,
+            u.username,
+            d.target_language,
+            d.profile,
+            d.name
+        FROM decks d
+        JOIN app_users u
+            ON u.id = d.user_id
+        WHERE d.id = %s;
+        """,
+        (deck_id,)
+    )
+
+    deck = cursor.fetchone()
+
+    if deck is None:
+        cursor.close()
+        conn.close()
+        return None, None, None
+
+    user_id = deck[0]
+    username = deck[1]
+    target_language = deck[2]
+    deck_profile = deck[3]
+    deck_name = deck[4]
+
+    if deck_profile == "Languages":
+        language_name = deck_name
+        language_deck_id = deck_id
+
+    else:
+        cursor.execute(
+            """
+            SELECT id, name
+            FROM decks
+            WHERE user_id = %s
+              AND profile = 'Languages'
+              AND target_language = %s
+            ORDER BY deck_order ASC, id ASC
+            LIMIT 1;
+            """,
+            (
+                user_id,
+                target_language
+            )
+        )
+
+        language_deck = cursor.fetchone()
+
+        if language_deck is None:
+            cursor.close()
+            conn.close()
+            return None, None, None
+
+        language_deck_id = language_deck[0]
+        language_name = language_deck[1]
+
+    cursor.close()
+    conn.close()
+
+    return username, language_name, language_deck_id
+
+def get_deck_score_identity(deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            d.user_id,
+            u.username,
+            d.target_language,
+            d.profile,
+            d.name
+        FROM decks d
+        JOIN app_users u
+            ON u.id = d.user_id
+        WHERE d.id = %s;
+        """,
+        (deck_id,)
+    )
+
+    deck = cursor.fetchone()
+
+    if deck is None:
+        cursor.close()
+        conn.close()
+        return None, None, None
+
+    user_id = deck[0]
+    username = deck[1]
+    target_language = deck[2]
+    deck_profile = deck[3]
+    deck_name = deck[4]
+
+    if deck_profile == "Languages":
+        language_name = deck_name
+        language_deck_id = deck_id
+
+    else:
+        cursor.execute(
+            """
+            SELECT id, name
+            FROM decks
+            WHERE user_id = %s
+              AND profile = 'Languages'
+              AND target_language = %s
+            ORDER BY deck_order ASC, id ASC
+            LIMIT 1;
+            """,
+            (
+                user_id,
+                target_language
+            )
+        )
+
+        language_deck = cursor.fetchone()
+
+        if language_deck is None:
+            cursor.close()
+            conn.close()
+            return None, None, None
+
+        language_deck_id = language_deck[0]
+        language_name = language_deck[1]
+
+    cursor.close()
+    conn.close()
+
+    return username, language_name, language_deck_id

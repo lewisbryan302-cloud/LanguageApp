@@ -11,39 +11,15 @@ def improved_daily_score(
     streak: int,
     A: float = 5
 ) -> float:
-    """
-    b      = cards reviewed today
-    c      = review goal
-    added  = cards added today
-    d      = add goal
-    a      = cards moved from new to learnt today
-    streak = current streak
-    A      = learning saturation scale
-    """
-
     review_points = 10 * min(1, b / c) if c > 0 else 0
-    add_points = 5 * min(1, added / d) if d > 0 else 0
+
+    # 1 point per card added today
+    add_points = added
+
     learning_points = 20 * (1 - math.exp(-a / A)) if A > 0 else 0
     streak_bonus = 5 * math.log1p(streak)
 
     return review_points + add_points + learning_points + streak_bonus
-
-def improved_daily_score(
-    b: int,
-    c: int,
-    added: int,
-    d: int,
-    a: int,
-    streak: int,
-    A: float = 5
-) -> float:
-    review_points = 10 * min(1, b / c) if c > 0 else 0
-    add_points = 5 * min(1, added / d) if d > 0 else 0
-    learning_points = 20 * (1 - math.exp(-a / A)) if A > 0 else 0
-    streak_bonus = 5 * math.log1p(streak)
-
-    return review_points + add_points + learning_points + streak_bonus
-
 
 def get_today_language_score(profile: str, language: str, language_deck_id: int):
     conn = get_connection()

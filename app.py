@@ -49,6 +49,7 @@ from deck_service import (
     get_existing_language_codes_for_user,
     delete_language_deck_for_user,
     get_deck_language_and_profile,
+    get_deck_score_identity,
 )
 
 from score_service import (
@@ -248,9 +249,24 @@ def submit_answer(
     deck_id: int = Form(...),
     rating: int = Form(...)
 ):
-    undo_data = submit_card_review(card_id, deck_id, rating)
+    undo_data = submit_card_review(
+        card_id,
+        deck_id,
+        rating
+    )
 
     request.session["last_review_action"] = undo_data
+
+    cards_learnt_delta = 0
+
+    if rating >= 3:
+        cards_learnt_delta = 1
+
+    update_score_for_deck_action(
+        deck_id=deck_id,
+        cards_reviewed_delta=1,
+        cards_learnt_delta=cards_learnt_delta
+    )
 
     return RedirectResponse(
         f"/review/{deck_id}",
@@ -299,18 +315,15 @@ def add_card(
 ):
     create_manual_card(deck_id, front, back)
 
-    language, profile = get_deck_language_and_profile(deck_id)
+    update_score_for_deck_action(
+        deck_id=deck_id,
+        cards_added_delta=1
+    )
 
-    if language is not None and profile is not None:
-        update_today_language_score(
-            profile=profile,
-            language=language,
-            cards_added_delta=1,
-            daily_review_goal=50,
-            daily_add_goal=10,
-        )
-
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(
+        f"/add-card?deck_id={deck_id}",
+        status_code=303
+    )
 
 # --- Mechanism to add new decks ---
 @app.get("/add-deck")
@@ -696,6 +709,12 @@ def smart_add_card_create(
         suggested_phrase_translations=suggested_phrase_translations,
     )
 
+    if inserted_count > 0:
+        update_score_for_deck_action(
+            deck_id=deck_id,
+            cards_added_delta=inserted_count
+        )
+
     page_data = get_smart_add_preview_data_from_query(
         deck_id=deck_id,
         query_word=query_word,
@@ -865,16 +884,28 @@ def rename_deck_inline(deck_id: int, name: str = Form(...)):
         "name": name
     })
 
-@app.get("/import-deck")
-def import_deck_page(request: Request, deck_id: int):
-    deck = get_deck_by_id(deck_id)
+@app.post("/import-deck")
+def import_deck(
+    request: Request,
+    deck_id: int = Form(...),
+    import_format: str = Form(...),
+    file: UploadFile = File(...)
+):
+    imported_count = import_cards_from_file(
+        deck_id=deck_id,
+        import_format=import_format,
+        file=file
+    )
 
-    return templates.TemplateResponse(
-        request,
-        "import_deck.html",
-        {
-            "deck": deck
-        }
+    if imported_count > 0:
+        update_score_for_deck_action(
+            deck_id=deck_id,
+            cards_added_delta=imported_count
+        )
+
+    return RedirectResponse(
+        f"/deck/{deck_id}/cards",
+        status_code=303
     )
 
 @app.post("/import-deck")
@@ -970,6 +1001,11 @@ def add_network_suggestion(
         "network-suggestion"
     )
 
+    update_score_for_deck_action(
+        deck_id=deck_id,
+        cards_added_delta=1
+    )
+
     if return_language_id is not None:
         redirect_url = (
             f"/language/{return_language_id}"
@@ -1035,6 +1071,12 @@ def add_selected_network_suggestions(
         )
 
         added_count += 1
+
+    if added_count > 0:
+        update_score_for_deck_action(
+            deck_id=deck_id,
+            cards_added_delta=added_count
+        )
 
     if return_language_id is not None:
         redirect_url = (
@@ -1230,6 +1272,12 @@ def import_media_add_selected(
         )
 
         added_count += 1
+
+    if added_count > 0:
+        update_score_for_deck_action(
+            deck_id=deck_id,
+            cards_added_delta=added_count
+        )
 
     return RedirectResponse(
         f"/import-media?language_deck_id={language_deck_id}&deck_id={deck_id}",
@@ -1719,4 +1767,46 @@ def change_username(
     return RedirectResponse(
         "/hub?username_changed=yes",
         status_code=303
+    )
+
+def update_score_for_deck_action(
+    deck_id: int,
+    cards_added_delta: int = 0,
+    cards_reviewed_delta: int = 0,
+    cards_learnt_delta: int = 0
+):
+    profile, language, language_deck_id = get_deck_score_identity(deck_id)
+
+    if profile is None or language is None:
+        print(
+            "SCORE UPDATE SKIPPED:",
+            {
+                "deck_id": deck_id,
+                "profile": profile,
+                "language": language,
+                "language_deck_id": language_deck_id,
+            }
+        )
+        return
+
+    print(
+        "SCORE UPDATE:",
+        {
+            "deck_id": deck_id,
+            "profile": profile,
+            "language": language,
+            "cards_added_delta": cards_added_delta,
+            "cards_reviewed_delta": cards_reviewed_delta,
+            "cards_learnt_delta": cards_learnt_delta,
+        }
+    )
+
+    update_today_language_score(
+        profile=profile,
+        language=language,
+        cards_added_delta=cards_added_delta,
+        cards_reviewed_delta=cards_reviewed_delta,
+        cards_learnt_delta=cards_learnt_delta,
+        daily_review_goal=50,
+        daily_add_goal=10,
     )

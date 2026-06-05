@@ -7,9 +7,6 @@ from fastapi import UploadFile
 from database import get_connection
 import re
 
-from score_service import update_today_language_score
-from deck_service import get_deck_language_and_profile
-
 
 def parse_tag_string(tag_string: str) -> list[str]:
     return [
@@ -131,17 +128,6 @@ def create_manual_card(
             cards_added_count += 1
 
         conn.commit()
-
-        language, profile = get_deck_language_and_profile(deck_id)
-
-        if language is not None and profile is not None:
-            update_today_language_score(
-                profile=profile,
-                language=language,
-                cards_added_delta=cards_added_count,
-                daily_review_goal=50,
-                daily_add_goal=10,
-            )
 
         return new_card_id
 

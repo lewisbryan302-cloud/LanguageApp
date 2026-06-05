@@ -1,5 +1,10 @@
 from database import get_connection
 
+def current_week_filter_sql():
+    return """
+        dls.score_date >= date_trunc('week', CURRENT_DATE)::date
+        AND dls.score_date < (date_trunc('week', CURRENT_DATE)::date + INTERVAL '7 days')
+    """
 
 def send_friend_request(requester_user_id: int, friend_identifier: str):
     friend_identifier = friend_identifier.strip().lower()
@@ -163,36 +168,21 @@ def get_global_leaderboard(limit: int = 50):
 
     cursor.execute(
         """
-        WITH deck_points AS (
-            SELECT
-                d.user_id,
-                COUNT(f.id) AS deck_score
-            FROM decks d
-            LEFT JOIN flashcards f
-                ON f.deck_id = d.id
-            GROUP BY d.user_id
-        ),
-
-        activity_points AS (
-            SELECT
-                u.id AS user_id,
-                COALESCE(SUM(dls.daily_score), 0) AS activity_score
-            FROM app_users u
-            LEFT JOIN daily_language_scores dls
-                ON dls.profile = u.username
-            GROUP BY u.id
-        )
-
         SELECT
             u.id,
             u.username,
-            COALESCE(dp.deck_score, 0) + COALESCE(ap.activity_score, 0) AS total_score
+            COALESCE(SUM(dls.daily_score), 0) AS weekly_points
         FROM app_users u
-        LEFT JOIN deck_points dp
-            ON dp.user_id = u.id
-        LEFT JOIN activity_points ap
-            ON ap.user_id = u.id
-        ORDER BY total_score DESC
+        LEFT JOIN daily_language_scores dls
+            ON dls.profile = u.username
+            AND dls.score_date >= date_trunc('week', CURRENT_DATE)::date
+            AND dls.score_date < (date_trunc('week', CURRENT_DATE)::date + INTERVAL '7 days')
+        GROUP BY
+            u.id,
+            u.username
+        ORDER BY
+            weekly_points DESC,
+            u.username ASC
         LIMIT %s;
         """,
         (limit,)
@@ -207,7 +197,8 @@ def get_global_leaderboard(limit: int = 50):
         {
             "user_id": row[0],
             "username": row[1],
-            "score": float(row[2]),
+            "points": float(row[2]),
+            "weekly_points": float(row[2]),
         }
         for row in rows
     ]
@@ -220,57 +211,47 @@ def get_friends_leaderboard(user_id: int):
     cursor.execute(
         """
         WITH friend_ids AS (
-            SELECT receiver_user_id AS user_id
+            SELECT
+                CASE
+                    WHEN requester_user_id = %s THEN receiver_user_id
+                    ELSE requester_user_id
+                END AS friend_user_id
             FROM friendships
-            WHERE requester_user_id = %s
-              AND status = 'accepted'
+            WHERE status = 'accepted'
+              AND (
+                    requester_user_id = %s
+                    OR receiver_user_id = %s
+              )
 
             UNION
 
-            SELECT requester_user_id AS user_id
-            FROM friendships
-            WHERE receiver_user_id = %s
-              AND status = 'accepted'
-
-            UNION
-
-            SELECT %s AS user_id
-        ),
-
-        deck_points AS (
-            SELECT
-                d.user_id,
-                COUNT(f.id) AS deck_score
-            FROM decks d
-            LEFT JOIN flashcards f
-                ON f.deck_id = d.id
-            GROUP BY d.user_id
-        ),
-
-        activity_points AS (
-            SELECT
-                u.id AS user_id,
-                COALESCE(SUM(dls.daily_score), 0) AS activity_score
-            FROM app_users u
-            LEFT JOIN daily_language_scores dls
-                ON dls.profile = u.username
-            GROUP BY u.id
+            SELECT %s AS friend_user_id
         )
 
         SELECT
             u.id,
             u.username,
-            COALESCE(dp.deck_score, 0) + COALESCE(ap.activity_score, 0) AS total_score
-        FROM friend_ids fi
+            COALESCE(SUM(dls.daily_score), 0) AS weekly_points
+        FROM friend_ids f
         JOIN app_users u
-            ON u.id = fi.user_id
-        LEFT JOIN deck_points dp
-            ON dp.user_id = u.id
-        LEFT JOIN activity_points ap
-            ON ap.user_id = u.id
-        ORDER BY total_score DESC;
+            ON u.id = f.friend_user_id
+        LEFT JOIN daily_language_scores dls
+            ON dls.profile = u.username
+            AND dls.score_date >= date_trunc('week', CURRENT_DATE)::date
+            AND dls.score_date < (date_trunc('week', CURRENT_DATE)::date + INTERVAL '7 days')
+        GROUP BY
+            u.id,
+            u.username
+        ORDER BY
+            weekly_points DESC,
+            u.username ASC;
         """,
-        (user_id, user_id, user_id)
+        (
+            user_id,
+            user_id,
+            user_id,
+            user_id
+        )
     )
 
     rows = cursor.fetchall()
@@ -282,7 +263,8 @@ def get_friends_leaderboard(user_id: int):
         {
             "user_id": row[0],
             "username": row[1],
-            "score": float(row[2]),
+            "points": float(row[2]),
+            "weekly_points": float(row[2]),
         }
         for row in rows
     ]
