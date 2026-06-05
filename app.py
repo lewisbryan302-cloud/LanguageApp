@@ -79,6 +79,8 @@ from goal_service import (
     get_language_goal_progress_for_user,
     save_language_goal,
     get_language_goals_for_user,
+    get_language_goal_rows_for_user,
+    delete_language_goal,
 )
 
 from community_service import (
@@ -1414,6 +1416,10 @@ def hub_page(
         user_id=user["id"]
     )
 
+    goal_rows = get_language_goal_rows_for_user(
+        user_id=user["id"]
+    )
+
     return templates.TemplateResponse(
         request,
         "hub.html",
@@ -1422,8 +1428,7 @@ def hub_page(
             "language_decks": language_decks,
             "language_goals": language_goals,
             "language_goal_progress": language_goal_progress,
-            "username_error": username_error,
-            "username_changed": username_changed
+            "goal_rows": goal_rows,
         }
     )
 
@@ -1568,6 +1573,26 @@ def save_goals(
         language_deck_id=language_deck_id,
         target_words=target_words,
         time_frame=time_frame
+    )
+
+    return RedirectResponse(
+        "/hub",
+        status_code=303
+    )
+
+@app.post("/goals/delete")
+def delete_goal(
+    request: Request,
+    language_deck_id: int = Form(...)
+):
+    user = require_login(request)
+
+    if isinstance(user, RedirectResponse):
+        return user
+
+    delete_language_goal(
+        user_id=user["id"],
+        language_deck_id=language_deck_id
     )
 
     return RedirectResponse(

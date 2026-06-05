@@ -133,3 +133,60 @@ def get_language_goal_progress_for_user(user_id: int):
         }
 
     return goal_progress
+
+def get_language_goal_rows_for_user(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            lg.language_deck_id,
+            d.name,
+            lg.target_words,
+            lg.time_frame
+        FROM language_goals lg
+        JOIN decks d
+            ON d.id = lg.language_deck_id
+        WHERE lg.user_id = %s
+        ORDER BY d.name ASC;
+        """,
+        (user_id,)
+    )
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return [
+        {
+            "language_deck_id": row[0],
+            "language_name": row[1],
+            "target_words": row[2],
+            "time_frame": row[3],
+        }
+        for row in rows
+    ]
+
+
+def delete_language_goal(user_id: int, language_deck_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM language_goals
+        WHERE user_id = %s
+        AND language_deck_id = %s;
+        """,
+        (
+            user_id,
+            language_deck_id
+        )
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
