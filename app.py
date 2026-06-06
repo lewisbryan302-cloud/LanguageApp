@@ -61,6 +61,10 @@ from stats_service import get_home_stats_widget_data
 from import_service import import_cards_from_file
 
 from network_service import get_cached_network_suggestions_for_deck
+from network_service import (
+    get_adjacent_network_words_for_deck,
+    translate_query_to_network_language,
+)
 
 from media_import_service import (
     extract_unknown_1grams_for_deck,
@@ -619,7 +623,25 @@ def smart_add_card_preview(
     )
 
     target_language = page_data["target_language"]
-    phrase_query = page_data["target_query_word"]
+    
+
+    network_query_word = translate_query_to_network_language(
+        query_word=query_word,
+        source_language="en",
+        target_language="es"
+    )
+
+    word_suggestions = get_adjacent_network_words_for_deck(
+        deck_id=deck_id,
+        query_word=network_query_word,
+        language=target_language,
+        n_suggestions=20,
+        translate_suggestions=True
+    )
+
+    page_data["target_query_word"] = network_query_word
+    page_data["word_suggestions"] = word_suggestions
+    page_data["suggestions"] = word_suggestions
 
     phrase_suggestions = get_phrase_suggestions(
         query_word=phrase_query,
@@ -720,8 +742,26 @@ def smart_add_card_create(
         query_word=query_word,
     )
 
-    phrase_query = page_data.get("target_query_word", query_word)
     target_language = page_data.get("target_language")
+    phrase_query = network_query_word
+
+    network_query_word = translate_query_to_network_language(
+        query_word=query_word,
+        source_language="en",
+        target_language="es"
+    )
+
+    word_suggestions = get_adjacent_network_words_for_deck(
+        deck_id=deck_id,
+        query_word=network_query_word,
+        language=target_language,
+        n_suggestions=20,
+        translate_suggestions=True
+    )
+
+    page_data["target_query_word"] = network_query_word
+    page_data["word_suggestions"] = word_suggestions
+    page_data["suggestions"] = word_suggestions
 
     phrase_suggestions = get_phrase_suggestions(
         query_word=phrase_query,

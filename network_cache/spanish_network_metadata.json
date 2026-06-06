@@ -1,0 +1,13 @@
+{
+    "language": "spanish",
+    "n_words": 10000,
+    "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "similarity_threshold": 0.85,
+    "num_nodes": 10000,
+    "num_edges": 1016136,
+    "num_components": 1617,
+    "giant_component_size": 7435,
+    "fraction_in_giant_component": 0.7435,
+    "nodes_file": "C:\\Users\\lewis\\OneDrive\\Documents\\LanguageApp\\network_cache\\spanish_nodes_10000.csv",
+    "edges_file": "C:\\Users\\lewis\\OneDrive\\Documents\\LanguageApp\\network_cache\\spanish_edges_10000_threshold_085.csv"
+}

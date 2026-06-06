@@ -1,35 +1,38 @@
 # network_service.py
 
-import os
-import pickle
 from pathlib import Path
+from functools import lru_cache
 
-import torch
-from wordfreq import top_n_list
-from sentence_transformers import SentenceTransformer, util
+import pandas as pd
 from deep_translator import GoogleTranslator
 
 from database import get_connection
 
 
-MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+# --------------------------------------------------
+# Network cache settings
+# --------------------------------------------------
 
-CACHE_DIR = Path("network_cache")
-CACHE_DIR.mkdir(exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
 
-DEFAULT_N_WORDS = 5000
-DEFAULT_THRESHOLD = 0.45
+NETWORK_CACHE_DIR = BASE_DIR / "network_cache"
 
-_model = None
+SPANISH_NODES_PATH = NETWORK_CACHE_DIR / "spanish_nodes_10000.csv"
+SPANISH_EDGES_PATH = NETWORK_CACHE_DIR / "spanish_edges_10000_threshold_085.csv"
+
+DEFAULT_LANGUAGE = "spanish"
+DEFAULT_N_SUGGESTIONS = 20
 
 
-def get_model():
-    global _model
+# --------------------------------------------------
+# Helpers
+# --------------------------------------------------
 
-    if _model is None:
-        _model = SentenceTransformer(MODEL_NAME)
+def clean_word(word: str) -> str:
+    if not word:
+        return ""
 
-    return _model
+    return str(word).strip().lower()
 
 
 def clean_word_list(words: list[str]) -> list[str]:
@@ -37,18 +40,12 @@ def clean_word_list(words: list[str]) -> list[str]:
     seen = set()
 
     for word in words:
-        if not word:
-            continue
-
-        word = word.strip().lower()
+        word = clean_word(word)
 
         if not word:
             continue
 
         if len(word) < 2:
-            continue
-
-        if " " in word:
             continue
 
         if word in seen:
@@ -60,64 +57,66 @@ def clean_word_list(words: list[str]) -> list[str]:
     return cleaned_words
 
 
-def get_network_cache_path(
-    language: str,
-    n_words: int = DEFAULT_N_WORDS
-) -> Path:
-    return CACHE_DIR / f"network_{language}_{n_words}.pkl"
+# --------------------------------------------------
+# Load cached network
+# --------------------------------------------------
+
+@lru_cache(maxsize=1)
+def load_spanish_network():
+    """
+    Load the precomputed Spanish semantic network from CSV.
+
+    Returns:
+        nodes_df
+        edges_df
+        adjacency dict:
+            {
+                "comer": [
+                    {"word": "beber", "similarity": 0.91},
+                    ...
+                ]
+            }
+    """
+    if not SPANISH_NODES_PATH.exists():
+        raise FileNotFoundError(f"Missing nodes cache: {SPANISH_NODES_PATH}")
+
+    if not SPANISH_EDGES_PATH.exists():
+        raise FileNotFoundError(f"Missing edges cache: {SPANISH_EDGES_PATH}")
+
+    nodes_df = pd.read_csv(SPANISH_NODES_PATH)
+    edges_df = pd.read_csv(SPANISH_EDGES_PATH)
+
+    adjacency = {}
+
+    for _, row in edges_df.iterrows():
+        source_word = clean_word(row["source_word"])
+        target_word = clean_word(row["target_word"])
+        similarity = float(row["similarity"])
+
+        adjacency.setdefault(source_word, []).append({
+            "word": target_word,
+            "similarity": similarity
+        })
+
+        adjacency.setdefault(target_word, []).append({
+            "word": source_word,
+            "similarity": similarity
+        })
+
+    # Sort neighbours by highest similarity first
+    for word in adjacency:
+        adjacency[word] = sorted(
+            adjacency[word],
+            key=lambda item: item["similarity"],
+            reverse=True
+        )
+
+    return nodes_df, edges_df, adjacency
 
 
-def build_language_embedding_cache(
-    language: str,
-    n_words: int = DEFAULT_N_WORDS
-) -> dict:
-    print(f"Building network cache for language={language}, n_words={n_words}")
-
-    words = top_n_list(language, n_words)
-    words = clean_word_list(words)
-
-    model = get_model()
-
-    embeddings = model.encode(
-        words,
-        convert_to_tensor=True,
-        normalize_embeddings=True
-    )
-
-    cache = {
-        "language": language,
-        "n_words": n_words,
-        "words": words,
-        "embeddings": embeddings.cpu()
-    }
-
-    cache_path = get_network_cache_path(language, n_words)
-
-    with open(cache_path, "wb") as f:
-        pickle.dump(cache, f)
-
-    print(f"Saved network cache to {cache_path}")
-
-    return cache
-
-
-def load_language_embedding_cache(
-    language: str,
-    n_words: int = DEFAULT_N_WORDS
-) -> dict:
-    cache_path = get_network_cache_path(language, n_words)
-
-    if cache_path.exists():
-        print(f"Loading network cache from {cache_path}")
-
-        with open(cache_path, "rb") as f:
-            return pickle.load(f)
-
-    return build_language_embedding_cache(
-        language=language,
-        n_words=n_words
-    )
-
+# --------------------------------------------------
+# Deck words
+# --------------------------------------------------
 
 def get_words_in_deck(deck_id: int) -> list[str]:
     conn = get_connection()
@@ -149,6 +148,10 @@ def get_words_in_deck(deck_id: int) -> list[str]:
     return clean_word_list(words)
 
 
+# --------------------------------------------------
+# Translation
+# --------------------------------------------------
+
 def translate_network_word(
     word: str,
     source_language: str,
@@ -171,29 +174,87 @@ def translate_network_word(
         return ""
 
 
+# --------------------------------------------------
+# Direct neighbours for one word
+# --------------------------------------------------
+
+def get_similar_words_spanish(
+    query_word: str,
+    n_suggestions: int = DEFAULT_N_SUGGESTIONS,
+    exclude_words=None
+) -> list[dict]:
+    if exclude_words is None:
+        exclude_words = set()
+    else:
+        exclude_words = {clean_word(word) for word in exclude_words}
+
+    query_word = clean_word(query_word)
+
+    _, _, adjacency = load_spanish_network()
+
+    neighbours = adjacency.get(query_word, [])
+
+    suggestions = []
+
+    for item in neighbours:
+        word = item["word"]
+
+        if word in exclude_words:
+            continue
+
+        suggestions.append({
+            "word": word,
+            "similarity": round(float(item["similarity"]), 4)
+        })
+
+        if len(suggestions) >= n_suggestions:
+            break
+
+    return suggestions
+
+
+# --------------------------------------------------
+# Suggestions for a deck
+# --------------------------------------------------
+
 def get_cached_network_suggestions_for_deck(
     deck_id: int,
     language: str,
-    n_words: int = DEFAULT_N_WORDS,
+    n_words: int = 10000,
     n_suggestions: int = 20,
     top_k_known_words: int = 5,
-    min_similarity_to_known: float = 0.30
+    min_similarity_to_known: float = 0.85
 ) -> dict:
-    cache = load_language_embedding_cache(
-        language=language,
-        n_words=n_words
-    )
+    """
+    Suggest words from the cached thresholded network.
 
-    network_words = cache["words"]
-    network_embeddings = cache["embeddings"]
+    This no longer builds embeddings at request time.
+    It uses the precomputed edge list.
+    """
+
+    # At the moment we only have Spanish cache.
+    # Later you can add German/French/etc. cache files.
+    if language not in ["spanish", "spa", "es"]:
+        return {
+            "suggestions": [],
+            "known_word_count": 0,
+            "known_words_in_network_count": 0,
+            "network_word_count": 0,
+            "language": language,
+            "n_words": n_words,
+            "error": f"No cached network available for language={language}"
+        }
+
+    nodes_df, edges_df, adjacency = load_spanish_network()
 
     known_words = get_words_in_deck(deck_id)
     known_word_set = set(known_words)
 
+    network_word_set = set(nodes_df["Token"].astype(str).str.lower())
+
     known_words_in_network = [
-        word
-        for word in known_words
-        if word in network_words
+        word for word in known_words
+        if word in network_word_set
     ]
 
     if not known_words_in_network:
@@ -201,86 +262,167 @@ def get_cached_network_suggestions_for_deck(
             "suggestions": [],
             "known_word_count": len(known_words),
             "known_words_in_network_count": 0,
-            "network_word_count": len(network_words),
+            "network_word_count": len(network_word_set),
             "language": language,
             "n_words": n_words
         }
 
-    word_to_index = {
-        word: index
-        for index, word in enumerate(network_words)
-    }
+    candidate_scores = {}
 
-    known_indices = [
-        word_to_index[word]
-        for word in known_words_in_network
-    ]
+    for known_word in known_words_in_network:
+        neighbours = adjacency.get(known_word, [])
 
-    unknown_indices = [
-        index
-        for index, word in enumerate(network_words)
-        if word not in known_word_set
-    ]
+        for item in neighbours:
+            candidate_word = item["word"]
+            similarity = float(item["similarity"])
 
-    known_embeddings = network_embeddings[known_indices]
-    unknown_embeddings = network_embeddings[unknown_indices]
+            if candidate_word in known_word_set:
+                continue
 
-    similarity_matrix = util.cos_sim(
-        unknown_embeddings,
-        known_embeddings
+            if similarity < min_similarity_to_known:
+                continue
+
+            if candidate_word not in candidate_scores:
+                candidate_scores[candidate_word] = {
+                    "word": candidate_word,
+                    "best_similarity": similarity,
+                    "closest_known_word": known_word,
+                    "all_similarities": [similarity]
+                }
+            else:
+                candidate_scores[candidate_word]["all_similarities"].append(similarity)
+
+                if similarity > candidate_scores[candidate_word]["best_similarity"]:
+                    candidate_scores[candidate_word]["best_similarity"] = similarity
+                    candidate_scores[candidate_word]["closest_known_word"] = known_word
+
+    ranked_candidates = []
+
+    for candidate_word, data in candidate_scores.items():
+        similarities = sorted(data["all_similarities"], reverse=True)
+
+        top_values = similarities[:top_k_known_words]
+        combined_score = sum(top_values) / len(top_values)
+
+        ranked_candidates.append({
+            "word": candidate_word,
+            "combined_score": combined_score,
+            "closest_similarity": data["best_similarity"],
+            "closest_known_word": data["closest_known_word"]
+        })
+
+    ranked_candidates.sort(
+        key=lambda item: item["combined_score"],
+        reverse=True
     )
-
-    top_k = min(top_k_known_words, len(known_indices))
-
-    top_values, top_positions = similarity_matrix.topk(
-        k=top_k,
-        dim=1
-    )
-
-    combined_scores = top_values.mean(dim=1)
-    closest_similarities = top_values[:, 0]
-
-    ranked_indices = combined_scores.argsort(descending=True)
 
     suggestions = []
 
-    for ranked_index in ranked_indices:
-        ranked_index = int(ranked_index)
-
-        closest_similarity = float(closest_similarities[ranked_index])
-
-        if closest_similarity < min_similarity_to_known:
-            continue
-
-        unknown_word_index = unknown_indices[ranked_index]
-        suggested_word = network_words[unknown_word_index]
-
-        closest_known_position = int(top_positions[ranked_index, 0])
-        closest_known_network_index = known_indices[closest_known_position]
-        closest_known_word = network_words[closest_known_network_index]
-
+    for item in ranked_candidates[:n_suggestions]:
         translation = translate_network_word(
-            word=suggested_word,
-            source_language=language,
+            word=item["word"],
+            source_language="es",
             target_language="en"
         )
 
         suggestions.append({
-            "word": suggested_word,
+            "word": item["word"],
             "translation": translation,
-            "combined_score": round(float(combined_scores[ranked_index]), 4),
-            "closest_known_word": closest_known_word,
-            "closest_similarity": round(closest_similarity, 4)
+            "combined_score": round(float(item["combined_score"]), 4),
+            "closest_known_word": item["closest_known_word"],
+            "closest_similarity": round(float(item["closest_similarity"]), 4)
         })
-
-        if len(suggestions) >= n_suggestions:
-            break
 
     return {
         "suggestions": suggestions,
         "known_word_count": len(known_words),
         "known_words_in_network_count": len(known_words_in_network),
-        "network_word_count": len(network_words),
+        "network_word_count": len(network_word_set),
         "language": language,
         "n_words": n_words
     }
+
+def get_adjacent_network_words_for_deck(
+    deck_id: int,
+    query_word: str,
+    language: str,
+    n_suggestions: int = 20,
+    translate_suggestions: bool = True
+) -> list[dict]:
+    """
+    Return words adjacent to query_word in the cached Spanish threshold network,
+    excluding words already in the selected deck.
+
+    query_word should already be in the network language, e.g. Spanish.
+    """
+
+    query_word = clean_word(query_word)
+
+    if language not in ["spanish", "spa", "es"]:
+        return []
+
+    _, _, adjacency = load_spanish_network()
+
+    deck_words = get_words_in_deck(deck_id)
+    deck_word_set = set(deck_words)
+
+    neighbours = adjacency.get(query_word, [])
+
+    suggestions = []
+
+    for item in neighbours:
+        suggested_word = clean_word(item["word"])
+        similarity = float(item["similarity"])
+
+        if not suggested_word:
+            continue
+
+        if suggested_word in deck_word_set:
+            continue
+
+        if translate_suggestions:
+            translation = translate_network_word(
+                word=suggested_word,
+                source_language="es",
+                target_language="en"
+            )
+        else:
+            translation = ""
+
+        suggestions.append({
+            "word": suggested_word,
+            "translation": translation,
+            "combined_score": round(similarity, 4),
+            "closest_known_word": query_word,
+            "closest_similarity": round(similarity, 4)
+        })
+
+        if len(suggestions) >= n_suggestions:
+            break
+
+    return suggestions
+
+def translate_query_to_network_language(
+    query_word: str,
+    source_language: str = "en",
+    target_language: str = "es"
+) -> str:
+    query_word = clean_word(query_word)
+
+    if not query_word:
+        return ""
+
+    if source_language == target_language:
+        return query_word
+
+    try:
+        translated = GoogleTranslator(
+            source=source_language,
+            target=target_language
+        ).translate(query_word)
+
+        return clean_word(translated)
+
+    except Exception as error:
+        print("QUERY TRANSLATION ERROR:", error)
+        return query_word
