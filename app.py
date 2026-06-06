@@ -617,20 +617,18 @@ def smart_add_card_preview(
             status_code=303
         )
 
-    page_data = get_smart_add_preview_data_from_query(
-        deck_id=deck_id,
-        query_word=query_word,
-    )
+    target_language = language_deck[2]
 
-    target_language = page_data["target_language"]
-    
-
+    # Translate the user's English query into the network language.
+    # For now, your cached network is Spanish.
     network_query_word = translate_query_to_network_language(
         query_word=query_word,
         source_language="en",
         target_language="es"
     )
 
+    # Look up adjacent nodes in the cached network.
+    # translate_suggestions=False keeps this fast.
     word_suggestions = get_adjacent_network_words_for_deck(
         deck_id=deck_id,
         query_word=network_query_word,
@@ -639,39 +637,40 @@ def smart_add_card_preview(
         translate_suggestions=True
     )
 
-    page_data["target_query_word"] = network_query_word
-    page_data["word_suggestions"] = word_suggestions
-    page_data["suggestions"] = word_suggestions
+    page_data = {
+        "decks": [
+            (
+                selected_deck[0],
+                selected_deck[1]
+            )
+        ],
+        "deck_id": deck_id,
+        "language_deck": language_deck,
+        "language_deck_id": language_deck_id,
+        "target_language": target_language,
+        "back_language_deck_id": language_deck_id,
 
-    phrase_suggestions = get_phrase_suggestions(
-        query_word=phrase_query,
-        target_language=target_language,
-        top_n=10,
-        window=2,
-        max_candidates=10000,
-        max_matches=1000
-    )
+        # Original user input
+        "query_word": query_word,
 
-    for item in phrase_suggestions:
-        item["translation"] = translate_word(
-            item["phrase"],
-            source=target_language,
-            target="en"
-        )
+        # Translated Spanish network query
+        "target_query_word": network_query_word,
 
-    page_data["phrase_suggestions"] = phrase_suggestions
-    page_data["phrase_query"] = phrase_query
+        # Word suggestions from cached network
+        "suggestions": [],
+        "word_suggestions": word_suggestions,
 
-    page_data["decks"] = [
-        (
-            selected_deck[0],
-            selected_deck[1]
-        )
-    ]
-    page_data["deck_id"] = deck_id
-    page_data["language_deck"] = language_deck
-    page_data["language_deck_id"] = language_deck_id
-    page_data["back_language_deck_id"] = language_deck_id
+        # Disable phrase suggestions for now because they are slow
+        "phrase_suggestions": [],
+        "phrase_query": network_query_word,
+    }
+
+    print("SMART ADD DEBUG")
+    print("USER QUERY:", query_word)
+    print("NETWORK QUERY:", network_query_word)
+    print("TARGET LANGUAGE:", target_language)
+    print("NUMBER OF WORD SUGGESTIONS:", len(word_suggestions))
+    print("FIRST SUGGESTIONS:", word_suggestions[:5])
 
     return templates.TemplateResponse(
         request,
@@ -763,23 +762,7 @@ def smart_add_card_create(
     page_data["word_suggestions"] = word_suggestions
     page_data["suggestions"] = word_suggestions
 
-    phrase_suggestions = get_phrase_suggestions(
-        query_word=phrase_query,
-        target_language=target_language,
-        top_n=10,
-        window=2,
-        max_candidates=10000,
-        max_matches=1000
-    )
-
-    for item in phrase_suggestions:
-        item["translation"] = translate_word(
-            item["phrase"],
-            source=target_language,
-            target="en"
-        )
-
-    page_data["phrase_suggestions"] = phrase_suggestions
+    page_data["phrase_suggestions"] = []
     page_data["phrase_query"] = phrase_query
 
     page_data["decks"] = [

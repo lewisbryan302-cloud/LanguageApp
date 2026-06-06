@@ -347,13 +347,11 @@ def get_adjacent_network_words_for_deck(
     query_word: str,
     language: str,
     n_suggestions: int = 20,
-    translate_suggestions: bool = True
+    translate_suggestions: bool = False
 ) -> list[dict]:
     """
-    Return words adjacent to query_word in the cached Spanish threshold network,
+    Return words adjacent to query_word in the cached threshold network,
     excluding words already in the selected deck.
-
-    query_word should already be in the network language, e.g. Spanish.
     """
 
     query_word = clean_word(query_word)
@@ -368,7 +366,7 @@ def get_adjacent_network_words_for_deck(
 
     neighbours = adjacency.get(query_word, [])
 
-    suggestions = []
+    word_suggestions = []
 
     for item in neighbours:
         suggested_word = clean_word(item["word"])
@@ -389,18 +387,19 @@ def get_adjacent_network_words_for_deck(
         else:
             translation = ""
 
-        suggestions.append({
+        word_suggestions.append({
             "word": suggested_word,
             "translation": translation,
+            "score": round(similarity, 4),
             "combined_score": round(similarity, 4),
             "closest_known_word": query_word,
-            "closest_similarity": round(similarity, 4)
+            "closest_similarity": round(similarity, 4),
         })
 
-        if len(suggestions) >= n_suggestions:
+        if len(word_suggestions) >= n_suggestions:
             break
 
-    return suggestions
+    return word_suggestions
 
 def translate_query_to_network_language(
     query_word: str,

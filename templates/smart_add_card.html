@@ -607,44 +607,6 @@
                                 value="{{ query_word }}"
                             >
 
-                            <div class="suggestion-group">
-                                <h2>Similar Existing Cards</h2>
-
-                                {% if suggestions %}
-
-                                    {% for card in suggestions %}
-                                        <div class="suggestion-card">
-
-                                            <label>
-                                                <input
-                                                    type="checkbox"
-                                                    name="selected_card_ids"
-                                                    value="{{ card[0] }}"
-                                                >
-
-                                                <div>
-                                                    <div class="suggestion-title">
-                                                        {{ card[1] }} → {{ card[2] }}
-                                                    </div>
-
-                                                    <div class="suggestion-meta">
-                                                        Similarity: {{ "%.2f"|format(card[3]) }}
-                                                    </div>
-                                                </div>
-                                            </label>
-
-                                        </div>
-                                    {% endfor %}
-
-                                {% else %}
-
-                                    <div class="empty-message">
-                                        No similar cards found.
-                                    </div>
-
-                                {% endif %}
-                            </div>
-
                             {% if word_suggestions %}
 
                                 <div class="suggestion-section suggestion-group">
