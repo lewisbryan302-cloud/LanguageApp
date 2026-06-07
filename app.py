@@ -62,8 +62,9 @@ from import_service import import_cards_from_file
 
 from network_service import get_cached_network_suggestions_for_deck
 from network_service import (
-    get_adjacent_network_words_for_deck,
     translate_query_to_network_language,
+    get_adjacent_network_words_for_deck,
+    get_adjacent_existing_cards_for_deck,
 )
 
 from media_import_service import (
@@ -619,16 +620,19 @@ def smart_add_card_preview(
 
     target_language = language_deck[2]
 
-    # Translate the user's English query into the network language.
-    # For now, your cached network is Spanish.
     network_query_word = translate_query_to_network_language(
         query_word=query_word,
         source_language="en",
-        target_language="es"
+        target_language=target_language
     )
 
-    # Look up adjacent nodes in the cached network.
-    # translate_suggestions=False keeps this fast.
+    existing_card_suggestions = get_adjacent_existing_cards_for_deck(
+        deck_id=deck_id,
+        query_word=network_query_word,
+        language=target_language,
+        n_suggestions=20
+    )
+
     word_suggestions = get_adjacent_network_words_for_deck(
         deck_id=deck_id,
         query_word=network_query_word,
@@ -650,17 +654,12 @@ def smart_add_card_preview(
         "target_language": target_language,
         "back_language_deck_id": language_deck_id,
 
-        # Original user input
         "query_word": query_word,
-
-        # Translated Spanish network query
         "target_query_word": network_query_word,
 
-        # Word suggestions from cached network
-        "suggestions": [],
+        "suggestions": existing_card_suggestions,
         "word_suggestions": word_suggestions,
 
-        # Disable phrase suggestions for now because they are slow
         "phrase_suggestions": [],
         "phrase_query": network_query_word,
     }
@@ -669,8 +668,8 @@ def smart_add_card_preview(
     print("USER QUERY:", query_word)
     print("NETWORK QUERY:", network_query_word)
     print("TARGET LANGUAGE:", target_language)
-    print("NUMBER OF WORD SUGGESTIONS:", len(word_suggestions))
-    print("FIRST SUGGESTIONS:", word_suggestions[:5])
+    print("EXISTING MATCHES:", existing_card_suggestions[:5])
+    print("NEW WORD SUGGESTIONS:", word_suggestions[:5])
 
     return templates.TemplateResponse(
         request,
@@ -718,6 +717,8 @@ def smart_add_card_create(
             status_code=303
         )
 
+    target_language = language_deck[2]
+
     inserted_count = create_smart_add_cards_from_query(
         deck_id=deck_id,
         query_word=query_word,
@@ -736,20 +737,22 @@ def smart_add_card_create(
             cards_added_delta=inserted_count
         )
 
-    page_data = get_smart_add_preview_data_from_query(
-        deck_id=deck_id,
-        query_word=query_word,
-    )
-
-    target_language = page_data.get("target_language")
-    phrase_query = network_query_word
-
+    # User query is English. Network query is the target-language version.
     network_query_word = translate_query_to_network_language(
         query_word=query_word,
         source_language="en",
-        target_language="es"
+        target_language=target_language
     )
 
+    # Existing cards already in this deck and adjacent to the query word.
+    existing_card_suggestions = get_adjacent_existing_cards_for_deck(
+        deck_id=deck_id,
+        query_word=network_query_word,
+        language=target_language,
+        n_suggestions=20
+    )
+
+    # New adjacent network words not already in this deck.
     word_suggestions = get_adjacent_network_words_for_deck(
         deck_id=deck_id,
         query_word=network_query_word,
@@ -758,23 +761,32 @@ def smart_add_card_create(
         translate_suggestions=True
     )
 
-    page_data["target_query_word"] = network_query_word
-    page_data["word_suggestions"] = word_suggestions
-    page_data["suggestions"] = word_suggestions
+    page_data = {
+        "decks": [
+            (
+                selected_deck[0],
+                selected_deck[1]
+            )
+        ],
+        "deck_id": deck_id,
+        "language_deck": language_deck,
+        "language_deck_id": language_deck_id,
+        "target_language": target_language,
+        "back_language_deck_id": language_deck_id,
 
-    page_data["phrase_suggestions"] = []
-    page_data["phrase_query"] = phrase_query
+        "query_word": query_word,
+        "target_query_word": network_query_word,
 
-    page_data["decks"] = [
-        (
-            selected_deck[0],
-            selected_deck[1]
-        )
-    ]
-    page_data["deck_id"] = deck_id
-    page_data["language_deck"] = language_deck
-    page_data["language_deck_id"] = language_deck_id
-    page_data["back_language_deck_id"] = language_deck_id
+        # Similar existing cards already in the selected deck
+        "suggestions": existing_card_suggestions,
+
+        # Suggested new cards from adjacent network nodes
+        "word_suggestions": word_suggestions,
+
+        # Disabled for now because phrase extraction was slow
+        "phrase_suggestions": [],
+        "phrase_query": network_query_word,
+    }
 
     if inserted_count > 0:
         page_data["success_message"] = (
@@ -782,6 +794,14 @@ def smart_add_card_create(
         )
     else:
         page_data["success_message"] = "No new cards were added"
+
+    print("SMART ADD CREATE DEBUG")
+    print("USER QUERY:", query_word)
+    print("NETWORK QUERY:", network_query_word)
+    print("TARGET LANGUAGE:", target_language)
+    print("INSERTED COUNT:", inserted_count)
+    print("EXISTING MATCHES:", existing_card_suggestions[:5])
+    print("NEW WORD SUGGESTIONS:", word_suggestions[:5])
 
     return templates.TemplateResponse(
         request,
